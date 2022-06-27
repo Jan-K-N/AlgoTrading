@@ -66,3 +66,5 @@ plt.show
 
 # Export to excel:
 data.to_excel (r'/Users/Jan/Desktop/Løst/test.xlsx', index = False, header=True)
+
+# Test
