@@ -22,4 +22,3 @@ def Stocks_closing_price(vStockList,
         return mData
     else:
         return mData[[iColum]]
-    
