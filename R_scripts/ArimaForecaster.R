@@ -1,8 +1,43 @@
 ###### Function for ARIMA(p,I,q) forecasting ####### 
 
-forecast_arima <- function(vY){
+vY = read.csv("/Users/Jan/Desktop/LøstFB.csv")
+vY = vY[-c(1:700),]
+plot(vY[,2],type = "l")
+
+library(forecast)
+
+
+forecast_arima <- function(vY, w_size = 500){
+  
+  ## Description of the function ##
+  # This function will fit a (optimal) simple arima(p,I,q) model. 
+  # This includes various cyclical components. After this, 
+  # forecasts will be performed and saved in a vector.
+  
   ## Inputs ##
   # vY: Time-series to be forecasted. Usually a series with closing prices.
+  # w_size: Window size to fit the initial model.
   
+  ## Setup ##
+  vY        = as.numeric(vY)
+  vForecast = as.numeric() # Vector to store our forecasts in later.
+  T         = length(vY[,2])
+  iEval     = T - w_size # Number of observations left to be forecasted.
+  
+  
+  
+  ## Modelling ##
+  lFit = auto.arima(vY[,2],seasonal = TRUE,ic = 'aicc')
+  plot(vY[,2], type = "l")
+  lines(fitted(lFit), col = "red")
+  plot(forecasts(lFit, h=1))
+
+    
+  lFit = auto.arima(vY[1:(w_size),2])
+  vForecast = forecast(lFit, h = 1)$mean
+
+  plot(vY[1:w_size,2], type = 'l')
+  points(vForecast)
+  lines(vForecast, col = "red")
   
 }            
