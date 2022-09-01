@@ -17,7 +17,7 @@ connDatabase = sqlite3.connect('/Users/Jan/Desktop/Løst/Programmering/Stocks_al
 #connDatabase = sqlite3.connect(':memory:') # Fresh database.
 cDatabase = connDatabase.cursor()
 
-## Functions: ##
+## Helper functions: ##
 def exchange_components(tickers):
     # Purpose of function: Download tickers and store them in the database.
     # Loop over the tickers:
@@ -26,7 +26,6 @@ def exchange_components(tickers):
         #mStock = mStock.assign(Exchange = market)
         mStock.to_sql(ticker,connDatabase,if_exists='replace')
 
-# Select components:
 def Select_components(ticker_list=C25_tickers, Sheet_name='Sheet'):
     # Description of this function: #
     # The function will download the tickers, given as input, and extract the lastest adj.closing prices.
