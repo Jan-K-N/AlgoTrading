@@ -5,7 +5,30 @@ vY = vY[-c(1:700),]
 plot(vY[,2],type = "l")
 
 library(forecast)
+library("RSQLite")
+library(XLConnect)
+library(xlsx)
 
+install.packages("openxlsx")
+install.packages("data.table")
+# Requiring the packages to be used in the code
+library(openxlsx)
+library(data.table)
+
+con <- dbConnect(RSQLite::SQLite(), "/Users/Jan/Desktop/Løst/Programmering/Stocks_algo/AlgoTrading/Data/Database/Database.db")
+
+res <- dbSendQuery(con,"SELECT * FROM C25 ORDER BY Date DESC LIMIT 1;")
+lol = as.data.frame(dbFetch(res)[6])
+
+wb = createWorkbook()
+
+saveWorkbook(wb,"/Users/Jan/Desktop/test2.xlsx", overwrite = TRUE )
+
+writeData(wb,1,lol)
+
+write.xlsx(lol,"/Users/Jan/Desktop/test2.xlsx", sheetName = "Sheet 1",
+           startCol = "B",
+           startRow = 1)
 
 forecast_arima <- function(vY, w_size = 500){
   
@@ -30,7 +53,7 @@ forecast_arima <- function(vY, w_size = 500){
   lFit = auto.arima(vY[,2],seasonal = TRUE,ic = 'aicc')
   plot(vY[,2], type = "l")
   lines(fitted(lFit), col = "red")
-  plot(forecasts(lFit, h=1))
+  plot(forecast(lFit, h=1))
 
     
   lFit = auto.arima(vY[1:(w_size),2])
