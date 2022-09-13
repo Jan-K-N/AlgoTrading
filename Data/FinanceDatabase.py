@@ -1,6 +1,6 @@
 # Reference: https://www.youtube.com/watch?v=5bUn-D4eL4k&t=0s
 # Load packages:
-import sqlalchemy
+#import sqlalchemy
 import pandas as pd
 
 ###############################################################################
@@ -59,6 +59,63 @@ def Select_components(ticker_list=C25_tickers, Sheet_name='Sheet'):
                          startrow=0,
                          startcol=0,
                          index=False)
+
+def Select_components_historical(ticker_list=C25_tickers, Sheet_name='Sheet'):
+    # Should be the same function as above, but with historical prices for some time period. Should be used in a forecasting function.
+    # The function should be able to be run from R.
+
+    # Update the SQL-database with the newest data:
+    exchange_components(tickers=ticker_list)
+
+    db_list = []
+    stock_list = []
+    stock_list2 = [] # This is the list to store growth in.
+    stock_list2_names = []
+
+    for db_name in cDatabase.execute("SELECT name FROM sqlite_master WHERE type = 'table'"):
+        db_list.append(db_name)
+    for x in range(0, len(db_list)):
+        # We now build the string ticker we want to search for:
+        sTicker = str(db_list[x])
+        sTicker2 = sTicker.replace("('", '')
+        sTicker_final = sTicker2.replace("',)", '')
+
+        if sTicker_final in ticker_list:
+            stock_list2_names.append(sTicker_final)
+            # Build query:
+            query = """SELECT * FROM""" + " " + "[" + sTicker_final + "]"
+            query = str(query)
+            # Save:
+            df = pd.read_sql_query(query, connDatabase)
+            df.insert(0, '', sTicker_final)
+            iClose = df[df.columns[[0, 6]]]
+            stock_list.append(iClose)
+
+    for x1 in range(0,len(stock_list)):
+
+        # Compute change in percentage:
+        stock_list2.append(100*(stock_list[x1].iloc[10, 1] - stock_list[x1].iloc[0, 1]) / (stock_list[x1].iloc[0, 1]))
+
+    # Insert into excel:
+    stock_list2_names = pd.DataFrame(stock_list2_names)
+    stock_list3df = pd.DataFrame(stock_list2)
+    stock_list3df.insert(0, '',stock_list2_names)
+
+
+    #iClose = df[df.columns[[0, 6]]]
+    #df2 = pd.concat([iClose, df2], ignore_index=True)
+
+    stock_list3df.to_excel("/Users/Jan/Desktop/Løst/Programmering/Stocks_algo/AlgoTrading/FrontEnd/AlgoFrontEnd.xlsx",
+                 sheet_name=Sheet_name,
+                 startrow=0,
+                 startcol=2,
+                 index=False
+                           )
+
+    return df
+
+Select_components()
+Select_components_historical()
 
 #### Download data:
 
