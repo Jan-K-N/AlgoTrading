@@ -1,10 +1,10 @@
 ## ---- Import functions ## ----
 import matplotlib.pyplot as plt
-from AlgoTrading.Data.Data1 import Stocks_closing_price
+from AlgoTrading.Data.FinanceDatabase import Select_components_historical
 import datetime as dt
 plt.style.use("dark_background")  # Here we add a style to our plots.
 
-def MA_crossover(vStockList,
+def MA_crossover(ticker_list = 'FLS.CO',
                  start = dt.datetime.now() - dt.timedelta(days = 365 *3),
                  end = dt.datetime.now(),
                  ma_1 = 30,
@@ -16,6 +16,7 @@ def MA_crossover(vStockList,
     # https://www.youtube.com/watch?v=FEDBsbTFG1o
 
     ## ---- Inputs explained ## ----
+    # ticker_list: Stocks to be considered. Should be of the form: ticker_list = ['ticker']
     # start: This is the start time-stamp to consider.
     # end: The end time-stamp to consider.
     # ma_1: Length of the shortes moving average.
@@ -29,14 +30,15 @@ def MA_crossover(vStockList,
     trigger = 0  # Without this, we cannot notice changes.
 
     ## ---- Get data ## ----
-    data = Stocks_closing_price(vStockList,start = start, end = end, iColum = iColum)
+    #data = Stocks_closing_price(vStockList,start = start, end = end, iColum = iColum)
+    data = Select_components_historical(ticker_list = ['FLS.CO'])
 
-    if iColum == 0:
+    #if iColum == 0:
         data[f'SMA_{ma_1}'] = data['Adj Close'].rolling(window=ma_1).mean()
         data[f'SMA_{ma_2}'] = data['Adj Close'].rolling(window=ma_2).mean()
-    else:
-        data[f'SMA_{ma_1}'] = data[iColum].rolling(window=ma_1).mean()
-        data[f'SMA_{ma_2}'] = data[iColum].rolling(window=ma_2).mean()
+    #else:
+        #data[f'SMA_{ma_1}'] = data[iColum].rolling(window=ma_1).mean()
+        #data[f'SMA_{ma_2}'] = data[iColum].rolling(window=ma_2).mean()
 
     data = data.iloc[ma_2:]  # Let the data begin from ma_2
 
@@ -67,3 +69,5 @@ def MA_crossover(vStockList,
 
     return print(data,
                  plt.show)
+
+MA_crossover(ticker_list = ['GMAB.CO'], strat_plot=True)
