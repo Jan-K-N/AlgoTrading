@@ -1,8 +1,9 @@
 ## ---- Import functions ## ----
+from multiprocessing.dummy import Array
 import matplotlib.pyplot as plt
 from AlgoTrading.Data.FinanceDatabase import Select_components_historical
 import datetime as dt
-plt.style.use("dark_background")  # Here we add a style to our plots.
+plt.style.use("classic")  # Here we add a style to our plots.
 
 def MA_crossover(ticker_list = 'FLS.CO',
                  start = dt.datetime.now() - dt.timedelta(days = 365 *3),
@@ -11,7 +12,6 @@ def MA_crossover(ticker_list = 'FLS.CO',
                  ma_2 = 100,
                  iColum = 0,
                  strat_plot = False):
-
     ## ---- References ## ----
     # https://www.youtube.com/watch?v=FEDBsbTFG1o
 
@@ -28,20 +28,11 @@ def MA_crossover(ticker_list = 'FLS.CO',
     buy_signals = []
     sell_signals = []
     trigger = 0  # Without this, we cannot notice changes.
-
     ## ---- Get data ## ----
-    #data = Stocks_closing_price(vStockList,start = start, end = end, iColum = iColum)
-    data = Select_components_historical(ticker_list = ['FLS.CO'])
-
-    #if iColum == 0:
-        data[f'SMA_{ma_1}'] = data['Adj Close'].rolling(window=ma_1).mean()
-        data[f'SMA_{ma_2}'] = data['Adj Close'].rolling(window=ma_2).mean()
-    #else:
-        #data[f'SMA_{ma_1}'] = data[iColum].rolling(window=ma_1).mean()
-        #data[f'SMA_{ma_2}'] = data[iColum].rolling(window=ma_2).mean()
-
+    data = Select_components_historical(ticker_list=['FLS.CO'])
+    data[f'SMA_{ma_1}'] = data['Adj Close'].rolling(window=ma_1).mean()
+    data[f'SMA_{ma_2}'] = data['Adj Close'].rolling(window=ma_2).mean()
     data = data.iloc[ma_2:]  # Let the data begin from ma_2
-
     for x in range(len(data)):
         # First we implement the buy signal:
         if data[f'SMA_{ma_1}'].iloc[x] > data[f'SMA_{ma_2}'].iloc[x] and trigger != 1:
@@ -55,7 +46,6 @@ def MA_crossover(ticker_list = 'FLS.CO',
         else:
             buy_signals.append(float('nan'))
             sell_signals.append(float('nan'))
-
     data['Buy Signals'] = buy_signals
     data['Sell Signals'] = sell_signals
 
@@ -67,7 +57,6 @@ def MA_crossover(ticker_list = 'FLS.CO',
         plt.scatter(data.index, data['Sell Signals'], label="Sell Signal", marker="v", color="#ff0000", lw=3)
         plt.legend(loc="upper left")
 
+    # Make the list to return:
     return print(data,
-                 plt.show)
-
-MA_crossover(ticker_list = ['GMAB.CO'], strat_plot=True)
+                    plt.show)
