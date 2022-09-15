@@ -2,7 +2,6 @@
 # Load packages:
 #import sqlalchemy
 import pandas as pd
-
 ###############################################################################
 # DATABASE
 ###############################################################################
@@ -10,12 +9,20 @@ import sqlite3
 import yfinance as yf
 import pandas as pd
 from openpyxl import load_workbook
+from operator import itemgetter
+
 import yahoo_fin.stock_info as si # Use this to scrape ticker lists. Can only be used for popular exchanges, however. http://theautomatic.net/yahoo_fin-documentation/
 
 ## Setup of database: ##
-connDatabase = sqlite3.connect('/Users/Jan/Desktop/Løst/Programmering/Stocks_algo/AlgoTrading/Data/Database/Database.db') # Create a db file with a connection.
+connDatabase = sqlite3.connect('/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/Data/Database/Database.db') # Create a db file with a connection.
 #connDatabase = sqlite3.connect(':memory:') # Fresh database.
 cDatabase = connDatabase.cursor()
+
+## Definition of stuff:
+C25_tickers = ['ROCK-B.CO','GMAB.CO','NDA-DK.CO','CHR.CO','ISS.CO','RBREW.CO',
+               'DEMANT.CO','MAERSK-B.CO','CARL-B.CO','BAVA.CO','VWS.CO','NZYM-B.CO',
+               'NOVO-B.CO','DANSKE.CO','MAERSK-A.CO','DSV.CO','TRYG.CO','PNDORA.CO',
+               'NETC.CO','JYSK.CO','COLO-B.CO','FLS.CO','GN.CO','AMBU-B.CO','ORSTED.CO']
 
 ## Helper functions: ##
 def exchange_components(tickers):
@@ -60,18 +67,14 @@ def Select_components(ticker_list=C25_tickers, Sheet_name='Sheet'):
                          startcol=0,
                          index=False)
 
-def Select_components_historical(ticker_list=C25_tickers, Sheet_name='Sheet'):
-    # Should be the same function as above, but with historical prices for some time period. Should be used in a forecasting function.
-    # The function should be able to be run from R.
-
+def Select_components_historical(ticker_list=C25_tickers, start = '2022-01-13'):
     # Update the SQL-database with the newest data:
     exchange_components(tickers=ticker_list)
-
-    db_list = []
-    stock_list = []
-    stock_list2 = [] # This is the list to store growth in.
-    stock_list2_names = []
-
+    # Make some containers:
+    db_list=[]
+    stock_list={}
+    stock_list2_names=[]
+    # Open loop:
     for db_name in cDatabase.execute("SELECT name FROM sqlite_master WHERE type = 'table'"):
         db_list.append(db_name)
     for x in range(0, len(db_list)):
@@ -79,7 +82,6 @@ def Select_components_historical(ticker_list=C25_tickers, Sheet_name='Sheet'):
         sTicker = str(db_list[x])
         sTicker2 = sTicker.replace("('", '')
         sTicker_final = sTicker2.replace("',)", '')
-
         if sTicker_final in ticker_list:
             stock_list2_names.append(sTicker_final)
             # Build query:
@@ -87,35 +89,20 @@ def Select_components_historical(ticker_list=C25_tickers, Sheet_name='Sheet'):
             query = str(query)
             # Save:
             df = pd.read_sql_query(query, connDatabase)
-            df.insert(0, '', sTicker_final)
-            iClose = df[df.columns[[0, 6]]]
-            stock_list.append(iClose)
-
-    for x1 in range(0,len(stock_list)):
-
-        # Compute change in percentage:
-        stock_list2.append(100*(stock_list[x1].iloc[10, 1] - stock_list[x1].iloc[0, 1]) / (stock_list[x1].iloc[0, 1]))
-
-    # Insert into excel:
-    stock_list2_names = pd.DataFrame(stock_list2_names)
-    stock_list3df = pd.DataFrame(stock_list2)
-    stock_list3df.insert(0, '',stock_list2_names)
-
-
-    #iClose = df[df.columns[[0, 6]]]
-    #df2 = pd.concat([iClose, df2], ignore_index=True)
-
-    stock_list3df.to_excel("/Users/Jan/Desktop/Løst/Programmering/Stocks_algo/AlgoTrading/FrontEnd/AlgoFrontEnd.xlsx",
-                 sheet_name=Sheet_name,
-                 startrow=0,
-                 startcol=2,
-                 index=False
-                           )
-
-    return df
-
-Select_components()
-Select_components_historical()
+            #df.insert(0, '', sTicker_final)
+            # Extract relevant dates:
+            iStart = df.Date[df.Date == start + " " + '00:00:00'].index.tolist()
+            iStart = ' '.join([str(elem) for i,elem in enumerate(iStart)])
+            iStart = int(iStart)
+            df = df.tail(len(df)-iStart)
+            # Do some last setup of the df dataframe, before we pass it to stock_list
+            df = df.reset_index(drop = True) # Reset the index.
+            df['Date'] = pd.to_datetime(df['Date'])
+            df['Date'] = df['Date'].dt.strftime('%m-%d-%Y') # Adjust date format.
+            # Pass df to stock_list
+            stock_list.update({sTicker_final:df})
+    # Return:
+    return stock_list
 
 #### Download data:
 
@@ -127,11 +114,6 @@ connDatabase.commit()
 ## Components of C25:
 
 # Define tickers:
-C25_tickers = ['ROCK-B.CO','GMAB.CO','NDA-DK.CO','CHR.CO','ISS.CO','RBREW.CO',
-               'DEMANT.CO','MAERSK-B.CO','CARL-B.CO','BAVA.CO','VWS.CO','NZYM-B.CO',
-               'NOVO-B.CO','DANSKE.CO','MAERSK-A.CO','DSV.CO','TRYG.CO','PNDORA.CO',
-               'NETC.CO','JYSK.CO','COLO-B.CO','FLS.CO','GN.CO','AMBU-B.CO','ORSTED.CO']
-
 exchange_components(tickers = C25_tickers)
 
 
@@ -139,3 +121,6 @@ exchange_components(tickers = C25_tickers)
 SP500df = yf.download("^GSPC")
 SP500df.to_sql('S&P500', connDatabase,if_exists='replace')
 connDatabase.commit()
+
+## Components of S&P500:
+exchange_components(tickers = ['TSLA'])
