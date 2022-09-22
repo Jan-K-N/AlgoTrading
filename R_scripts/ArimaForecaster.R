@@ -1,36 +1,30 @@
 ###### Function for ARIMA(p,I,q) forecasting ####### 
-
-vY = read.csv("/Users/Jan/Desktop/LøstFB.csv")
-vY = vY[-c(1:700),]
-plot(vY[,2],type = "l")
-
 library(forecast)
 library("RSQLite")
 library(XLConnect)
 library(xlsx)
-
-install.packages("openxlsx")
-install.packages("data.table")
-# Requiring the packages to be used in the code
-library(openxlsx)
+#library(reticulate) # By this we can talk with python.
+library(assertive.base)
+library(reshape2)
 library(data.table)
+library(tseries)
 
-con <- dbConnect(RSQLite::SQLite(), "/Users/Jan/Desktop/Løst/Programmering/Stocks_algo/AlgoTrading/Data/Database/Database.db")
+for_errors <- function(y,yhat){
+  ehat <- tail(y, n = length(yhat))  - yhat   # tail specifies that we want the n last obs in the vector
+  mse <- ((1/length(ehat)*(sum(ehat^2)))^0.5)
+  mae <- (1/length(ehat)*sum(abs(ehat)))
+  
+  list.out <- list(
+    "ehat" = ehat ,
+    "msfe" = mse ,
+    "mae" = mae
+  )
+  return(list.out)
+}
 
-res <- dbSendQuery(con,"SELECT * FROM C25 ORDER BY Date DESC LIMIT 1;")
-lol = as.data.frame(dbFetch(res)[6])
 
-wb = createWorkbook()
-
-saveWorkbook(wb,"/Users/Jan/Desktop/test2.xlsx", overwrite = TRUE )
-
-writeData(wb,1,lol)
-
-write.xlsx(lol,"/Users/Jan/Desktop/test2.xlsx", sheetName = "Sheet 1",
-           startCol = "B",
-           startRow = 1)
-
-forecast_arima <- function(vY, w_size = 500){
+forecast_arima <- function(sTicker, w_size = 200, start = "2019-01-15",h = 1,
+                           maxp = 1, maxq = 1){
   
   ## Description of the function ##
   # This function will fit a (optimal) simple arima(p,I,q) model. 
@@ -38,29 +32,91 @@ forecast_arima <- function(vY, w_size = 500){
   # forecasts will be performed and saved in a vector.
   
   ## Inputs ##
-  # vY: Time-series to be forecasted. Usually a series with closing prices.
+  # sTicker: Time-series to be forecasted. Usually a series with closing prices.
   # w_size: Window size to fit the initial model.
   
-  ## Setup ##
-  vY        = as.numeric(vY)
-  vForecast = as.numeric() # Vector to store our forecasts in later.
-  T         = length(vY[,2])
-  iEval     = T - w_size # Number of observations left to be forecasted.
+  ## Download data from database: ##
+  con <- dbConnect(RSQLite::SQLite(), "/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/Data/Database/Database.db")
   
+  # Build the query to get the data:
+  str1 = 'SELECT'
+  str2 = '*'
+  str3 = 'FROM'
+  str4 = parenthesize(
+    sTicker,
+    type = "square_brackets")
+  query = paste(str1,str2,str3,str4,sep=" ")
   
+  res <- dbSendQuery(con,query)
+  mData =  as.data.frame(dbFetch(res)[,c(1,6)])
   
-  ## Modelling ##
-  lFit = auto.arima(vY[,2],seasonal = TRUE,ic = 'aicc')
-  plot(vY[,2], type = "l")
-  lines(fitted(lFit), col = "red")
-  plot(forecast(lFit, h=1))
 
-    
-  lFit = auto.arima(vY[1:(w_size),2])
-  vForecast = forecast(lFit, h = 1)$mean
+  # Extract relevant dates:
+  mData = mData[-c(1:which(mData$Date == paste(start,'00:00:00', sep = " "))),]
+  rownames(mData) <- 1:nrow(mData) # Adjust rownames.
+  
+  ##--- Setup: ---##
+  nModels = maxp * maxq
+  mForecast = (matrix(data = 0, nrow = iEval , ncol = nModels)) # Matrix to store our forecasts in later.
+  T         = dim(mData)[1]
+  iEval     = (T - w_size) # Number of observations left to be forecasted.
+  iTrain    = w_size
+  lFit     = list()
+  lForecast = list()
+  #vErrors = matrix(data = NA, nrow = 1, ncol = nModels)
+  vErrors = array(data = NA, dim = c(1,nModels,3))
+    # [,,1] Will be the actual errors.
+    # [,,2] p order.
+    # [,,3] q order.
+  ##--- Algo begin: ---##
+    # Steps: Make this approach iterative, i.e., repeat the rutine each time a new observation becomes available.
+      # 1: Fit the model on training data.
+        # Use IC.
+      # 2: Forecast using the model selected in 1.
+      # 3: Compute errors.
+      # 4: Select the model with the smallest errors.
+      # 5: Compute actual out-of-sample forecasts.
+  
+  mCombi = expand.grid(seq(1:maxp),seq(1:maxq))
+  for(i in 1:(iEval)){
+    for(j in 1:nModels){
+        ## 1: Fit the models:
+        p = mCombi[j,1]
+        q = mCombi[j,2]
+        
+        if(adf.test(mData[,2])$p.value > 0.05){
+          lFit[[j]] = arima(mData[1:(iTrain + (i) - 1), 2], order = c(p,1,q), method = "CSS")
+        }else{
+              
+          lFit[[j]] = arima(mData[1:(iTrain + (i) - 1), 2], order = c(p,0,q), method = "CSS")
+        }
+        
+        ## 2: Forecasts and store the forecasts:
+        lForecast[[j]]    = forecast(lFit[[j]],h=h)
+        mForecast[i,j] = as.matrix(lForecast[[j]]$mean)[h,]  
 
-  plot(vY[1:w_size,2], type = 'l')
-  points(vForecast)
-  lines(vForecast, col = "red")
+        }
+  }
+  
+  ## 3: Compute errors.
+  for(j in 1:nModels){
+    vErrors[1,j,1] = for_errors(mData[,2],mForecast[,j])$mae
+    vErrors[1,j,2] = mCombi[j,1]
+    vErrors[1,j,3] = mCombi[j,2]
+  }
+  
+  ## 4: Select the model with the smallest errors.
+  iMin = which.min(vErrors[,,1])
+  finalp = vErrors[1,iMin,2]
+  finalq = vErrors[1,iMin,3]
+  
+  ## 5: Compute actual out-of-sample forecasts.
+  fitfinal = arima(mData[,2], order = c(finalp,1,finalq))
+  forecastfinal = forecast(fitfinal, h = h)
+  plotfinal = plot(forecastfinal)
+  
+  # Return:
+  return(plotfinal)
   
 }            
+
