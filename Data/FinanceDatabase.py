@@ -7,7 +7,6 @@ import pandas as pd
 ###############################################################################
 import sqlite3
 import yfinance as yf
-import pandas as pd
 from openpyxl import load_workbook
 from operator import itemgetter
 
@@ -24,7 +23,7 @@ C25_tickers = ['ROCK-B.CO','GMAB.CO','NDA-DK.CO','CHR.CO','ISS.CO','RBREW.CO',
                'NOVO-B.CO','DANSKE.CO','MAERSK-A.CO','DSV.CO','TRYG.CO','PNDORA.CO',
                'NETC.CO','JYSK.CO','COLO-B.CO','FLS.CO','GN.CO','AMBU-B.CO','ORSTED.CO']
 
-## Helper functions: ##
+## ------------ Helper functions: ------------  ##
 def exchange_components(tickers):
     # Purpose of function: Download tickers and store them in the database.
     # Loop over the tickers:
@@ -61,13 +60,13 @@ def Select_components(ticker_list=C25_tickers, Sheet_name='Sheet'):
             iClose = df[df.columns[[0, 6]]]
             df2 = pd.concat([iClose, df2], ignore_index=True)
 
-            df2.to_excel("/Users/Jan/Desktop/Løst/Programmering/Stocks_algo/AlgoTrading/FrontEnd/AlgoFrontEnd.xlsx",
+            df2.to_excel("/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/FrontEnd/AlgoFrontEnd.xlsx",
                          sheet_name=Sheet_name,
                          startrow=0,
                          startcol=0,
                          index=False)
 
-def Select_components_historical(ticker_list=C25_tickers, start = '2022-01-13'):
+def Select_components_historical(ticker_list=C25_tickers, start = None):
     # Update the SQL-database with the newest data:
     exchange_components(tickers=ticker_list)
     # Make some containers:
@@ -90,37 +89,49 @@ def Select_components_historical(ticker_list=C25_tickers, start = '2022-01-13'):
             # Save:
             df = pd.read_sql_query(query, connDatabase)
             #df.insert(0, '', sTicker_final)
-            # Extract relevant dates:
-            iStart = df.Date[df.Date == start + " " + '00:00:00'].index.tolist()
-            iStart = ' '.join([str(elem) for i,elem in enumerate(iStart)])
-            iStart = int(iStart)
-            df = df.tail(len(df)-iStart)
-            # Do some last setup of the df dataframe, before we pass it to stock_list
-            df = df.reset_index(drop = True) # Reset the index.
-            df['Date'] = pd.to_datetime(df['Date'])
-            df['Date'] = df['Date'].dt.strftime('%m-%d-%Y') # Adjust date format.
-            # Pass df to stock_list
-            stock_list.update({sTicker_final:df})
+            if start is None:
+                # Since no start date is provided to use, we do some 
+                # last setup of the df dataframe, before we pass it to stock_list
+                df = df.reset_index(drop = True) # Reset the index.
+                df['Date'] = pd.to_datetime(df['Date'])
+                df['Date'] = df['Date'].dt.strftime('%m-%d-%Y') # Adjust date format.
+                # Pass df to stock_list
+                stock_list.update({sTicker_final:df})
+            else:
+                # Extract relevant dates:
+                iStart = df.Date[df.Date == start + " " + '00:00:00'].index.tolist()
+                iStart = ' '.join([str(elem) for i,elem in enumerate(iStart)])
+                iStart = int(iStart)
+                df = df.tail(len(df)-iStart)
+
+                # Do some last setup of the df dataframe, before we pass it to stock_list
+                df = df.reset_index(drop = True) # Reset the index.
+                df['Date'] = pd.to_datetime(df['Date'])
+                df['Date'] = df['Date'].dt.strftime('%m-%d-%Y') # Adjust date format.
+                # Pass df to stock_list
+                stock_list.update({sTicker_final:df})
     # Return:
     return stock_list
 
-#### Download data:
-
-## C25:
-C25df = yf.download("^OMXC25")
-C25df.to_sql('C25', connDatabase,if_exists='replace')
-connDatabase.commit()
-
-## Components of C25:
-
-# Define tickers:
-exchange_components(tickers = C25_tickers)
-
-
-## S&P500:
-SP500df = yf.download("^GSPC")
-SP500df.to_sql('S&P500', connDatabase,if_exists='replace')
-connDatabase.commit()
-
-## Components of S&P500:
-exchange_components(tickers = ['TSLA'])
+def MACD_to_sql(ticker_list = C25_tickers,Buy = None):
+    if Buy == True:
+        ## Setup of database: ##
+        connDatabaseMACD = sqlite3.connect('/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/Data/Database/DatabaseMACDBuy.db') # Create a db file with a connection.
+        #connDatabase = sqlite3.connect(':memory:') # Fresh database.
+        cDatabaseMACD = connDatabaseMACD.cursor()
+        for ticker in ticker_list:
+            pdMACD = MACD_strategy([ticker])[0]
+            pdMACD = pd.DataFrame(pdMACD)
+            pdMACD.to_sql(str(ticker),connDatabaseMACD, if_exists = 'replace')
+            connDatabaseMACD.commit()
+    else:
+        ## Setup of database: ##
+        connDatabaseMACD = sqlite3.connect('/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/Data/Database/DatabaseMACDSell.db') # Create a db file with a connection.
+        #connDatabase = sqlite3.connect(':memory:') # Fresh database.
+        cDatabaseMACD = connDatabaseMACD.cursor()
+        for ticker in ticker_list:
+            pdMACD = MACD_strategy([ticker])[1]
+            pdMACD = pd.DataFrame(pdMACD)
+            pdMACD.to_sql(str(ticker),connDatabaseMACD, if_exists = 'replace')
+            connDatabaseMACD.commit()
+    return print("Done")

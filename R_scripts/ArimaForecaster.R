@@ -23,7 +23,7 @@ for_errors <- function(y,yhat){
 }
 
 
-forecast_arima <- function(sTicker, w_size = 200, start = "2019-01-15",h = 1,
+forecast_arima <- function(sTicker = NULL, df = NULL, w_size = 200, start = "2019-01-15",h = 1,
                            maxp = 1, maxq = 1){
   
   ## Description of the function ##
@@ -35,31 +35,56 @@ forecast_arima <- function(sTicker, w_size = 200, start = "2019-01-15",h = 1,
   # sTicker: Time-series to be forecasted. Usually a series with closing prices.
   # w_size: Window size to fit the initial model.
   
-  ## Download data from database: ##
-  con <- dbConnect(RSQLite::SQLite(), "/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/Data/Database/Database.db")
+  if(is.null(df)){
+    ## Download data from database: ##
+    con <- dbConnect(RSQLite::SQLite(), "/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/Data/Database/Database.db")
+    
+    # Build the query to get the data:
+    str1 = 'SELECT'
+    str2 = '*'
+    str3 = 'FROM'
+    str4 = parenthesize(
+      sTicker,
+      type = "square_brackets")
+    query = paste(str1,str2,str3,str4,sep=" ")
+    
+    res <- dbSendQuery(con,query)
+    mData =  as.data.frame(dbFetch(res)[,c(1,6)])
   
-  # Build the query to get the data:
-  str1 = 'SELECT'
-  str2 = '*'
-  str3 = 'FROM'
-  str4 = parenthesize(
-    sTicker,
-    type = "square_brackets")
-  query = paste(str1,str2,str3,str4,sep=" ")
-  
-  res <- dbSendQuery(con,query)
-  mData =  as.data.frame(dbFetch(res)[,c(1,6)])
+    # Extract relevant dates:
+    mData[,1] = as.Date(mData[,1], format = "%Y-%m-%d")
+    #mData = mData[-c(1:which(mData$Date == paste(start,'00:00:00', sep = " "))),]
+    mData = mData[-c(1:(which(mData[,1] == start))-1),]
+    rownames(mData) <- 1:nrow(mData) # Adjust rownames.
+  }
+  # else{
+    # if(dim(df)[2] == 2){
+    #   mData = df
+    #   # Extract relevant dates:
+    #   #mData = mData[-c(1:which(mData[,1] == paste(start,'00:00:00', sep = " "))),]
+    #   mData = mData[-c(1:which(mData[,1] == start)),]
+    #   rownames(mData) <- 1:nrow(mData) # Adjust rownames.
+    # }
+    #else{
+      df = as.data.frame(df)
+      mData = df[,c(1,6)]
+      mData[,1] = as.Date(mData[,1], format = "%Y-%m-%d")
+      # Extract relevant dates:
+      #mData = mData[-c(1:which(mData[,1] == paste(start,'00:00:00', sep = " "))),]
+      mData = mData[-c(1:which(mData[,1] == start)),]
+      rownames(mData) <- 1:nrow(mData) # Adjust rownames.
+    # }
+
+
+  #}
   
 
-  # Extract relevant dates:
-  mData = mData[-c(1:which(mData$Date == paste(start,'00:00:00', sep = " "))),]
-  rownames(mData) <- 1:nrow(mData) # Adjust rownames.
   
   ##--- Setup: ---##
   nModels = maxp * maxq
-  mForecast = (matrix(data = 0, nrow = iEval , ncol = nModels)) # Matrix to store our forecasts in later.
   T         = dim(mData)[1]
   iEval     = (T - w_size) # Number of observations left to be forecasted.
+  mForecast = (matrix(data = 0, nrow = iEval , ncol = nModels)) # Matrix to store our forecasts in later.
   iTrain    = w_size
   lFit     = list()
   lForecast = list()
@@ -85,10 +110,14 @@ forecast_arima <- function(sTicker, w_size = 200, start = "2019-01-15",h = 1,
         q = mCombi[j,2]
         
         if(adf.test(mData[,2])$p.value > 0.05){
-          lFit[[j]] = arima(mData[1:(iTrain + (i) - 1), 2], order = c(p,1,q), method = "CSS")
+          lFit[[j]] = Arima(mData[1:(iTrain + (i) - 1), 2], order = c(p,1,q),
+                            optim.control = list(maxit = 8000))
+          # lFit[[j]] = auto.arima(mData[1:(iTrain + (i) - 1), 2])
         }else{
               
-          lFit[[j]] = arima(mData[1:(iTrain + (i) - 1), 2], order = c(p,0,q), method = "CSS")
+          lFit[[j]] = Arima(mData[1:(iTrain + (i) - 1), 2], order = c(p,0,q),
+                            optim.control = list(maxit = 8000))
+          # lFit[[j]] = auto.arima(mData[1:(iTrain + (i) - 1), 2])
         }
         
         ## 2: Forecasts and store the forecasts:
@@ -111,12 +140,19 @@ forecast_arima <- function(sTicker, w_size = 200, start = "2019-01-15",h = 1,
   finalq = vErrors[1,iMin,3]
   
   ## 5: Compute actual out-of-sample forecasts.
-  fitfinal = arima(mData[,2], order = c(finalp,1,finalq))
+  fitfinal = Arima(mData[,2], order = c(finalp,1,finalq),optim.control = list(maxit = 8000))
   forecastfinal = forecast(fitfinal, h = h)
-  plotfinal = plot(forecastfinal)
+  #plotfinal = plot(forecastfinal)
   
   # Return:
-  return(plotfinal)
+  lOut = list("ForecastObject" = forecastfinal,
+              "Forecast" = forecastfinal$mean)
+  return(lOut)
   
-}            
+}         
 
+test = forecast_arima(df = FLStest[,c(1,6)], h = 6)
+test = forecast_arima(sTicker = 'AMBU-B.CO', h = 6)
+test[["Forecast"]]
+
+dim(FLStest[,c(1,6)])[2]
