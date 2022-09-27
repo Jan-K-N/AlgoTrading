@@ -1,10 +1,25 @@
+def MACD(ticker_list = ['FLS.CO','TRYG.CO']):
+    df = Select_components_historical(ticker_list=ticker_list)
+    df_dict={}
+    # Insert data. Our object is of type dict, so we must use df[][]
+    for i in ticker_list:
+        df[i]['EMA12'] = df[i].Close.ewm(span = 12).mean()
+        df[i]['EMA26'] = df[i].Close.ewm(span = 26).mean()
+        df[i]['MACD'] = df[i].EMA12 - df[i].EMA26
+        df[i]['signal'] = df[i].MACD.ewm(span = 9).mean()
+        
+        df_dict.update(df)
+    
+    return df_dict
+
+
 def MACD_strategy(ticker_list = ['FLS.CO']):
     # Make containers: #
-    #dfReturns = pd.DataFrame(index=range(2),columns=range(1))
     dfReturns = []
     Buy,Sell = [], []
     iAvgProfit = []
     profitsrel = []
+    lOut = []
 
     df = MACD(ticker_list = ticker_list)
     
@@ -33,13 +48,6 @@ def MACD_strategy(ticker_list = ['FLS.CO']):
             profitsrel.append((Sellprices['Open'].iloc[i]- Buyprices['Open'].iloc[i])/Buyprices['Open'].iloc[i])
         # Average profit:
         iAvgProfit = sum(profitsrel)/len(profitsrel)
-    return iAvgProfit
-
-# Example of usage:
-test = MACD_strategy(ticker_list = ['FLS.CO'])
-test
-
-# Example of usage:
-ticker_list2 = ['FLS.CO','TRYG.CO','DANSKE.CO','JYSK.CO']
-for ticker in ticker_list2:
-    MACD_strategy([ticker])*100 
+    # Store in lOut:
+    lOut =  Buyprices,Sellprices
+    return lOut
