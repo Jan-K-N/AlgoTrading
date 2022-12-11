@@ -11,7 +11,6 @@ def MA_crossover(ticker_list = 'FLS.CO',
                  ma_2 = 100,
                  transaction_costs = 0.1):
     ## ---- References ## ----
-    # https://www.youtube.com/watch?v=FEDBsbTFG1o
 
     ## ---- Inputs explained ## ----
     # ticker_list: Stocks to be considered. Should be of the form: ticker_list = ['ticker']
