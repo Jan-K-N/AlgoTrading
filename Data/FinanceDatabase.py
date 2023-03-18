@@ -1,3 +1,6 @@
+"""
+Main Finance Database script.
+"""
 # Reference: https://www.youtube.com/watch?v=5bUn-D4eL4k&t=0s
 # Load packages:
 #import sqlalchemy
