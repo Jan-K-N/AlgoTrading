@@ -1,3 +1,12 @@
+
+
+
+
+
+### Consider deleting this script!
+
+
+
 ## ---- Import functions ## ----
 from multiprocessing.dummy import Array
 import matplotlib.pyplot as plt
