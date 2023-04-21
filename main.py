@@ -1,5 +1,10 @@
-# This is the main script. From this script we will call the functions from the other scripts,
-# and then inspect them/do analysis.
+"""
+This is the main script. From this script we will call the functions from the other scripts,
+and then inspect them and do analysis. This involves making various charts etc.
+"""
+
+
+
 import os
 
 os.chdir(r"/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading") # Change wd.
