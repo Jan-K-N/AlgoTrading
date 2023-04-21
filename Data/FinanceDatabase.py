@@ -135,138 +135,65 @@ def download_data(ticker = 'FLS', start = None):
     # Specify what to return:
     return df
 
-
 for ticker in ['TSLA','DSV']:
     print(download_data(ticker=ticker)[['Date','Adj Close']])
     
-
-
 #############################################################################################################################
 
-# Below is old code.
+# Below is the new data setup:
+import yfinance as yf
+import datetime
+import pandas as pd
+
+from datetime import date, timedelta
 
 
-
-
-
-
-def Select_components(ticker_list=C25_tickers, Sheet_name='Sheet'):
+class Database():
+        
+    end = date.today()
+    start = end - timedelta(days=3*365)
     
-    """
-    # Description of this function: #
-    # The function will download the tickers, given as input, and extract the lastest adj.closing prices.
-    # Finally, these will be stored/reported in our front-end excel document.
-    """
+    end = end.strftime("%Y-%m-%d")
+    start = start.strftime("%Y-%m-%d")
+
+    def __init__(self,start=start,end=end):
+        self.start = start
+        self.end = end
+        
+    def get_PriceData(start=start,end=end, ticker = 'TSLA'):
+
+        ticker = yf.download(tickers = ticker,start = start, end = end)
+        return ticker
+    
+    def get_DividendData(ticker=ticker,start=start,end=end):
+        ticker_info = yf.Ticker(ticker)
+        ticker_div = ticker_info.dividends
+        
+        return ticker_div
+
+    if __name__ == '__main__':
+        print('Done')
+    
+    
+#ob = Database()
+f = Database.get_DividendData(ticker = 'FLS.CO')
+    
+class Database_Economic():
+    # Code here.
+        # Database containing economic variables from FRED etc.
+
+
+
     
 
+        
+        
 
-    # Update the SQL-database with the newest data:
-    exchange_components(tickers=ticker_list)
-
-    db_list = []
-    df2 = pd.DataFrame()
-    for db_name in cDatabase.execute("SELECT name FROM sqlite_master WHERE type = 'table'"):
-        db_list.append(db_name)
-    for x in range(0, len(db_list)):
-        # We now build the string ticker we want to search for:
-        sTicker = str(db_list[x])
-        sTicker2 = sTicker.replace("('", '')
-        sTicker_final = sTicker2.replace("',)", '')
-
-        if sTicker_final in ticker_list:
-            # Build query:
-            query = """SELECT * FROM""" + " " + "[" + sTicker_final + "]" + " " + """ORDER BY Date DESC LIMIT 1"""
-            query = str(query)
-            # Save:
-            df = pd.read_sql_query(query, connDatabase)
-            df.insert(0, '', sTicker_final)
-            iClose = df[df.columns[[0, 6]]]
-            df2 = pd.concat([iClose, df2], ignore_index=True)
-
-            df2.to_excel("/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/FrontEnd/AlgoFrontEnd.xlsx",
-                         sheet_name=Sheet_name,
-                         startrow=0,
-                         startcol=0,
-                         index=False)
-
-def Select_components_historical(ticker_list=C25_tickers, start = None):
+        
     
-    """
     
-    ## Basic description of this function ##
-    This function will pull ticker data from our SQL-database.
     
-    """
     
-    ## Inputs: 
-        # ticker_list: This is the tickers, we want to get data about.
+    
+    
 
-
-    # Update the SQL-database with the newest data:
-    exchange_components(tickers=ticker_list)
-    # Make some containers:
-    db_list=[]
-    stock_list={}
-    stock_list2_names=[]
-    # Open loop:
-    for db_name in cDatabase.execute("SELECT name FROM sqlite_master WHERE type = 'table'"):
-        db_list.append(db_name)
-    for x in range(0, len(db_list)):
-        # We now build the string ticker we want to search for:
-        sTicker = str(db_list[x])
-        sTicker2 = sTicker.replace("('", '')
-        sTicker_final = sTicker2.replace("',)", '')
-        if sTicker_final in ticker_list:
-            stock_list2_names.append(sTicker_final)
-            # Build query:
-            query = """SELECT * FROM""" + " " + "[" + sTicker_final + "]"
-            query = str(query)
-            # Save:
-            df = pd.read_sql_query(query, connDatabase)
-            #df.insert(0, '', sTicker_final)
-            if start is None:
-                # Since no start date is provided to use, we do some 
-                # last setup of the df dataframe, before we pass it to stock_list
-                df = df.reset_index(drop = True) # Reset the index.
-                df['Date'] = pd.to_datetime(df['Date'])
-                df['Date'] = df['Date'].dt.strftime('%m-%d-%Y') # Adjust date format.
-                # Pass df to stock_list
-                stock_list.update({sTicker_final:df})
-            else:
-                # Extract relevant dates:
-                iStart = df.Date[df.Date == start + " " + '00:00:00'].index.tolist()
-                iStart = ' '.join([str(elem) for i,elem in enumerate(iStart)])
-                iStart = int(iStart)
-                df = df.tail(len(df)-iStart)
-
-                # Do some last setup of the df dataframe, before we pass it to stock_list
-                df = df.reset_index(drop = True) # Reset the index.
-                df['Date'] = pd.to_datetime(df['Date'])
-                df['Date'] = df['Date'].dt.strftime('%m-%d-%Y') # Adjust date format.
-                # Pass df to stock_list
-                stock_list.update({sTicker_final:df})
-    # Return:
-    return stock_list
-
-def MACD_to_sql(ticker_list = C25_tickers,Buy = None):
-    if Buy == True:
-        ## Setup of database: ##
-        connDatabaseMACD = sqlite3.connect('/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/Data/Database/DatabaseMACDBuy.db') # Create a db file with a connection.
-        #connDatabase = sqlite3.connect(':memory:') # Fresh database.
-        cDatabaseMACD = connDatabaseMACD.cursor()
-        for ticker in ticker_list:
-            pdMACD = MACD_strategy([ticker])[0]
-            pdMACD = pd.DataFrame(pdMACD)
-            pdMACD.to_sql(str(ticker),connDatabaseMACD, if_exists = 'replace')
-            connDatabaseMACD.commit()
-    else:
-        ## Setup of database: ##
-        connDatabaseMACD = sqlite3.connect('/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading/Data/Database/DatabaseMACDSell.db') # Create a db file with a connection.
-        #connDatabase = sqlite3.connect(':memory:') # Fresh database.
-        cDatabaseMACD = connDatabaseMACD.cursor()
-        for ticker in ticker_list:
-            pdMACD = MACD_strategy([ticker])[1]
-            pdMACD = pd.DataFrame(pdMACD)
-            pdMACD.to_sql(str(ticker),connDatabaseMACD, if_exists = 'replace')
-            connDatabaseMACD.commit()
-    return print("Done")

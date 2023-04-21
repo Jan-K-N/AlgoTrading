@@ -1,31 +1,46 @@
-def MACD(ticker = 'FLS'):
-    #df = Select_components_historical(ticker_list=ticker_list)
-    df = download_data(ticker=ticker)
-    #df_dict={}
-    # Insert data. Our object is of type dict, so we must use df[][]
-    #for i in ticker_list:
+"""
+Main script for MACD.
+"""
+import os
+
+os.chdir(r"/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading") # Change wd.
+
+from Data.FinanceDatabase import Database
+
+
+def MACD(ticker = 'TSLA'):
+    df = Database.get_PriceData(ticker = ticker)
     df['EMA12'] = df.Close.ewm(span = 12).mean()
     df['EMA26'] = df.Close.ewm(span = 26).mean()
     df['MACD'] = df.EMA12 - df.EMA26
     df['signal'] = df.MACD.ewm(span = 9).mean()
-    
-    #df.update(df)
-    
+
     return df
 
 MACD()
 
-def MACD_strategy(ticker = 'FLS', transaction_costs = 0.1):
+def MACD_strategy(ticker = 'TSLA', transaction_costs = 0.1)->list:
     
     """
+    This function computes the MACD strategy.
     
-    Output:
-    Returns: A series with return from each trade.
+    Parameters
+    -----------
+        ticker: str
+            Ticker to be investigated for the strategy.
+        transaction_costs: int
+            Transaction_cost on the exchange.
+        
     
+    Returns
+    --------
+        lOut: List
+            The function returns a list with containing the following:
+            Buyprices, Sellprices, Returns from each trade following the 
+            strategy, Average returns from following the strategy.
     
     """
-    
-    
+
     # Make containers: #
     dfReturns = []
     Buy,Sell = [], []
@@ -44,8 +59,8 @@ def MACD_strategy(ticker = 'FLS', transaction_costs = 0.1):
     Realbuys = [i + 1 for i in Buy]
     Realsells = [i + 1 for i in Sell]
     
-    Buyprices = df[['Date','Open']].iloc[Realbuys]
-    Sellprices = df[['Date','Open']].iloc[Realsells]
+    Buyprices = df['Open'].iloc[Realbuys]
+    Sellprices = df['Open'].iloc[Realsells]
     
     # Omit the case, where the first point is a selling point:
     if Sellprices.index[0] < Buyprices.index[0]:
@@ -54,8 +69,8 @@ def MACD_strategy(ticker = 'FLS', transaction_costs = 0.1):
         Buyprices = Buyprices.drop(Buyprices.index[-1])
     # Compute the return of the strategy:
     for i in range(len(Sellprices)):
-        profitsrel.append(((Sellprices['Open'].iloc[i] - Sellprices['Open'].iloc[i]*transaction_costs  ) 
-                            - (Buyprices['Open'].iloc[i]) + Sellprices['Open'].iloc[i]*transaction_costs   )/(Buyprices['Open'].iloc[i] + Sellprices['Open'].iloc[i]*transaction_costs  ))
+        profitsrel.append(((Sellprices.iloc[i] - Sellprices.iloc[i]*transaction_costs  ) 
+                            - (Buyprices.iloc[i]) + Sellprices.iloc[i]*transaction_costs   )/(Buyprices.iloc[i] + Sellprices.iloc[i]*transaction_costs  ))
     # Average profit:
     iAvgProfit = sum(profitsrel)/len(profitsrel)
     # Store in lOut:
@@ -66,7 +81,8 @@ def MACD_strategy(ticker = 'FLS', transaction_costs = 0.1):
     return lOut
 
 
-test = MACD_strategy(ticker = 'TSLA',transaction_costs=0)['Buy prices']
+test = MACD_strategy(ticker = 'TSLA',transaction_costs=0)
+#['Buy prices']
 test['Date'] == '2022-11-28 00:00:00'
 
 def find_MACD_signal(ticker = None, market = None, tdelta = 0):
