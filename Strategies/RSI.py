@@ -6,7 +6,6 @@ from Data.FinanceDatabase import Database
 import pandas as pd
 import yfinance as yf
 
-
 class RSIStrategy():
     
     def __init__(self,ticker: str,start_date,end_date):
