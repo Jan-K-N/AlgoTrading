@@ -5,6 +5,7 @@ so that it can contain backtest and other features.
 from Data.FinanceDatabase import Database
 import pandas as pd
 import yfinance as yf
+import numpy as np
 
 class RSIStrategy():
     
@@ -36,7 +37,7 @@ class RSIStrategy():
         rs = avg_gain / avg_loss
         data['RSI'] = 100 - (100 / (1 + rs))
         return data.dropna()
-        
+
     def backtest(self):
         data = self.get_data()
         buy_signals = []
