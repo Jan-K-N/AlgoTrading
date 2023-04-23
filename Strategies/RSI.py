@@ -89,13 +89,6 @@ class RSIStrategy():
             returns = 0
         return returns
 
-if __name__ == "__main__":
-
-    # Example usage
-    strategy = RSIStrategy('TSLA', '2010-01-01', '2022-04-21')
-    data1 = strategy.get_data()
-    returns = strategy.backtest()
-    print(f'Returns: {returns:.2%}')
 
             
             
