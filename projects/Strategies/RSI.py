@@ -2,10 +2,9 @@
 Main script for RSI-based trading strategy. The script will be class based
 so that it can contain backtest and other features.
 """
-from Data.FinanceDatabase import Database
+from FinanceDatabase import Database
 import pandas as pd
-import yfinance as yf
-import numpy as np
+
 
 class RSIStrategy():
     

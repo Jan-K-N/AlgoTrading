@@ -5,7 +5,7 @@ import os
 
 os.chdir(r"/Users/Jan/Desktop/Programmering/Stocks_algo/AlgoTrading") # Change wd.
 
-from Data.FinanceDatabase import Database
+from FinanceDatabase import Database
 
 
 def MACD(ticker = 'TSLA'):
