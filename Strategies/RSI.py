@@ -51,11 +51,17 @@ class RSIStrategy():
                 sell_signals.append(data.index[i])
                 position = 0
         # Calculate returns
-        returns = 0
+        returns = None
         for i in range(len(buy_signals)):
             buy_price = data['Adj Close'][buy_signals[i]]
             sell_price = data['Adj Close'][sell_signals[i]]
-            returns += (sell_price - buy_price) / buy_price
+            if buy_price > 0:
+                if returns is None:
+                    returns = (sell_price - buy_price) / buy_price
+                else:
+                    returns += (sell_price - buy_price) / buy_price
+        if returns is None:
+            returns = 0
         return returns
         
 # Example usage
