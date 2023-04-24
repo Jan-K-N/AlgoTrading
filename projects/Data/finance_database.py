@@ -2,6 +2,7 @@
 Main Finance Database script.
 """
 from datetime import date, timedelta
+# pylint: disable=import-error.
 import yfinance as yf
 
 class Database():
