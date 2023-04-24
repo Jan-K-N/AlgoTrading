@@ -3,7 +3,7 @@ Main script for RSI-based trading strategy. The script will be class based
 so that it can contain backtest and other features.
 """
 # pylint: disable=import-error
-from FinanceDatabase import Database
+from finance_database import Database
 import pandas as pd
 
 class RSIStrategy():
