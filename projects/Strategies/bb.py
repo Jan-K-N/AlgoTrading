@@ -27,9 +27,11 @@ class BollingerBandsStrategy:
         within a specific date range. Returns the resulting DataFrame with NaN values dropped.
 
         Returns:
+        -------
         pandas.DataFrame: A DataFrame object containing the price data, moving average, upper and lower bands.
 
         Raises:
+        -------
         ValueError: If the start date is after the end date.
 
         Examples:
@@ -45,7 +47,22 @@ class BollingerBandsStrategy:
         data['Lower'] = data['MA'] - self.dev_factor * data['Close'].rolling(self.window).std()
         return data.dropna()
 
-    def backtest(self):
+    def backtest(self) -> float:
+        """
+        Simulates a trading strategy using the previously calculated price data, generates buy and sell signals based on the
+        upper and lower bands, and calculates returns based on transaction costs. Returns the cumulative returns of the strategy.
+
+        Returns:
+        -------
+        float: A float value representing the cumulative returns of the strategy.
+
+        Examples:
+        # Initialize an instance of the class with the required parameters
+        instance = MyClass(start_date='2022-01-01', end_date='2022-01-31', ticker='AAPL', window=20, dev_factor=2, transaction_cost=0.01)
+
+        # Call the method to backtest the strategy
+        cum_returns = instance.backtest()
+        """
         self.data['Position'] = np.nan
         self.data.loc[self.data['Close'] < self.data['Lower'], 'Position'] = 1
         self.data.loc[self.data['Close'] > self.data['Upper'], 'Position'] = -1
@@ -54,8 +71,14 @@ class BollingerBandsStrategy:
         self.data['Returns'] = (self.data['Close'].pct_change() - self.data['Transaction Cost']).shift(1) * self.data['Position']
         self.data['Cumulative Returns'] = (1 + self.data['Returns']).cumprod()
         self.data.dropna(inplace=True)
+
+        if self.data['Position'].iloc[-1] == 1:
+            print("ALERT: Buying signal today")
+        elif self.data['Position'].iloc[-1] == 1:
+            print("ALERT: Selling signal today")
+
         return self.data['Cumulative Returns'].iloc[-1]
 
 if __name__ == '__main__':
-    k = BollingerBandsStrategy(ticker = 'AAPL', start_date='2022-01-01', end_date='2022-04-01')
+    k = BollingerBandsStrategy(ticker = 'SITINET', start_date='2022-01-01', end_date='2022-04-01')
     f = k.backtest()
