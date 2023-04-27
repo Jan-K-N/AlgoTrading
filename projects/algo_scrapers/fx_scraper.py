@@ -1,8 +1,11 @@
 """
 Main script for scraping FXRates.
 """
+# pylint: disable=import-error.
 import requests
+# pylint: disable=import-error.
 import pandas as pd
+# pylint: disable=import-error.
 import xmltodict
 
 class ExchangeRatesScraper:
