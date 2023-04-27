@@ -3,6 +3,7 @@ Main class for the technical indicator (TI) BollingerBands.
 The script contains a backtest of a BB based trading
 strategy.
 """
+
 import pandas as pd
 import numpy as np
 # pylint: disable=import-error.
