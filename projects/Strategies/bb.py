@@ -6,7 +6,7 @@ strategy.
 
 import pandas as pd
 import numpy as np
-
+# pylint: disable=import-error.
 from finance_database import Database
 
 class BollingerBandsStrategy:
