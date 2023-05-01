@@ -97,9 +97,9 @@ class BollingerBandsStrategy:
         """
         data = Database.get_price_data(self,start=self.start_date,
                                        end=self.end_date,ticker=self.ticker)
-        data['MA'] = data['Close'].rolling(self.window).mean()
-        data['Upper'] = data['MA'] + self.dev_factor * data['Close'].rolling(self.window).std()
-        data['Lower'] = data['MA'] - self.dev_factor * data['Close'].rolling(self.window).std()
+        data['MA'] = data['Adj Close'].rolling(self.window).mean()
+        data['Upper'] = data['MA'] + self.dev_factor * data['Adj Close'].rolling(self.window).std()
+        data['Lower'] = data['MA'] - self.dev_factor * data['Adj Close'].rolling(self.window).std()
         return data.dropna()
 
     def backtest(self) -> pd.DataFrame:
@@ -125,10 +125,10 @@ class BollingerBandsStrategy:
         data = instance.backtest()
         """
         self.data['Position'] = np.nan
-        self.data.loc[self.data['Close'] < self.data['Lower'], 'Position'] = 1
-        self.data.loc[self.data['Close'] > self.data['Upper'], 'Position'] = -1
-        self.data['Transaction Cost'] = self.transaction_cost * self.data['Close'].diff().abs()
-        self.data['Returns'] = (self.data['Close'].pct_change() -
+        self.data.loc[self.data['Adj Close'] < self.data['Lower'], 'Position'] = 1
+        self.data.loc[self.data['Adj Close'] > self.data['Upper'], 'Position'] = -1
+        self.data['Transaction Cost'] = self.transaction_cost * self.data['Adj Close'].diff().abs()
+        self.data['Returns'] = (self.data['Adj Close'].pct_change() -
                                 self.data['Transaction Cost']).shift(1) * self.data['Position']
         self.data['Cumulative Returns'] = (1 + self.data['Returns']).cumprod()
 

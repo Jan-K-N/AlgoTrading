@@ -92,10 +92,16 @@ class Algo1:
         upper_band = Algo1.bollinger_bands(self)['Upper']
         rsi = Algo1.rsi(self)
 
-        buy_signal = (rsi < 30) & (data[1] < lower_band)
-        sell_signal = (rsi > 70) & (data[1] > upper_band)
+        current_price = data.values
 
-        signals = pd.DataFrame(buy_signal.index, columns=['Date'])
+        rsi_aligned = rsi.reindex(data.index).values
+        lower_band_aligned = lower_band.reindex(data.index).values
+        upper_band_aligned = upper_band.reindex(data.index).values
+
+        buy_signal = (rsi_aligned < 30) & (current_price < lower_band_aligned)
+        sell_signal = (rsi_aligned > 70) & (current_price > upper_band_aligned)
+
+        signals = pd.DataFrame(data.index, columns=['Date'])
 
         buy_signal_list = buy_signal.astype(int).tolist()
         signals[self.ticker + '_Buy'] = buy_signal_list
@@ -118,3 +124,10 @@ class Algo1:
             signals_list.append(signals_1)
 
         return signals_list
+
+if __name__== '__main__':
+    ticker_code = 'TSLA'
+    k = Algo1(ticker=ticker_code,start_date='2020-02-01',end_date='2023-04-28')
+    f=k.rsi()
+    f1=k.bollinger_bands()
+    f2 = k.generate_signals()
