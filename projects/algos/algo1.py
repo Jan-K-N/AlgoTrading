@@ -5,7 +5,6 @@ Main script for algo1
 import pandas as pd
 # pylint: disable=import-error
 from rsi import RSIStrategy
-# pylint: disable=import-error
 from bb import BollingerBandsStrategy
 # pylint: disable=import-error
 from finance_database import Database
@@ -124,10 +123,3 @@ class Algo1:
             signals_list.append(signals_1)
 
         return signals_list
-
-if __name__== '__main__':
-    ticker_code = 'TSLA'
-    k = Algo1(ticker=ticker_code,start_date='2020-02-01',end_date='2023-04-28')
-    f=k.rsi()
-    f1=k.bollinger_bands()
-    f2 = k.generate_signals()
