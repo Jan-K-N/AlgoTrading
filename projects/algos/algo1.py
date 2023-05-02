@@ -6,7 +6,6 @@ import pandas as pd
 # pylint: disable=import-error
 from rsi import RSIStrategy
 from bb import BollingerBandsStrategy
-# pylint: disable=import-error
 from finance_database import Database
 
 
