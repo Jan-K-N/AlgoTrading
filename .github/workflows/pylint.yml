@@ -22,6 +22,8 @@ jobs:
         pip install yfinance
         pip install numpy
         pip install streamlit
+        pip install schedule
+        pip install strategies
     - name: Analysing the code with pylint
       run: |
         pylint $(git ls-files '*.py')

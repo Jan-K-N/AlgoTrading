@@ -5,6 +5,7 @@ so that it can contain backtest and other features.
 # pylint: disable=import-error
 from finance_database import Database
 import pandas as pd
+import pandas_ta as pta
 
 class RSIStrategy():
     """
@@ -28,13 +29,8 @@ class RSIStrategy():
         data = Database.get_price_data(self,start = self.start_date,
                                  end = self.end_date,
                                  ticker = self.ticker)
-        delta = data['Adj Close'].diff()
-        gain = delta.where(delta > 0, 0)
-        loss = -delta.where(delta < 0, 0)
-        avg_gain = gain.rolling(window=14).mean()
-        avg_loss = loss.rolling(window=14).mean()
-        rs_value = avg_gain / avg_loss
-        data['RSI'] = 100 - (100 / (1 + rs_value))
+        rsi = pta.rsi(data['Adj Close'],length=14)
+        data['RSI'] = rsi
         return data.dropna()
 
     def backtest(self):

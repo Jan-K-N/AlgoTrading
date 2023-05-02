@@ -9,7 +9,7 @@ class Database():
     This is the main class for the AlgoTrading database. The database consists of various
     functions, which download different types of data.
     """
-    def __init__(self, start=None, end=None, ticker='TSLA'):
+    def __init__(self, start=None, end=None, ticker=None):
         if end is None:
             end = date.today().strftime("%Y-%m-%d")
         if start is None:
