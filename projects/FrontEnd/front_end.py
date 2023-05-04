@@ -20,21 +20,16 @@ st.title('AlgoTrading: Stock comparison')
 
 tickers = ('TSLA','AAPL')
 
-dropdown = st.multiselect('Pick your asset',
-                          tickers)
+# dropdown = st.multiselect('Pick your asset',
+#                           tickers)
 
 
+# if len(dropdown) > 0:
+start = st.date_input('Start', value=pd.to_datetime('2023-05-01'))
+end = st.date_input('End', value=pd.to_datetime('today'))
+instance = Algo1(start_date='2019-01-01', end_date='2023-04-25',tickers_list=['TSLA','AAPL'])
+df1 = instance.algo1_loop()
+st.dataframe(df1,use_container_width=True)
 
-
-
-
-if len(dropdown) > 0:
-    start = st.date_input('Start', value=pd.to_datetime('2021-01-01'))
-    end = st.date_input('End', value=pd.to_datetime('today'))
-    # start = str(start)
-    # end = str(end)
-    instance = Algo1(ticker=dropdown,start_date=start, end_date=end)
-    df = instance.generate_signals()
-    st.dataframe(data=df)
 
 # /Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/FrontEnd/front_end.py

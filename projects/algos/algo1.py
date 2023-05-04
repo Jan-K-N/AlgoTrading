@@ -33,16 +33,17 @@ class Algo1:
     rsi() -> pd.Series:
         Calculates the Relative Strength Index (RSI) for the specified ticker and date range.
 
-    BollingerBands() -> pd.DataFrame:
+    bollinger_bands() -> pd.DataFrame:
         Retrieves Bollinger Bands data for the specified ticker and date range.
 
     generate_signals() -> pd.DataFrame:
         Generates buy and sell signals based on RSI and Bollinger Bands strategies.
 
-    Algo1_loop() -> list:
-        Executes the algorithm for multiple tickers and returns a list of signals for each ticker.
+    algo1_loop() -> list:
+        Executes the algorithm for multiple tickers. The function returns a
+        single DataFrame with the buying/selling signals.
     """
-    def __init__(self,ticker: str, start_date=None,end_date=None, tickers_list=None):
+    def __init__(self,ticker=None, start_date=None,end_date=None, tickers_list=None):
         self.ticker = ticker
         self.start_date = start_date
         self.end_date = end_date
@@ -102,15 +103,15 @@ class Algo1:
         buy_signal = (rsi_aligned < 30) & (current_price < lower_band_aligned)
         sell_signal = (rsi_aligned > 70) & (current_price > upper_band_aligned)
 
-        # signals = pd.DataFrame(data.index, columns=['Date'])
-        #
-        # buy_signal_list = buy_signal.astype(int).tolist()
-        # signals[self.ticker + '_Buy'] = buy_signal_list
-        # sell_signal_list = sell_signal.astype(int).tolist()
-        # signals[self.ticker + '_Sell'] = sell_signal_list
         signals = pd.DataFrame(data.index, columns=['Date'])
-        signals[self.ticker + '_Buy'] = np.array(buy_signal, dtype=int).tolist()
-        signals[self.ticker + '_Sell'] = np.array(sell_signal, dtype=int).tolist()
+
+        buy_signal_list = buy_signal.astype(int).tolist()
+        signals[self.ticker + '_Buy'] = buy_signal_list
+        sell_signal_list = sell_signal.astype(int).tolist()
+        signals[self.ticker + '_Sell'] = sell_signal_list
+        # signals = pd.DataFrame(data.index, columns=['Date'])
+        # signals[self.ticker + '_Buy'] = buy_signal
+        # signals[self.ticker + '_Sell'] = sell_signal
 
 
         return signals
@@ -118,7 +119,7 @@ class Algo1:
     def algo1_loop(self):
         """
         Executes the algorithm for multiple tickers. The function returns a
-        list with the buying/selling signals.
+        single DataFrame with the buying/selling signals.
         """
 
         signals_list = []
@@ -126,6 +127,25 @@ class Algo1:
         for ticker1 in self.tickers_list:
             instance_1 = Algo1(ticker=ticker1, start_date=self.start_date,end_date=self.end_date)
             signals_1 = instance_1.generate_signals()
-            signals_list.append(signals_1)
+
+            condition1 = signals_1[ticker1 + '_Buy'] == 1
+            condition2 = signals_1[ticker1 + '_Sell'] == 1
+
+            combined_condition = condition1 | condition2
+
+            extracted_rows = signals_1[combined_condition]
+
+            new_df = pd.DataFrame(extracted_rows)
+
+            signals_list.append(new_df)
+
+        # combined_signals = pd.concat(signals_list)
+
 
         return signals_list
+
+if __name__ == '__main__':
+    k = Algo1(start_date='2019-01-01', end_date='2023-04-25',tickers_list=['TSLA','AAPL'])
+    # f = k.generate_signals()
+    k4 = k.algo1_loop()
+    print("h")
