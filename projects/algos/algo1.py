@@ -1,11 +1,14 @@
 """
 Main script for algo1
 """
-
+import numpy as np
+import sys
 import pandas as pd
 # pylint: disable=import-error
+sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from rsi import RSIStrategy
 from bb import BollingerBandsStrategy
+sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from finance_database import Database
 
 
@@ -99,12 +102,16 @@ class Algo1:
         buy_signal = (rsi_aligned < 30) & (current_price < lower_band_aligned)
         sell_signal = (rsi_aligned > 70) & (current_price > upper_band_aligned)
 
+        # signals = pd.DataFrame(data.index, columns=['Date'])
+        #
+        # buy_signal_list = buy_signal.astype(int).tolist()
+        # signals[self.ticker + '_Buy'] = buy_signal_list
+        # sell_signal_list = sell_signal.astype(int).tolist()
+        # signals[self.ticker + '_Sell'] = sell_signal_list
         signals = pd.DataFrame(data.index, columns=['Date'])
+        signals[self.ticker + '_Buy'] = np.array(buy_signal, dtype=int).tolist()
+        signals[self.ticker + '_Sell'] = np.array(sell_signal, dtype=int).tolist()
 
-        buy_signal_list = buy_signal.astype(int).tolist()
-        signals[self.ticker + '_Buy'] = buy_signal_list
-        sell_signal_list = sell_signal.astype(int).tolist()
-        signals[self.ticker + '_Sell'] = sell_signal_list
 
         return signals
 
