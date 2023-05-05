@@ -10,7 +10,7 @@ from rsi import RSIStrategy
 from bb import BollingerBandsStrategy
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from finance_database import Database
-
+from pandas import date_range
 
 class Algo1:
     """
@@ -125,7 +125,7 @@ class Algo1:
         signals_list = []
 
         for ticker1 in self.tickers_list:
-            instance_1 = Algo1(ticker=ticker1, start_date=self.start_date,end_date=self.end_date)
+            instance_1 = Algo1(ticker=ticker1, start_date=self.start_date, end_date=self.end_date)
             signals_1 = instance_1.generate_signals()
 
             condition1 = signals_1[ticker1 + '_Buy'] == 1
@@ -135,11 +135,12 @@ class Algo1:
 
             extracted_rows = signals_1[combined_condition]
 
-            new_df = pd.DataFrame(extracted_rows)
+            new_df = pd.DataFrame()
+            new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
+            new_df["Sell"] = [0 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
+            new_df.index = extracted_rows['Date']
 
             signals_list.append(new_df)
-
-        # combined_signals = pd.concat(signals_list)
 
 
         return signals_list
