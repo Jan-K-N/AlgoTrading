@@ -1,6 +1,5 @@
 """
-Front-end beta: Basic front end project made
-to invstigate the possibilities with streamlit.
+Front end dash.
 """
 import sys
 import dash
