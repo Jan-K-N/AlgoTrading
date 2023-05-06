@@ -3,9 +3,11 @@ Main class for the technical indicator (TI) BollingerBands.
 The script contains a backtest of a BB based trading
 strategy.
 """
+import sys
 import pandas as pd
 import numpy as np
 # pylint: disable=import-error.
+sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 from finance_database import Database
 
 class BollingerBandsStrategy:
