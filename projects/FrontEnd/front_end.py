@@ -1,5 +1,5 @@
 """
-Front end dash.
+Front end dash for algo1.
 """
 import sys
 import dash
