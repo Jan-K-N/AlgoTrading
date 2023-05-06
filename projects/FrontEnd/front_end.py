@@ -1,5 +1,5 @@
 """
-Front end dash for algo1.
+Front end dash for algo1. The app here is beta.
 """
 import sys
 import dash
