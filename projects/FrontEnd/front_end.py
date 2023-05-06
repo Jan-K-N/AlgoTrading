@@ -5,8 +5,8 @@ import sys
 import dash
 import dash_table
 import dash_html_components as html
-# pylint: disable=import-error
-# pylint: disable=wrong-import-position
+import pandas as pd
+
 sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
@@ -21,6 +21,15 @@ algo_instance = Algo1(
 
 # Get the output from algo1_loop method
 output_list = algo_instance.algo1_loop()
+
+# Define the color function
+def color_cells(value):
+    if value == 1:
+        return {'backgroundColor': 'green'}
+    elif value == -1:
+        return {'backgroundColor': 'red'}
+    else:
+        return {}
 
 # Create the Dash app
 app = dash.Dash(__name__)
@@ -40,6 +49,24 @@ app.layout = html.Div(
                              {"name": "Sell", "id": "Sell"}],
                     data=output_list[i].reset_index().to_dict("records"),
                     style_table={"overflowX": "scroll"},
+                    style_data_conditional=[
+                        {
+                            'if': {
+                                'filter_query': '{Buy} = 1',
+                                'column_id': 'Buy'
+                            },
+                            'backgroundColor': 'green',
+                            'color': 'white'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Sell} = -1',
+                                'column_id': 'Sell'
+                            },
+                            'backgroundColor': 'red',
+                            'color': 'white'
+                        },
+                    ],
                 ),
             ],
             style={"display": "inline-block", "width": "50%"},
