@@ -1,16 +1,16 @@
 """
 Main script for algo1
 """
-import numpy as np
-import sys
-import pandas as pd
 # pylint: disable=import-error
+# pylint: disable=wrong-import-position
+import sys
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
-from rsi import RSIStrategy
 from bb import BollingerBandsStrategy
+from rsi import RSIStrategy
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from finance_database import Database
-from pandas import date_range
+import pandas as pd
+
 
 class Algo1:
     """
@@ -116,10 +116,18 @@ class Algo1:
 
         return signals
 
-    def algo1_loop(self):
+    def algo1_loop(self)->list:
         """
-        Executes the algorithm for multiple tickers. The function returns a
-        single DataFrame with the buying/selling signals.
+        Executes the algorithm for multiple tickers and generates
+        buying/selling signals for each ticker.
+
+        Returns:
+        -------
+        list of pandas.DataFrame:
+        A list of pandas DataFrames, each containing the buying/selling signals for a ticker.
+        Each DataFrame has 3 columns: 'Date', 'Buy', and 'Sell', where 'Buy' and 'Sell'
+        are binary indicators of whether a buy or a sell signal was generated on that
+        date for the corresponding ticker.
         """
 
         signals_list = []
@@ -144,9 +152,3 @@ class Algo1:
 
 
         return signals_list
-
-if __name__ == '__main__':
-    k = Algo1(start_date='2019-01-01', end_date='2023-04-25',tickers_list=['TSLA','AAPL'])
-    # f = k.generate_signals()
-    k4 = k.algo1_loop()
-    print("h")
