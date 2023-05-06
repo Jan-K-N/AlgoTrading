@@ -21,7 +21,7 @@ jobs:
         python -m pip install -r projects/algos/requirements.txt
         python -m pip install -r projects/algos/utils/requirements.txt
 
-    - name: Lint with flake8
+    - name: Lint with pylint
       run: |
-        python -m flake8 projects utils
+        python -m pylint projects utils
 
