@@ -1,0 +1,12 @@
+beautifulsoup4==4.12.2
+dash==2.9.3
+dash_html_components==2.0.0
+dash_table==5.0.0
+numpy==1.24.3
+pandas==1.4.4
+pandas==2.0.1
+pandas_ta==0.3.14b0
+Requests==2.30.0
+schedule==1.2.0
+xmltodict==0.13.0
+yfinance==0.2.18

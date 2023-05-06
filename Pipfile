@@ -4,9 +4,17 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-yfinance = "*"
-pandas = "*"
-numpy = "*"
+yfinance = "==0.2.18"
+pandas = "==2.0.1"
+numpy = "==1.24.3"
+beautifulsoup4 = "==4.12.2"
+dash = "==2.9.3"
+dash-html-components = "==2.0.0"
+dash-table = "==5.0.0"
+pandas-ta = "==0.3.14b0"
+requests = "==2.30.0"
+schedule = "==1.2.0"
+xmltodict = "==0.13.0"
 
 [dev-packages]
 
