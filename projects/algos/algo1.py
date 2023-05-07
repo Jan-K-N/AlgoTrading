@@ -10,8 +10,6 @@ from rsi import RSIStrategy
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from finance_database import Database
 import pandas as pd
-from utils.format_color_dataframe import color_dataframe
-from utils.format_color_dataframe import color_algo1_loop
 
 class Algo1:
     """
