@@ -110,10 +110,6 @@ class Algo1:
         signals[self.ticker + '_Buy'] = buy_signal_list
         sell_signal_list = sell_signal.astype(int).tolist()
         signals[self.ticker + '_Sell'] = sell_signal_list
-        # signals = pd.DataFrame(data.index, columns=['Date'])
-        # signals[self.ticker + '_Buy'] = buy_signal
-        # signals[self.ticker + '_Sell'] = sell_signal
-
 
         return signals
 
@@ -148,14 +144,13 @@ class Algo1:
             new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
             new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
             new_df.index = extracted_rows['Date']
-            # new_df = color_dataframe(new_df)
 
-            signals_list.append(new_df)
-
+            if not new_df.empty:
+                signals_list.append(new_df)
 
         return signals_list
 
 if __name__ == "__main__":
-    f = Algo1(start_date="2020-02-01",end_date="2023-02-01", tickers_list=['TSLA','AAPL'])
+    f = Algo1(start_date="2023-01-01",end_date="2023-02-01", tickers_list=['TSLA','AAPL'])
     f1 = f.algo1_loop()
     print("l")

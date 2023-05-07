@@ -22,15 +22,6 @@ algo_instance = Algo1(
 # Get the output from algo1_loop method
 output_list = algo_instance.algo1_loop()
 
-# Define the color function
-def color_cells(value):
-    if value == 1:
-        return {'backgroundColor': 'green'}
-    elif value == -1:
-        return {'backgroundColor': 'red'}
-    else:
-        return {}
-
 # Create the Dash app
 app = dash.Dash(__name__)
 
