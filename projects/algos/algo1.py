@@ -1,5 +1,5 @@
 """
-Main script for the algo1.
+Main script for the Algo1.
 """
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
