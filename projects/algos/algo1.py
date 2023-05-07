@@ -147,8 +147,3 @@ class Algo1:
                 signals_list.append(new_df)
 
         return signals_list
-
-if __name__ == "__main__":
-    f = Algo1(start_date="2023-01-01",end_date="2023-02-01", tickers_list=['TSLA','AAPL'])
-    f1 = f.algo1_loop()
-    print("l")
