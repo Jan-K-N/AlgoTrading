@@ -1,5 +1,5 @@
 """
-Main script for algo1
+Main script for the Algo1.
 """
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
@@ -10,7 +10,6 @@ from rsi import RSIStrategy
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from finance_database import Database
 import pandas as pd
-
 
 class Algo1:
     """
@@ -109,10 +108,6 @@ class Algo1:
         signals[self.ticker + '_Buy'] = buy_signal_list
         sell_signal_list = sell_signal.astype(int).tolist()
         signals[self.ticker + '_Sell'] = sell_signal_list
-        # signals = pd.DataFrame(data.index, columns=['Date'])
-        # signals[self.ticker + '_Buy'] = buy_signal
-        # signals[self.ticker + '_Sell'] = sell_signal
-
 
         return signals
 
@@ -145,10 +140,10 @@ class Algo1:
 
             new_df = pd.DataFrame()
             new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
-            new_df["Sell"] = [0 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
+            new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
             new_df.index = extracted_rows['Date']
 
-            signals_list.append(new_df)
-
+            if not new_df.empty:
+                signals_list.append(new_df)
 
         return signals_list
