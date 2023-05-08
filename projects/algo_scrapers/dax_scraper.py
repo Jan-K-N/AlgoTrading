@@ -2,13 +2,13 @@
 Main script for ticker scraper in dax. The class in the script
 outputs the ticker codes in the Dax.
 """
-import datetime
+# import datetime
 import logging
-import os
-import time
+# import os
+# import time
 import requests
 from bs4 import BeautifulSoup
-import schedule
+# import schedule
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -76,15 +76,15 @@ class DAXScraper:
         ticker_codes=self.scrape_ticker_codes()
         return ticker_codes
 
-# Run the scheduler continuously
-while True:
-    schedule.run_pending()
-    now = datetime.datetime.now()
-    print("Waiting for the next scheduled run...", now)
-    # Sleep for a while before checking the schedule again
-    time.sleep(60)  # Sleep for 2 seconds between schedule checks
-    if now.weekday() == 4 and now.hour == 18 and now.minute == 0:
-        os.system(
-            'osascript -e "'
-            'display notification'
-            ' \\"It\'s time to scrape DAX ticker codes!\\" with title \\"Script Alarm\\""')
+# # Run the scheduler continuously
+# while True:
+#     schedule.run_pending()
+#     now = datetime.datetime.now()
+#     print("Waiting for the next scheduled run...", now)
+#     # Sleep for a while before checking the schedule again
+#     time.sleep(60)  # Sleep for 2 seconds between schedule checks
+#     if now.weekday() == 4 and now.hour == 18 and now.minute == 0:
+#         os.system(
+#             'osascript -e "'
+#             'display notification'
+#             ' \\"It\'s time to scrape DAX ticker codes!\\" with title \\"Script Alarm\\""')
