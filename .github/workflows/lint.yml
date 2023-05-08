@@ -22,4 +22,4 @@ jobs:
 
     - name: Lint with pylint
       run: |
-        python -m pylint projects
+        python -m pylint projects/
