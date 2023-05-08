@@ -3,6 +3,7 @@ Main script for RSI-based trading strategy. The script will be class based
 so that it can contain backtest and other features.
 """
 # pylint: disable=import-error
+# pylint: disable=wrong-import-position
 import sys
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 from finance_database import Database

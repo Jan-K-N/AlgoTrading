@@ -5,8 +5,8 @@ import sys
 import dash
 import dash_table
 import dash_html_components as html
-# pylint: disable=import-error
-# pylint: disable=wrong-import-position
+import pandas as pd
+
 sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
@@ -40,6 +40,24 @@ app.layout = html.Div(
                              {"name": "Sell", "id": "Sell"}],
                     data=output_list[i].reset_index().to_dict("records"),
                     style_table={"overflowX": "scroll"},
+                    style_data_conditional=[
+                        {
+                            'if': {
+                                'filter_query': '{Buy} = 1',
+                                'column_id': 'Buy'
+                            },
+                            'backgroundColor': 'green',
+                            'color': 'white'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Sell} = -1',
+                                'column_id': 'Sell'
+                            },
+                            'backgroundColor': 'red',
+                            'color': 'white'
+                        },
+                    ],
                 ),
             ],
             style={"display": "inline-block", "width": "50%"},
