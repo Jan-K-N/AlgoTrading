@@ -23,7 +23,6 @@ SP500Tickers = instanceSP500.run_scraper()
 instanceDAX = DAXScraper()
 DAXTickers = instanceDAX.run_scraper()
 
-
 # # Instantiate the Algo1 class with multiple tickers
 # algo_instance = Algo1(start_date='2020-05-02', end_date='2023-05-04', tickers_list=SP500Tickers)
 # output_list = algo_instance.algo1_loop()
