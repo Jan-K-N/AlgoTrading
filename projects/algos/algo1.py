@@ -139,6 +139,7 @@ class Algo1:
             extracted_rows = signals_1[combined_condition]
 
             new_df = pd.DataFrame()
+            new_df["Ticker"] = [ticker1] * len(extracted_rows)
             new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
             new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
             new_df.index = extracted_rows['Date']
