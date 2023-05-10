@@ -60,6 +60,6 @@ class SAndPScraper:
         Returns:
             list: A list of ticker codes obtained from the scraping process.
         """
-                                                                                print("Retrieving ticker codes from...:", self.ticker_url)
+        print("Retrieving ticker codes from...:", self.ticker_url)
         ticker_codes = self.scrape_ticker_codes()
         return ticker_codes
