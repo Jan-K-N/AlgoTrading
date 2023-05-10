@@ -1,19 +1,21 @@
 """
 Front end dash for algo1. The app is beta.
 """
+
 import sys
-sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
-sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
-sys.path.insert(3, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
 import dash
 import dash_table
 import dash_html_components as html
 import dash_core_components as dcc
-from algo1 import Algo1
+sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
+sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
+sys.path.insert(3, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
+# pylint: disable=import-error
+# pylint: disable=wrong-import-position
+from algos.algo1 import Algo1
 from s_and_p_scraper import SAndPScraper
 from dax_scraper import DAXScraper
-from itertools import zip_longest
 
 
 # Create the Dash app
@@ -57,14 +59,32 @@ app.layout = html.Div(
     dash.dependencies.Input('date-range-picker', 'start_date'),
     dash.dependencies.Input('date-range-picker', 'end_date')
 )
-def update_out_box(market, start_date, end_date):
+def update_out_box(market:str, start_date:str, end_date:str)->html.Div:
+    """
+    Update the output box with signals for the chosen market and time period.
+
+    Parameters:
+    -----------
+    market (str):
+        The market for which the signals are generated.
+    start_date (str):
+        The start date of the time period for which the signals are generated,
+        in the format 'YYYY-MM-DD'.
+    end_date (str):
+        The end date of the time period for which the signals are generated,
+        in the format 'YYYY-MM-DD'.
+
+    Returns:
+    -----------
+    html.Div: A div element containing tables with the generated signals for each ticker.
+    """
     if market == 'DAX':
-        instanceDAX = DAXScraper()
-        tickers_list = instanceDAX.run_scraper()
+        instance_dax = DAXScraper()
+        tickers_list = instance_dax.run_scraper()
 
     elif market == 'SP500':
-        instanceSP500 = SAndPScraper()
-        tickers_list = instanceSP500.run_scraper()
+        instance_sp500 = SAndPScraper()
+        tickers_list = instance_sp500.run_scraper()
 
     algo_instance = Algo1(start_date=start_date, end_date=end_date, tickers_list=tickers_list)
     output_list = algo_instance.algo1_loop()
