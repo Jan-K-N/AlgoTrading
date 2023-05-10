@@ -10,6 +10,7 @@ from rsi import RSIStrategy
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from finance_database import Database
 import pandas as pd
+import logging
 
 class Algo1:
     """
@@ -47,6 +48,7 @@ class Algo1:
         self.start_date = start_date
         self.end_date = end_date
         self.tickers_list = tickers_list
+        self.logger = logging.getLogger("Algo1")
     def rsi(self)->pd.Series:
         """
         Calculates the Relative Strength Index (RSI) for the specified ticker and date range.
@@ -60,6 +62,7 @@ class Algo1:
                                    start_date=self.start_date,
                                    end_date=self.end_date)
         rsi_data = rsi_instance.get_data()['RSI']
+        self.logger.info(f"RSI data for {self.ticker} retrieved")
         return rsi_data
     def bollinger_bands(self):
         """
@@ -146,5 +149,11 @@ class Algo1:
 
             if not new_df.empty:
                 signals_list.append(new_df)
-
         return signals_list
+
+
+
+if __name__ == '__main__':
+    instance = Algo1(start_date="2020-04-03", end_date="2021-04-03",tickers_list=['TSLA','AAPL'])
+    k = instance.algo1_loop()
+    print("k")
