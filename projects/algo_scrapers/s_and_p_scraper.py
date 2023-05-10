@@ -45,20 +45,13 @@ class SAndPScraper:
             soup = BeautifulSoup(response.text, 'html.parser')
 
             table = soup.find('table', {'class': 'wikitable sortable'})
-            rows = table.find_all('tr')
+            rows = table.find_all('tr')[1:]
 
-            ticker_codes = []
-
-            for row in rows[1:]:
-                columns = row.find_all('td')
-                ticker_code = columns[0].text.strip()
-                ticker_codes.append(ticker_code)
+            ticker_codes = list(map(lambda row: row.find_all('td')[0].text.strip(), rows))
 
             return ticker_codes
-
         except requests.exceptions.RequestException as exc:
-            logging.error("Error occurred while accessing the website: %s", str(exc))
-            return None
+            raise exc
 
     def run_scraper(self) -> list:
         """
