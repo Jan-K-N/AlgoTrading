@@ -4,12 +4,15 @@ Main script for the Algo1.
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
 import sys
+import logging
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from bb import BollingerBandsStrategy
 from rsi import RSIStrategy
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from finance_database import Database
 import pandas as pd
+
+logging.basicConfig(filename='algo1.log',level=logging.DEBUG)
 
 class Algo1:
     """
@@ -47,6 +50,7 @@ class Algo1:
         self.start_date = start_date
         self.end_date = end_date
         self.tickers_list = tickers_list
+        self.logger = logging.getLogger("Algo1")
     def rsi(self)->pd.Series:
         """
         Calculates the Relative Strength Index (RSI) for the specified ticker and date range.
@@ -146,5 +150,5 @@ class Algo1:
 
             if not new_df.empty:
                 signals_list.append(new_df)
-
+        self.logger.info("Algo1 has run on %s", self.tickers_list)
         return signals_list
