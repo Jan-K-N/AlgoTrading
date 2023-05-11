@@ -4,13 +4,15 @@ Main script for the Algo1.
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
 import sys
+import logging
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from bb import BollingerBandsStrategy
 from rsi import RSIStrategy
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from finance_database import Database
 import pandas as pd
-import logging
+
+logging.basicConfig(filename='algo1.log',level=logging.DEBUG)
 
 class Algo1:
     """
@@ -62,7 +64,6 @@ class Algo1:
                                    start_date=self.start_date,
                                    end_date=self.end_date)
         rsi_data = rsi_instance.get_data()['RSI']
-        self.logger.info(f"RSI data for {self.ticker} retrieved")
         return rsi_data
     def bollinger_bands(self):
         """
@@ -149,11 +150,5 @@ class Algo1:
 
             if not new_df.empty:
                 signals_list.append(new_df)
+        self.logger.info("Algo1 has run on %s", self.tickers_list)
         return signals_list
-
-
-
-if __name__ == '__main__':
-    instance = Algo1(start_date="2020-04-03", end_date="2021-04-03",tickers_list=['TSLA','AAPL'])
-    k = instance.algo1_loop()
-    print("k")
