@@ -4,3 +4,4 @@
 *.pyc
 .pylintrc
 requirements.txt
+projects/algos/algo1.log
