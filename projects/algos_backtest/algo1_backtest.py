@@ -2,6 +2,7 @@
 Main script for algo1 backtest.
 """
 import sys
+import pandas as pd
 sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
 sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 from algo1 import Algo1
@@ -35,18 +36,20 @@ class Algo1_backtest:
 
         algo1_data = Algo1_backtest.run_algo1(self)
 
-        buy_signals = []
-        sell_signals = []
-        for i in range(0,len(algo1_data)):
-            if algo1_data['Buy'] == 1:
-                buy_signals.append(price_data.index[i])
-            # Code here.
+        df_buy_signals = pd.DataFrame(columns=['Ticker', 'Buy Signal'])
+        df_sell_signals = pd.DataFrame(columns=['Ticker', 'Sell Signal'])
 
+        for df in algo1_data:
+            ticker = df['Ticker'][0]
+            df_buy = df.loc[df['Buy'] == 1]
+            df_sell = df.loc[df['Sell'] == -1]
 
-        # Calcuæate returns:
-        returns = None
-        
+            df_buy_signals = pd.concat(
+                [df_buy_signals, pd.DataFrame({'Ticker': [ticker] * len(df_buy), 'Buy Signal': df_buy.index})])
+            df_sell_signals = pd.concat(
+                [df_sell_signals, pd.DataFrame({'Ticker': [ticker] * len(df_sell), 'Sell Signal': df_sell.index})])
 
+        print("Test")
 
         return
 
@@ -54,5 +57,3 @@ if __name__ == '__main__':
     instance = Algo1_backtest(start_date = '2020-01-01',end_date='2021-01-01',tickers_list=['TSLA','AAPL'])
     output = instance.run_algo1()
     backtest = instance.backtest()
-
-    print("k")
