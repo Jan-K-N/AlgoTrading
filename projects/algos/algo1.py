@@ -4,7 +4,6 @@ Main script for the Algo1.
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
 import sys
-import logging
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 from bb import BollingerBandsStrategy
 from rsi import RSIStrategy
