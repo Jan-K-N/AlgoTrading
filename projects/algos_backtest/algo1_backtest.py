@@ -33,8 +33,19 @@ class Algo1_backtest:
             price_data.append(data["Adj Close"])
 
 
-        algo1_data = Algo1_backtest.run_algo1()
+        algo1_data = Algo1_backtest.run_algo1(self)
 
+        buy_signals = []
+        sell_signals = []
+        for i in range(0,len(algo1_data)):
+            if algo1_data['Buy'] == 1:
+                buy_signals.append(price_data.index[i])
+            # Code here.
+
+
+        # Calcuæate returns:
+        returns = None
+        
 
 
         return
