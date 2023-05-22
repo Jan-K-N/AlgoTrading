@@ -49,7 +49,17 @@ class Algo1_backtest:
             df_sell_signals = pd.concat(
                 [df_sell_signals, pd.DataFrame({'Ticker': [ticker] * len(df_sell), 'Sell Signal': df_sell.index})])
 
+
         print("Test")
+
+        # We will now make the buy prices:
+        buy_prices_list = []
+        for ticker1 in self.tickers_list:
+            for i in range(0,len(df_buy_signals)):
+                if df_buy_signals['Ticker'].iloc[i] == ticker1:
+                    # Now add the buy date:
+                    df_buy_signals['Buy date'] = pd.to_datetime(df_buy_signals['Buy Signal']).dt.date + pd.DateOffset(days=1)
+                    # df_buy_signals['Buy price'] =
 
         return
 
