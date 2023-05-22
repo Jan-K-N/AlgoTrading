@@ -31,7 +31,7 @@ class Algo1_backtest:
         for ticker in self.tickers_list:
 
             data = Database.get_price_data(self,start=self.start_date,end=self.end_date,ticker=ticker)
-            price_data.append(data["Adj Close"])
+            price_data.append(data["Open"])
 
 
         algo1_data = Algo1_backtest.run_algo1(self)
@@ -50,8 +50,6 @@ class Algo1_backtest:
                 [df_sell_signals, pd.DataFrame({'Ticker': [ticker] * len(df_sell), 'Sell Signal': df_sell.index})])
 
 
-        print("Test")
-
         # We will now make the buy prices:
         buy_prices_list = []
         for ticker1 in self.tickers_list:
@@ -59,7 +57,23 @@ class Algo1_backtest:
                 if df_buy_signals['Ticker'].iloc[i] == ticker1:
                     # Now add the buy date:
                     df_buy_signals['Buy date'] = pd.to_datetime(df_buy_signals['Buy Signal']).dt.date + pd.DateOffset(days=1)
-                    # df_buy_signals['Buy price'] =
+
+        for i in range(0,1):
+            for j in range(0,4):
+                mask = df_buy_signals['Buy date'].iloc[j]  # Assuming 'Buy date' contains the condition
+                value = None  # Initialize value as None
+                while value is None:  # Loop until a non-weekend value is found
+                    if mask.weekday() < 5:  # Check if the date is a weekday
+                        if mask in price_data[i]:  # Check if the date is present in price_data[i]
+                            value = price_data[i][mask]  # Get the corresponding value from price_data
+                        else:
+                            mask += pd.DateOffset(days=1)  # Move to the next day
+                    else:
+                        mask += pd.DateOffset(days=1)  # Move to the next day
+                df_buy_signals.loc[
+                    df_buy_signals['Buy date'] == df_buy_signals['Buy date'].iloc[j], 'Buy price'] = value
+
+        print("h")
 
         return
 
