@@ -58,20 +58,25 @@ class Algo1_backtest:
                     # Now add the buy date:
                     df_buy_signals['Buy date'] = pd.to_datetime(df_buy_signals['Buy Signal']).dt.date + pd.DateOffset(days=1)
 
-        for i in range(0,1):
-            for j in range(0,4):
-                mask = df_buy_signals['Buy date'].iloc[j]  # Assuming 'Buy date' contains the condition
-                value = None  # Initialize value as None
-                while value is None:  # Loop until a non-weekend value is found
-                    if mask.weekday() < 5:  # Check if the date is a weekday
-                        if mask in price_data[i]:  # Check if the date is present in price_data[i]
-                            value = price_data[i][mask]  # Get the corresponding value from price_data
-                        else:
-                            mask += pd.DateOffset(days=1)  # Move to the next day
-                    else:
-                        mask += pd.DateOffset(days=1)  # Move to the next day
-                df_buy_signals.loc[
-                    df_buy_signals['Buy date'] == df_buy_signals['Buy date'].iloc[j], 'Buy price'] = value
+        for ticker1 in self.tickers_list:
+
+            for j in range(0,len(df_buy_signals)):
+                if df_buy_signals['Ticker'].iloc[j] == ticker1:
+                    for i in range(0, len(self.tickers_list)):
+                        # for ticker1 in self.tickers_list:
+                        #     if df_buy_signals['Ticker'].iloc[j] == ticker1:
+                        mask = df_buy_signals['Buy date'].iloc[j]  # Assuming 'Buy date' contains the condition
+                        value = None  # Initialize value as None
+                        while value is None:  # Loop until a non-weekend value is found
+                            if mask.weekday() < 5:  # Check if the date is a weekday
+                                if mask in price_data[i]:  # Check if the date is present in price_data[i]
+                                    value = price_data[i][mask]  # Get the corresponding value from price_data
+                                else:
+                                    mask += pd.DateOffset(days=1)  # Move to the next day
+                            else:
+                                mask += pd.DateOffset(days=1)  # Move to the next day
+                        df_buy_signals.loc[
+                            df_buy_signals['Buy date'] == df_buy_signals['Buy date'].iloc[j], 'Buy price'] = value
 
         print("h")
 
