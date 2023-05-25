@@ -33,7 +33,6 @@ class Algo1_backtest:
             data = Database.get_price_data(self,start=self.start_date,end=self.end_date,ticker=ticker)
             price_data.append(data["Open"])
 
-
         algo1_data = Algo1_backtest.run_algo1(self)
 
         df_buy_signals = pd.DataFrame(columns=['Ticker', 'Buy Signal'])
@@ -49,30 +48,7 @@ class Algo1_backtest:
             df_sell_signals = pd.concat(
                 [df_sell_signals, pd.DataFrame({'Ticker': [ticker] * len(df_sell), 'Sell Signal': df_sell.index})])
 
-
-        # # We will now make the buy prices:
-        # buy_prices_list = []
-        #
-        # for ticker1 in self.tickers_list:
-        #     filtered_df = df_buy_signals[df_buy_signals['Ticker'] == ticker1].copy()
-        #     filtered_df['Buy date'] = pd.to_datetime(filtered_df['Buy Signal']).dt.date + pd.DateOffset(days=1)
-        #
-        #     for j in range(len(filtered_df)):
-        #         mask = filtered_df['Buy date'].iloc[j]
-        #         value = None
-        #         while value is None:
-        #             if mask.weekday() < 5:
-        #                 for i in range(len(price_data)):
-        #                     if mask in price_data[i]:
-        #                         value = price_data[i][mask]
-        #                         break
-        #                 if value is None:
-        #                     mask += pd.DateOffset(days=1)
-        #             else:
-        #                 mask += pd.DateOffset(days=1)
-        #         filtered_df.loc[filtered_df['Buy date'] == mask, 'Buy price'] = value
-        #
-        #     buy_prices_list.append(filtered_df)
+        # We will now make the buy prices:
         buy_prices_list = []
 
         for ticker1 in self.tickers_list:
@@ -80,11 +56,11 @@ class Algo1_backtest:
             filtered_df['Buy date'] = pd.to_datetime(filtered_df['Buy Signal']).dt.date + pd.DateOffset(days=1)
 
             for j in range(len(filtered_df)):
-                mask = filtered_df['Buy date'].iloc[j]
-                value = None
-                while value is None:
-                    if mask.weekday() < 5:
-                        for i in range(len(price_data)):
+                for i in range(0, len(price_data)):
+                    mask = filtered_df['Buy date'].iloc[j]
+                    value = None
+                    while value is None:
+                        if mask.weekday() < 5:
                             if mask in price_data[i]:
                                 value = price_data[i][mask]
                                 break
@@ -92,17 +68,18 @@ class Algo1_backtest:
                             mask += pd.DateOffset(days=1)
                     else:
                         mask += pd.DateOffset(days=1)
+                    filtered_df['Buy date'].iloc[j] = mask
                 filtered_df.loc[filtered_df['Buy date'] == mask, 'Buy price'] = value
 
-            # Replace remaining NaN values with the nearest future value
-            # filtered_df['Buy price'].fillna(method='pad', inplace=True)
+            # Append to the list
             buy_prices_list.append(filtered_df)
 
-        print("h")
+        print("k")
 
-        return
+        return buy_prices_list
 
 if __name__ == '__main__':
     instance = Algo1_backtest(start_date = '2015-01-01',end_date='2022-01-01',tickers_list=['TSLA','AAPL','FLS.CO'])
     output = instance.run_algo1()
     backtest = instance.backtest()
+    print("k")
