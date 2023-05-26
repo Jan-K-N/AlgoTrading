@@ -117,32 +117,76 @@ class Algo1_backtest:
 
         prices = Algo1_backtest.backtest_prices(self)
 
-        buy_string = 'Buy price'
-
-        # for list1 in prices:
+        # returns_list = []
+        #
+        # for df_buy in prices[0]:
         #     for ticker1 in self.tickers_list:
-        #         for df in prices[0]: # Buy prices:
-        #             if df['Ticker'].iloc[0] == ticker1:
-        #                 for j in range(len(df)):
-        #                     timestamp1 = df['Buy date'].iloc[j]
-        # Assuming `prices` is the list of dataframes
+        #         if df_buy['Ticker'].iloc[0] == ticker1:
+        #             returns_df = pd.DataFrame(columns=['Ticker', 'Returns'])  # Create an empty dataframe for returns
+        #
+        #             for j in range(len(df_buy)):
+        #                 timestamp1 = df_buy['Buy date'].iloc[j]
+        #                 # Find corresponding sell dataframe
+        #                 for df_sell in prices[1]:  # Sell prices
+        #                     if df_sell['Ticker'].iloc[0] == ticker1:
+        #                         df_sell = pd.DataFrame(df_sell)  # Convert list_iterator to dataframe
+        #                         # Compare timestamp with corresponding sell date
+        #                         sell_date = df_sell['Sell date'].iloc[0]
+        #                         if timestamp1 < sell_date:
+        #                             # Drop sell dates before the first buy date
+        #                             df_sell = df_sell[df_sell['Sell date'] <= timestamp1]
+        #
+        #                             # Compute returns
+        #                             buy_price = df_buy.loc[df_buy['Buy date'] == timestamp1, 'Buy price'].iloc[0]
+        #                             sell_price = None  # Initialize sell_price
+        #                             if len(df_sell) > 0:
+        #                                 sell_price = df_sell.loc[
+        #                                     df_sell['Sell date'] == timestamp1, 'Sell price'].values
+        #                                 if len(sell_price) > 0:
+        #                                     sell_price = sell_price[0]
+        #                                 else:
+        #                                     sell_price = None
+        #
+        #                             if sell_price is not None:
+        #                                 returns = (buy_price - sell_price) / buy_price
+        #                                 returns_df = returns_df.append({'Ticker': ticker1, 'Returns': returns},
+        #                                                                ignore_index=True)
+        #
+        #             returns_list.append(returns_df)
 
-        # Loop over each dataframe in prices[0] (Buy prices)
-        for df_buy in prices[0]:
-            for ticker1 in self.tickers_list:
+        import pandas as pd
+
+        returns_list = []
+
+        for ticker1 in self.tickers_list:
+            for df_buy in prices[0]:
                 if df_buy['Ticker'].iloc[0] == ticker1:
+                    returns_df = pd.DataFrame(columns=['Ticker', 'Returns'])  # Create an empty dataframe for returns
+
                     for j in range(len(df_buy)):
                         timestamp1 = df_buy['Buy date'].iloc[j]
-                        # Find corresponding sell dataframe
+                        buy_price = df_buy.loc[df_buy['Buy date'] == timestamp1, 'Buy price'].iloc[0]
+                        sell_price = None
+                        units = 1  # Buy 1 unit of the stock
+
                         for df_sell in prices[1]:  # Sell prices
                             if df_sell['Ticker'].iloc[0] == ticker1:
-                                # Compare timestamp with corresponding sell date
-                                sell_date = df_sell['Sell date'].iloc[0]
-                                if timestamp1 < sell_date:
-                                    returns = (df_buy.loc[df_buy['Buy date'] == timestamp1, 'Buy price']-
-                                               df_sell.loc[df_sell['Sell date'] == timestamp1, 'Sell price'])/\
-                                              df_buy.loc[df_buy['Buy date'] == timestamp1, 'Buy price']
+                                df_sell = pd.DataFrame(df_sell)  # Convert list_iterator to dataframe
+                                sell_date = df_sell[df_sell['Sell date'] == timestamp1]
 
+                                if not sell_date.empty:
+                                    sell_price = sell_date.iloc[0]['Sell price']
+                                    break  # Exit the loop once sell_price is found
+
+                        if sell_price is not None:
+                            returns = (sell_price - buy_price) * units / buy_price
+                            returns_df.loc[len(returns_df)] = [ticker1, returns]  # Append new row to returns_df
+
+                    returns_list.append(returns_df)
+
+        # Now the returns_list contains dataframes with returns for each ticker
+
+        # Now the returns_list contains dataframes with returns for each ticker
 
         print("f")
 
