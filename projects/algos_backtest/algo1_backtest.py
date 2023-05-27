@@ -107,113 +107,108 @@ class Algo1_backtest:
 
         prices = Algo1_backtest.backtest_prices(self)
 
-        # returns_list = []
-        #
+        returns_list = []
+
         # for df_buy in prices[0]:
         #     for ticker1 in self.tickers_list:
-        #         if df_buy['Ticker'].iloc[0] == ticker1:
-        #             returns_df = pd.DataFrame(
-        #                 columns=['Ticker', 'Buy Date', 'Sell Date', 'Returns'])  # Include Buy Date and Sell Date
-        #             position = 0  # Initialize position
-        #             sell_price = None  # Initialize sell_price
+        #         if not df_buy.empty and df_buy['Ticker'].iloc[0] == ticker1:
+        #             returns_df = pd.DataFrame(columns=['Ticker', 'Buy Date', 'Sell Date', 'Returns', 'Position'])
+        #             position = 0
+        #             sell_price = None
         #
-        #             for j in range(len(df_buy)):
-        #                 timestamp1 = df_buy['Buy date'].iloc[j]
+        #             for j, row in df_buy.iterrows():
+        #                 if pd.notnull(row['Buy price']):
+        #                     timestamp1 = row['Buy date']
+        #                     buy_price = row['Buy price']
         #
-        #                 # Find corresponding sell dataframe
-        #                 for df_sell in prices[1]:  # Sell prices
-        #                     if df_sell['Ticker'].iloc[0] == ticker1:
-        #                         df_sell = pd.DataFrame(df_sell)  # Convert list_iterator to dataframe
+        #                     # Find corresponding sell dataframe
+        #                     for df_sell in prices[1]:
+        #                         if df_sell['Ticker'].iloc[0] == ticker1:
+        #                             df_sell = pd.DataFrame(df_sell)
         #
-        #                         # Filter out sell dates before the first buy date
-        #                         df_sell = df_sell[df_sell['Sell date'] >= timestamp1]
+        #                             # Filter out sell dates before the first buy date
+        #                             df_sell = df_sell[df_sell['Sell date'] >= timestamp1]
         #
-        #                         # Check if there is a sell_price available
-        #                         if sell_price is not None:
-        #                             returns = (buy_price - sell_price) / buy_price
-        #                             returns_df = pd.concat([returns_df, pd.DataFrame(
-        #                                 {'Ticker': [ticker1], 'Buy Date': [timestamp1], 'Sell Date': [sell_date],
-        #                                  'Returns': [returns]})])
+        #                             # Check if there is a sell_price available
+        #                             if sell_price is not None:
+        #                                 returns = (sell_price - buy_price) / buy_price
+        #                                 if position == 1:
+        #                                     position = 0
+        #                                 returns_df = pd.concat([returns_df, pd.DataFrame(
+        #                                     {'Ticker': [ticker1], 'Buy Date': [timestamp1], 'Sell Date': [sell_date],
+        #                                      'Returns': [returns], 'Position': [position]})])
         #
-        #                         # Compute returns
-        #                         buy_price = df_buy.loc[df_buy['Buy date'] == timestamp1, 'Buy price'].iloc[0]
-        #
-        #                         # Check position and update sell_price
-        #                         if position == 0:
-        #                             sell_price = None
-        #                         elif position == -1:
         #                             if len(df_sell) > 0:
-        #                                 sell_price = df_sell['Sell price'].iloc[0]
-        #                                 sell_date = df_sell['Sell date'].iloc[0]
+        #                                 sell_price = df_sell.iloc[0]['Sell price']
+        #                                 sell_date = df_sell.iloc[0]['Sell date']
         #                             else:
         #                                 sell_price = None
         #                                 sell_date = None
         #
-        #                         # Update position based on Buy price and Sell price
-        #                         if pd.notnull(df_buy['Buy price'].iloc[j]):
+        #                             # Update position based on Buy price and Sell price
         #                             if position == 0:
         #                                 position = 1
-        #                         if pd.notnull(df_sell['Sell price'].iloc[0]):
+        #                                 # Drop previous buy signals
+        #                                 df_sell = df_sell[df_sell['Sell date'] > timestamp1]
         #                             if position == 1:
-        #                                 position = -1
+        #                                 position = 0
+        #                                 # Drop previous sell signals
+        #                                 df_buy = df_buy[df_buy['Buy date'] > sell_date]
         #
         #             # Check if there is a remaining sell_price
         #             if sell_price is not None:
-        #                 returns = (buy_price - sell_price) / buy_price
+        #                 returns = (sell_price - buy_price) / buy_price
+        #                 if position == 1:
+        #                     position = 0
         #                 returns_df = pd.concat([returns_df, pd.DataFrame(
         #                     {'Ticker': [ticker1], 'Buy Date': [timestamp1], 'Sell Date': [sell_date],
-        #                      'Returns': [returns]})])
+        #                      'Returns': [returns], 'Position': [position]})])
         #
-        #             returns_list.append(returns_df)  # Append the current returns_df to returns_list
-        returns_list = []
-
+        #             returns_list.append(returns_df)
         for df_buy in prices[0]:
             for ticker1 in self.tickers_list:
-                if df_buy['Ticker'].iloc[0] == ticker1:
-                    returns_df = pd.DataFrame(columns=['Ticker', 'Buy Date', 'Sell Date', 'Returns'])
-                    position = 0
-                    sell_price = None
+                if not df_buy.empty and df_buy['Ticker'].iloc[0] == ticker1:
+                    returns_df = pd.DataFrame(columns=['Ticker', 'Buy Date', 'Sell Date', 'Returns', 'Position'])
+                    position = 0  # Initialize position as 0 (no position)
+                    latest_sell_date = None  # Initialize latest sell date as None
 
-                    for j in range(len(df_buy)):
-                        timestamp1 = df_buy['Buy date'].iloc[j]
-                        buy_price = df_buy.loc[df_buy['Buy date'] == timestamp1, 'Buy price'].iloc[0]
+                    for j, row in df_buy.iterrows():
+                        if pd.notnull(row['Buy price']):
+                            timestamp1 = row['Buy date']
+                            buy_price = row['Buy price']
 
-                        # Find corresponding sell dataframe
-                        for df_sell in prices[1]:
-                            if df_sell['Ticker'].iloc[0] == ticker1:
-                                df_sell = pd.DataFrame(df_sell)
+                            # Find corresponding sell dataframe
+                            for df_sell in prices[1]:
+                                if df_sell['Ticker'].iloc[0] == ticker1:
+                                    df_sell = pd.DataFrame(df_sell)
 
-                                # Filter out sell dates before the first buy date
-                                df_sell = df_sell[df_sell['Sell date'] >= timestamp1]
+                                    # Filter out sell dates before the latest sell date with position=1
+                                    if latest_sell_date is not None:
+                                        df_sell = df_sell[df_sell['Sell date'] > latest_sell_date]
 
-                                # Check if there is a sell_price available
-                                if sell_price is not None:
-                                    returns = (buy_price - sell_price) / buy_price
-                                    returns_df = pd.concat([returns_df, pd.DataFrame(
-                                        {'Ticker': [ticker1], 'Buy Date': [timestamp1], 'Sell Date': [sell_date],
-                                         'Returns': [returns]})])
+                                    # Check if there is a sell_price available
+                                    if not df_sell.empty:
+                                        sell_price = df_sell.iloc[0]['Sell price']
+                                        sell_date = df_sell.iloc[0]['Sell date']
+                                        latest_sell_date = sell_date  # Update the latest sell date
 
-                                if len(df_sell) > 0:
-                                    sell_price = df_sell['Sell price'].iloc[0]
-                                    sell_date = df_sell['Sell date'].iloc[0]
-                                else:
-                                    sell_price = None
-                                    sell_date = None
+                                        # Update position based on Buy date and Sell date
+                                        if position == 0:  # No position is active
+                                            if timestamp1 < sell_date:
+                                                position = 1
+                                        elif position == 1:  # Position is active
+                                            if timestamp1 < sell_date:
+                                                position = 0
+                                    else:
+                                        sell_price = None
+                                        sell_date = None
 
-                                # Update position based on Buy price and Sell price
-                                if pd.notnull(df_buy['Buy price'].iloc[j]):
-                                    if position == 0:
-                                        position = 1
-                                if pd.notnull(df_sell['Sell price'].iloc[0]):
-                                    if position == 1:
-                                        position = -1
-
-                    # Check if there is a remaining sell_price
-                    if sell_price is not None:
-                        returns = (sell_price - buy_price) / buy_price
-                        returns_df = pd.concat([returns_df, pd.DataFrame(
-                            {'Ticker': [ticker1], 'Buy Date': [timestamp1], 'Sell Date': [sell_date],
-                             'Returns': [returns]})])
+                            # Check if there is a remaining sell_price
+                            if sell_price is not None:
+                                returns = (sell_price - buy_price) / sell_price
+                                returns_df = pd.concat([returns_df, pd.DataFrame(
+                                    {'Ticker': [ticker1], 'Buy Date': [timestamp1], 'Sell Date': [sell_date],
+                                     'Returns': [returns], 'Position': [position]})])
 
                     returns_list.append(returns_df)
 
