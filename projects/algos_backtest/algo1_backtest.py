@@ -157,14 +157,14 @@ class Algo1_backtest:
                                         {'Ticker': [ticker1], 'Buy Date': [timestamp1], 'Sell Date': [sell_date],
                                          'Returns': [returns], 'Position': [position]})])
 
+            returns_df = returns_df.drop(columns=['Position'])
             returns_list.append(returns_df)
 
         print("f")
 
-
         return k
 if __name__ == '__main__':
-    instance = Algo1_backtest(start_date = '2021-01-01',end_date='2023-01-01',tickers_list=['TSLA','AAPL','FLS.CO'])
+    instance = Algo1_backtest(start_date = '2020-01-01',end_date='2023-01-01',tickers_list=['TSLA','AAPL','FLS.CO'])
     output = instance.run_algo1()
     backtest = instance.backtest_prices()
     backtest_returns1 = instance.backtest_returns()
