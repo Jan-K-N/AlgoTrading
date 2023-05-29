@@ -1,14 +1,18 @@
 """
-Front end dash for algo1. The app is beta.
+Front end dash for algo1. The app is made in dash, and it
+outputs the trading signals from algo1 based on the market
+input given by the user. A progress bar is included in
+the app to indicated how far the app is from being
+done executing.
 """
 import sys
-import time
+from datetime import datetime, timedelta
 import dash
 import dash_table
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
-from datetime import datetime, timedelta
+
 
 sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
