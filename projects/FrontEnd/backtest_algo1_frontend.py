@@ -1,13 +1,14 @@
 """
 Main script for the algo1 backtest frontend.
 """
+# pylint: disable=import-error.
+# pylint: disable=wrong-import-order
+import sys
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from datetime import datetime
+from datetime import datetime, timedelta
 
-
-import sys
 sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos_backtest')
 
 from algo1_backtest import Algo1Backtest
@@ -26,7 +27,7 @@ class Algo1BacktestApp:
         """Initialize the Algo1BacktestApp class."""
         self.title = "Algo1 Backtest Returns. Simple returns."
         self.default_start_date = '2010-02-01'
-        self.default_end_date = '2023-01-01'
+        self.default_end_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
 
     def run(self):
         """
@@ -58,8 +59,11 @@ class Algo1BacktestApp:
         Returns:
             Tuple[str, str]: The start date and end date in ISO format.
         """
-        start_date = st.date_input('Start Date', value=datetime.fromisoformat(self.default_start_date).date())
-        end_date = st.date_input('End Date', value=datetime.fromisoformat(self.default_end_date).date())
+        start_date = st.date_input('Start Date',
+                                   value=datetime.fromisoformat(self.default_start_date).date())
+        end_date = st.date_input('End Date',
+                                 value=datetime.fromisoformat(
+                                     self.default_end_date).date())
         start_date_iso = start_date.isoformat()
         end_date_iso = end_date.isoformat()
         return start_date_iso, end_date_iso
@@ -85,11 +89,14 @@ class Algo1BacktestApp:
             tickers (List[str]): The list of tickers.
 
         Returns:
-            List[pd.DataFrame]: The list of dataframes containing 'Buy Date', 'Sell Date', and 'Returns' columns.
+            List[pd.DataFrame]: The list of dataframes containing
+             'Buy Date', 'Sell Date', and 'Returns' columns.
         """
         returns_df_list = []
         for ticker in tickers:
-            instance_backtest = Algo1Backtest(start_date=start_date, end_date=end_date, tickers_list=[ticker])
+            instance_backtest = Algo1Backtest(start_date=start_date,
+                                              end_date=end_date,
+                                              tickers_list=[ticker])
             returns_df_list.extend(instance_backtest.backtest_returns())
         return returns_df_list
 
@@ -98,7 +105,8 @@ class Algo1BacktestApp:
         Display the returns chart.
 
         Args:
-            combined_df (pd.DataFrame): The combined dataframe containing 'Sell Date', 'Returns', and 'Ticker' columns.
+            combined_df (pd.DataFrame):
+             The combined dataframe containing 'Sell Date', 'Returns', and 'Ticker' columns.
         """
         fig = px.line(combined_df, x='Sell Date', y='Returns', color='Ticker',
                       title='Algo1 Backtest Returns')
