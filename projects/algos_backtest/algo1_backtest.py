@@ -4,6 +4,7 @@ Main script for algo1 backtest.
 # pylint: disable=wrong-import-position.
 import sys
 import pandas as pd
+import numpy as np
 sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
 sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 # pylint: disable=import-error.
@@ -207,12 +208,18 @@ class Algo1Backtest:
                                 # Check if there is a remaining sell_price
                                 if sell_price is not None:
                                     returns = (sell_price - buy_price) / sell_price
+                                    log_returns = np.log1p(returns)
                                     returns_df = pd.concat([returns_df, pd.DataFrame(
                                         {'Ticker': [ticker1], 'Buy Date': [timestamp1],
                                          'Sell Date': [sell_date],
-                                         'Returns': [returns], 'Position': [position]})])
+                                         'Returns': [returns], 'Position': [position],
+                                         'Log returns': [log_returns]})])
 
             returns_df = returns_df.drop(columns=['Position'])
             returns_list.append(returns_df)
 
         return returns_list
+
+if __name__ == "__main__":
+    instance = Algo1Backtest(start_date='2011-01-01',end_date='2023-01-02',tickers_list=['TSLA'])
+    k = instance.backtest_returns()
