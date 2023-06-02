@@ -2,15 +2,16 @@
 Main script for the algo1 backtest frontend.
 """
 # pylint: disable=import-error.
-# pylint: disable=wrong-import-order
 import sys
+from datetime import datetime, timedelta
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from datetime import datetime, timedelta
+
 
 sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos_backtest')
 
+# pylint: disable=wrong-import-position.
 from algo1_backtest import Algo1Backtest
 
 class Algo1BacktestApp:
