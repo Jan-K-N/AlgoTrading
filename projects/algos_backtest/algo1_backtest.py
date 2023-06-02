@@ -150,6 +150,8 @@ class Algo1Backtest:
                                     - Buy Date: Date of buy signal, i.e. one day after the signal.
                                     - Sell Date: Date of sell signal
                                     - Returns: Computed returns for the trade
+                                    - Log returns: Log returns. The formula log(1 + x) is used
+                                      to deal with negative return values.
         """
 
         prices = Algo1Backtest.backtest_prices(self)
@@ -219,6 +221,7 @@ class Algo1Backtest:
             returns_list.append(returns_df)
 
         return returns_list
+
 
 if __name__ == "__main__":
     instance = Algo1Backtest(start_date='2011-01-01',end_date='2023-01-02',tickers_list=['TSLA'])
