@@ -164,7 +164,8 @@ class Algo1Backtest:
                                                'Buy Date',
                                                'Sell Date',
                                                'Returns',
-                                               'Position'])
+                                               'Position',
+                                               'Log returns'])
             position = 0  # Initialize position as 0 (no position)
             latest_sell_date = None  # Initialize latest sell date as None
 
@@ -212,17 +213,39 @@ class Algo1Backtest:
                                     returns = (sell_price - buy_price) / sell_price
                                     log_returns = np.log1p(returns)
                                     returns_df = pd.concat([returns_df, pd.DataFrame(
-                                        {'Ticker': [ticker1], 'Buy Date': [timestamp1],
+                                        {'Ticker': [ticker1],
+                                         'Buy Date': [timestamp1],
                                          'Sell Date': [sell_date],
-                                         'Returns': [returns], 'Position': [position],
-                                         'Log returns': [log_returns]})])
-
+                                         'Returns': [returns],
+                                         'Position': [position],
+                                         'Log returns': [log_returns]
+                                         })])
             returns_df = returns_df.drop(columns=['Position'])
             returns_list.append(returns_df)
 
         return returns_list
 
+    def backtest_cumulative_returns(self):
+        """
+        Computes and retrieves the cumulative returns for each ticker based on
+        the buy/sell signals obtained from Algo1.
 
-if __name__ == "__main__":
-    instance = Algo1Backtest(start_date='2011-01-01',end_date='2023-01-02',tickers_list=['TSLA'])
-    k = instance.backtest_returns()
+        Returns:
+            List[pd.DataFrame]: A list of pandas DataFrames containing
+                the cumulative returns data for each ticker. Each DataFrame
+                contains the following columns:
+                    - Ticker: Ticker symbol
+                    - Cumulative Returns: Cumulative returns based on the previous trades
+        """
+        returns_list = self.backtest_returns()
+        cumulative_returns_list = []
+
+        for returns_df in returns_list:
+            cumulative_returns = (1 + returns_df['Returns']).cumprod() - 1
+            cumulative_returns_df = pd.DataFrame({
+                'Ticker': returns_df['Ticker'],
+                'Cumulative Returns': cumulative_returns
+            })
+            cumulative_returns_list.append(cumulative_returns_df)
+
+        return cumulative_returns_list
