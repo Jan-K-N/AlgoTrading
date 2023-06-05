@@ -4,6 +4,7 @@ Main script for algo1 backtest.
 # pylint: disable=wrong-import-position.
 import sys
 import pandas as pd
+import numpy as np
 sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
 sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 # pylint: disable=import-error.
@@ -149,6 +150,8 @@ class Algo1Backtest:
                                     - Buy Date: Date of buy signal, i.e. one day after the signal.
                                     - Sell Date: Date of sell signal
                                     - Returns: Computed returns for the trade
+                                    - Log returns: Log returns. The formula log(1 + x) is used
+                                      to deal with negative return values.
         """
 
         prices = Algo1Backtest.backtest_prices(self)
@@ -161,7 +164,8 @@ class Algo1Backtest:
                                                'Buy Date',
                                                'Sell Date',
                                                'Returns',
-                                               'Position'])
+                                               'Position',
+                                               'Log returns'])
             position = 0  # Initialize position as 0 (no position)
             latest_sell_date = None  # Initialize latest sell date as None
 
@@ -207,12 +211,41 @@ class Algo1Backtest:
                                 # Check if there is a remaining sell_price
                                 if sell_price is not None:
                                     returns = (sell_price - buy_price) / sell_price
+                                    log_returns = np.log1p(returns)
                                     returns_df = pd.concat([returns_df, pd.DataFrame(
-                                        {'Ticker': [ticker1], 'Buy Date': [timestamp1],
+                                        {'Ticker': [ticker1],
+                                         'Buy Date': [timestamp1],
                                          'Sell Date': [sell_date],
-                                         'Returns': [returns], 'Position': [position]})])
-
+                                         'Returns': [returns],
+                                         'Position': [position],
+                                         'Log returns': [log_returns]
+                                         })])
             returns_df = returns_df.drop(columns=['Position'])
             returns_list.append(returns_df)
 
         return returns_list
+
+    def backtest_cumulative_returns(self):
+        """
+        Computes and retrieves the cumulative returns for each ticker based on
+        the buy/sell signals obtained from Algo1.
+
+        Returns:
+            List[pd.DataFrame]: A list of pandas DataFrames containing
+                the cumulative returns data for each ticker. Each DataFrame
+                contains the following columns:
+                    - Ticker: Ticker symbol
+                    - Cumulative Returns: Cumulative returns based on the previous trades
+        """
+        returns_list = self.backtest_returns()
+        cumulative_returns_list = []
+
+        for returns_df in returns_list:
+            cumulative_returns = (1 + returns_df['Returns']).cumprod() - 1
+            cumulative_returns_df = pd.DataFrame({
+                'Ticker': returns_df['Ticker'],
+                'Cumulative Returns': cumulative_returns
+            })
+            cumulative_returns_list.append(cumulative_returns_df)
+
+        return cumulative_returns_list
