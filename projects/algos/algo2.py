@@ -20,9 +20,9 @@ class Algo2:
 
         return algo1_output
 
-    def corr_algo1(self):
+    def random_forest(self):
         """
-        Function for checking the correlation of the stocks with signals with economic variables.
+        Function for creating a random forest for the stock return.
 
         Returns:
 
