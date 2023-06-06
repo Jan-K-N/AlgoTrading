@@ -74,3 +74,47 @@ class Database():
         ticker_info = yf.Ticker(self.ticker)
         ticker_div = ticker_info.dividends
         return ticker_div
+
+    def compute_stock_return(self, start=None, end=None, ticker=None):
+        """
+        Computes the return of a stock based on its price data.
+
+        Args:
+            start (str): A string representing the start date in the format 'YYYY-MM-DD'.
+            end (str): A string representing the end date in the format 'YYYY-MM-DD'.
+            ticker (str): A string representing the stock ticker symbol.
+
+        Returns:
+            float: The computed return of the stock.
+
+        Note:
+            If `ticker`, `start`, and `end` are not specified, the function will use the
+            previously set values.
+
+        Raises:
+            ValueError: If `ticker` is not specified.
+        """
+        price_data = self.get_price_data(start=start, end=end, ticker=ticker)
+        if price_data.empty:
+            raise ValueError("Price data is empty.")
+
+        # Compute the stock return
+        start_price = price_data.iloc[0]['Close']
+        end_price = price_data.iloc[-1]['Close']
+        stock_return = (end_price - start_price) / start_price
+
+        return stock_return
+
+
+if __name__ == '__main__':
+    # Create an instance of the Database class
+    db = Database()
+
+    # Compute the return of a stock (e.g., AAPL) between two dates
+    start_date = '2022-01-01'
+    end_date = '2022-12-31'
+    ticker_symbol = 'AAPL'
+    stock_return = db.compute_stock_return(start=start_date, end=end_date, ticker=ticker_symbol)
+
+
+
