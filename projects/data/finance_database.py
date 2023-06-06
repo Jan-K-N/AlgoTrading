@@ -105,7 +105,6 @@ class Database():
 
         return stock_return
 
-
 if __name__ == '__main__':
     # Create an instance of the Database class
     db = Database()
