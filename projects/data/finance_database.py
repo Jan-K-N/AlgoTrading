@@ -77,7 +77,7 @@ class Database():
 
     def compute_stock_return(self, start=None, end=None, ticker=None):
         """
-        Computes the return of a stock based on its price data.
+        Computes the daily return of a stock based on its price data.
 
         Args:
             start (str): A string representing the start date in the format 'YYYY-MM-DD'.
@@ -85,7 +85,7 @@ class Database():
             ticker (str): A string representing the stock ticker symbol.
 
         Returns:
-            float: The computed return of the stock.
+            pandas.Series: The computed daily return of the stock.
 
         Note:
             If `ticker`, `start`, and `end` are not specified, the function will use the
@@ -98,12 +98,11 @@ class Database():
         if price_data.empty:
             raise ValueError("Price data is empty.")
 
-        # Compute the stock return
-        start_price = price_data.iloc[0]['Close']
-        end_price = price_data.iloc[-1]['Close']
-        stock_return = (end_price - start_price) / start_price
+        # Compute the daily returns
+        price_data['Return'] = price_data['Close'].pct_change()
+        daily_returns = price_data['Return']
 
-        return stock_return
+        return daily_returns
 
 if __name__ == '__main__':
     # Create an instance of the Database class
