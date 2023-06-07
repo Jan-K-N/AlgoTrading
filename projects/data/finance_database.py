@@ -102,17 +102,7 @@ class Database():
         price_data['Return'] = price_data['Close'].pct_change()
         daily_returns = price_data['Return']
 
+        # Drop 'NaN' values
+        daily_returns = daily_returns.dropna()
+
         return daily_returns
-
-if __name__ == '__main__':
-    # Create an instance of the Database class
-    db = Database()
-
-    # Compute the return of a stock (e.g., AAPL) between two dates
-    start_date = '2022-01-01'
-    end_date = '2022-12-31'
-    ticker_symbol = 'AAPL'
-    stock_return = db.compute_stock_return(start=start_date, end=end_date, ticker=ticker_symbol)
-
-
-
