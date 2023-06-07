@@ -74,3 +74,35 @@ class Database():
         ticker_info = yf.Ticker(self.ticker)
         ticker_div = ticker_info.dividends
         return ticker_div
+
+    def compute_stock_return(self, start=None, end=None, ticker=None):
+        """
+        Computes the daily return of a stock based on its price data.
+
+        Args:
+            start (str): A string representing the start date in the format 'YYYY-MM-DD'.
+            end (str): A string representing the end date in the format 'YYYY-MM-DD'.
+            ticker (str): A string representing the stock ticker symbol.
+
+        Returns:
+            pandas.Series: The computed daily return of the stock.
+
+        Note:
+            If `ticker`, `start`, and `end` are not specified, the function will use the
+            previously set values.
+
+        Raises:
+            ValueError: If `ticker` is not specified.
+        """
+        price_data = self.get_price_data(start=start, end=end, ticker=ticker)
+        if price_data.empty:
+            raise ValueError("Price data is empty.")
+
+        # Compute the daily returns
+        price_data['Return'] = price_data['Close'].pct_change()
+        daily_returns = price_data['Return']
+
+        # Drop 'NaN' values
+        daily_returns = daily_returns.dropna()
+
+        return daily_returns
