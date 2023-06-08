@@ -9,6 +9,7 @@ from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.stattools import adfuller
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from math import sqrt
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 class TimeSeriesForecast:
     def __init__(self, data, steps, train_size=0.75, expanding_window=True):
@@ -54,7 +55,7 @@ class TimeSeriesForecast:
         optimal_order = self.find_optimal_order()
 
         # Fit the ARIMA model with the optimal order using the training set
-        model = ARIMA(train_data, order=optimal_order)
+        model = SARIMAX(train_data, order=optimal_order)
         model_fit = model.fit()
 
         return model_fit
@@ -85,12 +86,13 @@ class TimeSeriesForecast:
             train_data = self.data[:train_size]
 
             # Fit the ARIMA model for each iteration
-            fitted_model = self.fit_arima(train_data)
+            try:
+                fitted_model = self.fit_arima(train_data)
 
-            if fitted_model is not None:
                 # Make one-step ahead forecast for each iteration
-                forecast_value = fitted_model.forecast(steps=1)[0][0]
-            else:
+                forecast_value = fitted_model.get_forecast(steps=1).predicted_mean[0]
+            except:
+                # Handle the case where fitting failed
                 # Compute the mean of available data up until the current data point
                 mean_value = train_data.mean()
 
@@ -117,10 +119,9 @@ class TimeSeriesForecast:
         if future_steps > 0:
             fitted_model = self.fit_arima(self.data)
 
-            if fitted_model is not None:
-                # Make future forecasts
-                future_forecasts = fitted_model.forecast(steps=future_steps)[0]
-                forecasts.extend(future_forecasts)
+            # Make future forecasts with the optimal order
+            future_forecasts = fitted_model.get_forecast(steps=future_steps).predicted_mean
+            forecasts.extend(future_forecasts)
 
         # Handle the case where no forecasts are available
         if len(forecasts) == 0:
@@ -130,14 +131,15 @@ class TimeSeriesForecast:
 
 
 if __name__ == '__main__':
-    data_instance = Database(start='2020-01-01', end='2023-01-01', ticker='TSLA')
-    data = data_instance.compute_stock_return(start='2020-01-01', end='2023-01-01', ticker='TSLA')
+    data_instance = Database(start='2022-12-01', end='2023-05-01', ticker='TSLA')
+    data = data_instance.compute_stock_return(start='2022-12-01', end='2023-04-01', ticker='TSLA')
+    data2 = data_instance.compute_stock_return(start='2022-12-01', end='2023-05-01', ticker='TSLA')
 
     # Create an instance of the TimeSeriesForecast class
-    ts_forecast = TimeSeriesForecast(data, steps=5, train_size=0.75, expanding_window=True)
+    ts_forecast = TimeSeriesForecast(data, steps=1, train_size=0.75, expanding_window=True)
 
     # Perform forecasting
-    forecasts, avg_rmse, avg_mae = ts_forecast.forecast(future_steps=3)
+    forecasts, avg_rmse, avg_mae = ts_forecast.forecast(future_steps=1)
 
     # Print the forecasts, average RMSE, and average MAE
     print("Forecasts:", forecasts)
