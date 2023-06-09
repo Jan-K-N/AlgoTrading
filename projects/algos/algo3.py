@@ -25,10 +25,14 @@ class ArbitrageTrading:
             instance_sp500 = SAndPScraper()
             tickers_list = instance_sp500.run_scraper()
 
+        returns_dataframe = pd.DataFrame()  # Initialize an empty dataframe
+
         for ticker in tickers_list:
             data_instance = Database()
             returns = data_instance.compute_stock_return(start=self.start_date, end=self.end_date,ticker=ticker)
+            returns_dataframe = pd.concat([returns_dataframe, returns])
 
+        return returns_dataframe
 
     def find_cointegrated_pairs(self):
         num_assets = len(self.data.columns)
@@ -99,6 +103,6 @@ class ArbitrageTrading:
 # arbitrage_trading.arbitrage_strategy()
 
 if __name__ == '__main__':
-    instance = ArbitrageTrading(start_date='2020-01-01', end_date = '2021-01-01',market = 'DAX')
+    instance = ArbitrageTrading(start_date='2021-01-01', end_date = '2021-04-01',market = 'DAX')
     k = instance.get_data()
 
