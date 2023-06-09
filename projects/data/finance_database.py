@@ -3,6 +3,7 @@ Main Finance Database script.
 """
 from datetime import date, timedelta
 import yfinance as yf
+import pandas as pd
 
 class Database():
     """
@@ -99,8 +100,8 @@ class Database():
             raise ValueError("Price data is empty.")
 
         # Compute the daily returns
-        price_data['Return'] = price_data['Close'].pct_change()
-        daily_returns = price_data['Return']
+        daily_returns = pd.DataFrame()
+        daily_returns[ticker] = price_data['Close'].pct_change()
 
         # Drop 'NaN' values
         daily_returns = daily_returns.dropna()
