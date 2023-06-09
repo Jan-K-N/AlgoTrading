@@ -2,11 +2,33 @@
 
 import pandas as pd
 import numpy as np
+import sys
 import statsmodels.api as sm
 
+sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
+sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+from s_and_p_scraper import SAndPScraper
+from dax_scraper import DAXScraper
+from finance_database import Database
+
 class ArbitrageTrading:
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, start_date = None, end_date = None, market = None):
+        self.start_date = start_date
+        self.end_date = end_date
+        self.market = market
+
+    def get_data(self):
+        if self.market == 'DAX':
+            instance_dax = DAXScraper()
+            tickers_list = instance_dax.run_scraper()
+        elif market == '^GSPC':
+            instance_sp500 = SAndPScraper()
+            tickers_list = instance_sp500.run_scraper()
+
+        for ticker in tickers_list:
+            data_instance = Database()
+            returns = data_instance.compute_stock_return(start=self.start_date, end=self.end_date,ticker=ticker)
+
 
     def find_cointegrated_pairs(self):
         num_assets = len(self.data.columns)
@@ -68,11 +90,15 @@ class ArbitrageTrading:
                 # No arbitrage opportunity
                 print("No arbitrage opportunity")
 
-# Example usage
-# Assuming 'data' is a pandas DataFrame containing the return data of multiple assets
-# Each column represents the return time series of an asset
-arbitrage_trading = ArbitrageTrading(data)
+# # Example usage
+# # Assuming 'data' is a pandas DataFrame containing the return data of multiple assets
+# # Each column represents the return time series of an asset
+# arbitrage_trading = ArbitrageTrading(data)
+#
+# # Perform cointegration analysis and identify arbitrage opportunities
+# arbitrage_trading.arbitrage_strategy()
 
-# Perform cointegration analysis and identify arbitrage opportunities
-arbitrage_trading.arbitrage_strategy()
+if __name__ == '__main__':
+    instance = ArbitrageTrading()
+    k = instance.get_data(start_date='2020-01-01', end_date = '2021-01-01',market = 'DAX')
 
