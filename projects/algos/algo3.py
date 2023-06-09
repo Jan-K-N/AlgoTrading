@@ -90,7 +90,7 @@ class ArbitrageTrading:
                 # No arbitrage opportunity
                 print("No arbitrage opportunity")
 
-# # Example usage
+# # Example usage:
 # # Assuming 'data' is a pandas DataFrame containing the return data of multiple assets
 # # Each column represents the return time series of an asset
 # arbitrage_trading = ArbitrageTrading(data)
@@ -99,6 +99,6 @@ class ArbitrageTrading:
 # arbitrage_trading.arbitrage_strategy()
 
 if __name__ == '__main__':
-    instance = ArbitrageTrading()
-    k = instance.get_data(start_date='2020-01-01', end_date = '2021-01-01',market = 'DAX')
+    instance = ArbitrageTrading(start_date='2020-01-01', end_date = '2021-01-01',market = 'DAX')
+    k = instance.get_data()
 
