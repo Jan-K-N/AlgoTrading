@@ -16,12 +16,13 @@ class ArbitrageTrading:
         self.start_date = start_date
         self.end_date = end_date
         self.market = market
+        self.data = self.get_data()
 
     def get_data(self):
         if self.market == 'DAX':
             instance_dax = DAXScraper()
             tickers_list = instance_dax.run_scraper()
-        elif market == '^GSPC':
+        elif self.market == '^GSPC':
             instance_sp500 = SAndPScraper()
             tickers_list = instance_sp500.run_scraper()
 
@@ -30,7 +31,7 @@ class ArbitrageTrading:
         for ticker in tickers_list:
             data_instance = Database()
             returns = data_instance.compute_stock_return(start=self.start_date, end=self.end_date,ticker=ticker)
-            returns_dataframe = pd.concat([returns_dataframe, returns])
+            returns_dataframe = pd.concat([returns_dataframe, returns], axis=1)
 
         return returns_dataframe
 
@@ -41,9 +42,18 @@ class ArbitrageTrading:
         pairs = []
 
         for i in range(num_assets):
-            for j in range(i+1, num_assets):
+            for j in range(i + 1, num_assets):
                 asset1 = self.data.iloc[:, i]
                 asset2 = self.data.iloc[:, j]
+
+                # Handle missing or invalid values
+                if asset1.isnull().any() or asset2.isnull().any():
+                    print("Missing or invalid values in the data. Skipping pair...")
+                    continue
+
+                if not np.isfinite(asset1).all() or not np.isfinite(asset2).all():
+                    print("Invalid values (e.g., NaN or infinity) in the data. Skipping pair...")
+                    continue
 
                 # Perform cointegration test
                 result = sm.tsa.stattools.coint(asset1, asset2)
@@ -60,6 +70,8 @@ class ArbitrageTrading:
 
     def arbitrage_strategy(self):
         pairs, _, _ = self.find_cointegrated_pairs()
+
+        arbitrage_opportunities = []
 
         for pair in pairs:
             asset1_idx = pair[0]
@@ -79,30 +91,25 @@ class ArbitrageTrading:
             spread_mean = np.mean(spread)
             spread_std = np.std(spread)
 
-            # Define trading thresholds
-            upper_threshold = spread_mean + 1.5 * spread_std
-            lower_threshold = spread_mean - 1.5 * spread_std
+            # Create dataframe for the arbitrage opportunity
+            df = pd.DataFrame(index=self.data.index)
+            df[asset1.name] = [
+                1 if x > spread_mean + 1.5 * spread_std else -1 if x < spread_mean - 1.5 * spread_std else 0 for x in
+                spread]
+            df[asset2.name] = [
+                -1 if x > spread_mean + 1.5 * spread_std else 1 if x < spread_mean - 1.5 * spread_std else 0
+                for x in spread]
 
-            # Implement arbitrage trading strategy
-            if spread[-1] > upper_threshold:
-                # Sell asset1 and buy asset2
-                print(f"Sell asset1 and buy asset2 (Pair: {asset1.name}, {asset2.name})")
-            elif spread[-1] < lower_threshold:
-                # Buy asset1 and sell asset2
-                print(f"Buy asset1 and sell asset2 (Pair: {asset1.name}, {asset2.name})")
-            else:
-                # No arbitrage opportunity
-                print("No arbitrage opportunity")
+            arbitrage_opportunities.append({
+                'Pair': (asset1.name, asset2.name),
+                'DataFrame': df
+            })
 
-# # Example usage:
-# # Assuming 'data' is a pandas DataFrame containing the return data of multiple assets
-# # Each column represents the return time series of an asset
-# arbitrage_trading = ArbitrageTrading(data)
-#
-# # Perform cointegration analysis and identify arbitrage opportunities
-# arbitrage_trading.arbitrage_strategy()
+        return arbitrage_opportunities
 
 if __name__ == '__main__':
-    instance = ArbitrageTrading(start_date='2021-01-01', end_date = '2021-04-01',market = 'DAX')
+    instance = ArbitrageTrading(start_date='2022-01-01', end_date = '2023-04-01',market = 'DAX')
     k = instance.get_data()
+    f=instance.arbitrage_strategy()
+    print("k")
 
