@@ -104,9 +104,9 @@ class TimeSeriesForecast:
 
             # Append the actual value to the list for computing RMSE and MAE
             if self.expanding_window:
-                actual_value = self.data[train_size + self.steps - 1]
+                actual_value = self.data.iloc[train_size + i + self.steps]
             else:
-                actual_value = self.data[train_size + i + self.steps]
+                actual_value = self.data.iloc[train_size + i + self.steps]
 
             rmses.append(sqrt(mean_squared_error([actual_value], [forecast_value])))
             maes.append(mean_absolute_error([actual_value], [forecast_value]))
@@ -120,7 +120,7 @@ class TimeSeriesForecast:
             fitted_model = self.fit_arima(self.data)
 
             # Make future forecasts with the optimal order
-            future_forecasts = fitted_model.get_forecast(steps=future_steps).predicted_mean
+            future_forecasts = fitted_model.get_forecast(steps=future_steps).predicted_mean.iloc[:]
             forecasts.extend(future_forecasts)
 
         # Handle the case where no forecasts are available
