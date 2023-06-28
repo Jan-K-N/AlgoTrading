@@ -6,3 +6,5 @@
 requirements.txt
 projects/algos/algo1.log
 projects/algos/Dockerfile
+projects/models/... 2
+projects/.DS_Store
