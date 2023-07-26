@@ -11,7 +11,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code to the working directory
-COPY /Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos/algo3.py
+#COPY /Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos/algo3.py .
+COPY algo3.py .
 
 # Set the entrypoint command
 CMD ["python", "algo3.py"]
