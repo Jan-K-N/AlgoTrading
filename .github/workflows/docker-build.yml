@@ -13,4 +13,4 @@ jobs:
       
     - name: Build Docker image
       run: |
-        docker build -t my-image-name /Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos
+        docker build -t my-image-name -f projects/algos/Dockerfile .
