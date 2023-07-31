@@ -1,5 +1,6 @@
 """Main script for algo3"""
-
+# pylint: disable=import-error
+# pylint: disable=wrong-import-position
 import sys
 import pandas as pd
 import numpy as np
@@ -122,6 +123,7 @@ class ArbitrageTrading:
 
         return pairs, score_matrix, pvalue_matrix
 
+    # pylint: disable=too-many-locals
     def arbitrage_strategy(self):
         """
         Implement the arbitrage trading strategy based on cointegrated pairs.
@@ -154,17 +156,21 @@ class ArbitrageTrading:
             spread_std = np.std(spread)
 
             # Create DataFrame for the arbitrage opportunity
-            df = pd.DataFrame(index=self.data.index)
+            data_frame = pd.DataFrame(index=self.data.index)
             asset1_name = asset1.name
             asset2_name = asset2.name
-            df[asset1_name] = np.where(spread > spread_mean + 1.5 * spread_std, 1,
-                                       np.where(spread < spread_mean - 1.5 * spread_std, -1, 0))
-            df[asset2_name] = np.where(spread > spread_mean + 1.5 * spread_std, -1,
-                                       np.where(spread < spread_mean - 1.5 * spread_std, 1, 0))
+            data_frame[asset1_name] = np.where(spread > spread_mean + 1.5 * spread_std,
+                                               1,
+                                               np.where(spread < spread_mean -
+                                                        1.5 * spread_std, -1, 0))
+            data_frame[asset2_name] = np.where(spread > spread_mean + 1.5 * spread_std,
+                                               -1,
+                                               np.where(spread < spread_mean -
+                                                        1.5 * spread_std, 1, 0))
 
             arbitrage_opportunities.append({
                 'Pair': (asset1_name, asset2_name),
-                'DataFrame': df
+                'DataFrame': data_frame
             })
 
         arbitrage_opportunities = [opportunity for opportunity
@@ -174,10 +180,3 @@ class ArbitrageTrading:
                                         opportunity['Pair'][1]]].nunique().sum() > 2]
 
         return arbitrage_opportunities
-
-if __name__ == '__main__':
-    instance = ArbitrageTrading(start_date='2022-05-01', end_date = '2023-04-01',market = 'DAX')
-    k = instance.get_data()
-    f=instance.arbitrage_strategy()
-    print("k")
-
