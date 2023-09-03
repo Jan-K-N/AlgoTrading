@@ -6,15 +6,19 @@ will do some more analysis.
 import sys
 from algo1 import Algo1
 sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-# from data import finance_database
+from finance_database import Database
+from datetime import datetime,timedelta
 import pandas as pd
 
 class Algo2:
-    def __init__(self,ticker=None, start_date=None,end_date=None, tickers_list=None):
+    def __init__(self,ticker=None, start_date=None,end_date=None, tickers_list=None,
+                 days_back = None):
         self.ticker = ticker
         self.start_date = start_date
         self.end_date = end_date
         self.tickers_list = tickers_list
+        self.days_back = days_back
+        self.db_instance = Database(start=start_date, end=end_date, ticker=ticker)  # Create an instance of the Database class
 
     def run_algo1(self):
         instance_algo1 = Algo1(start_date=self.start_date,
@@ -24,6 +28,25 @@ class Algo2:
 
         return algo1_output
 
+    def return_data(self):
+        """
+        Private method for pulling return data from our finance database for multiple tickers.
+
+        Returns:
+            A list of DataFrames, where each DataFrame contains return data for a specific ticker.
+        """
+        return_data_list = []  # Create an empty list to store return data DataFrames for each ticker
+
+        for ticker in self.tickers_list:
+            # Calculate the start date based on self.days_back
+            start_date = datetime.strptime(self.start_date, "%Y-%m-%d") - timedelta(days=self.days_back)
+            start_date = start_date.strftime("%Y-%m-%d")  # Convert back to string format
+
+            return_data = self.db_instance.compute_stock_return(start=start_date, end=self.end_date, ticker=ticker)
+
+            return_data_list.append(return_data)  # Append return data DataFrame to the list
+
+        return return_data_list
 
     def random_forest(self):
         """
@@ -37,10 +60,7 @@ class Algo2:
         Returns:
 
         """
-        instance = Algo2(start_date=self.start_date,
-                         end_date=self.end_date,
-                         tickers_list=self.tickers_list)
-        algo1_signals = instance.run_algo1()
+        algo1_signals = self.run_algo1()
 
         # Initialize empty lists to store DataFrames for buy and sell signals
         buy_dataframes = []
@@ -75,19 +95,12 @@ class Algo2:
             buy_dataframes.append(filtered_buy_df)
             sell_dataframes.append(filtered_sell_df)
 
-        def __return_data__(self):
-            """
-            Private method for pulling return data from our finance database.
-
-            Returns:
-                A vector with return data up to a given date and x-periods behind.
-
-            """
-
         # Now we can create some return vectors, where the end-date point is given by
         # the last date, which we get from buy_dataframes and sell_dataframes.
 
         print("k")
 if __name__ == '__main__':
-    instance = Algo2(start_date='2023-01-01',end_date='2023-08-21',tickers_list=['TSLA','AAPL','AMZN'])
+    instance = Algo2(start_date='2023-01-01',end_date='2023-08-21',tickers_list=['TSLA','AAPL','AMZN'],
+                     days_back=0)
     f = instance.random_forest()
+    k = instance.return_data()
