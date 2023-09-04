@@ -97,8 +97,23 @@ class Algo2:
 
         # Now we can create some return vectors, where the end-date point is given by
         # the last date, which we get from buy_dataframes and sell_dataframes.
+        returns = self.return_data()
 
-        print("k")
+        selected_series_list = []
+
+        for df,df1 in zip(buy_dataframes,returns):
+            buy_column = df.iloc[:,1]
+
+            for i in range(0,len(buy_column)):
+                buy_date = buy_column[i]
+                if buy_date in df1.index:
+                    selected_series = df1.loc[df1.index <= buy_date]
+                    selected_series_list.append(selected_series)
+                else:
+                    # If 'buy_date' is not in the DataFrame's index, append an empty series:
+                    selected_series_list.append(pd.Series())
+
+
 if __name__ == '__main__':
     instance = Algo2(start_date='2023-01-01',end_date='2023-08-21',tickers_list=['TSLA','AAPL','AMZN'],
                      days_back=0)
