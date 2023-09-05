@@ -9,6 +9,10 @@ sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/proje
 from finance_database import Database
 from datetime import datetime,timedelta
 import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 class Algo2:
     def __init__(self,ticker=None, start_date=None,end_date=None, tickers_list=None,
@@ -99,20 +103,66 @@ class Algo2:
         # the last date, which we get from buy_dataframes and sell_dataframes.
         returns = self.return_data()
 
-        selected_series_list = []
+        selected_buy_series_list = []
+        selected_sell_series_list = []
 
-        for df,df1 in zip(buy_dataframes,returns):
-            buy_column = df.iloc[:,1]
+        for df, df1, df2 in zip(buy_dataframes, returns, sell_dataframes):
+            buy_column = df.iloc[:, 1]
+            sell_column = df2.iloc[:, 1]
 
-            for i in range(0,len(buy_column)):
+            for i in range(0, len(buy_column)):
                 buy_date = buy_column[i]
                 if buy_date in df1.index:
-                    selected_series = df1.loc[df1.index <= buy_date]
-                    selected_series_list.append(selected_series)
+                    selected_buy_series = df1.loc[df1.index <= buy_date]
+                    # Add a new column with the last index value
+                    selected_buy_series['buy_signal_date'] = buy_date
+                    selected_buy_series_list.append(selected_buy_series)
                 else:
                     # If 'buy_date' is not in the DataFrame's index, append an empty series:
-                    selected_series_list.append(pd.Series())
+                    selected_buy_series_list.append(pd.Series())
 
+            for j in range(0, len(sell_column)):
+                sell_date = sell_column[j]
+                if sell_date in df1.index:
+                    selected_sell_series = df1.loc[df1.index <= sell_date]
+                    # Add a new column with the last index value
+                    selected_sell_series['sell_signal_date'] = sell_date
+                    selected_sell_series_list.append(selected_sell_series)
+                else:
+                    selected_sell_series_list.append(pd.Series())
+
+        # Now we can begin with the modeling:
+        X = []  # Features (stock returns)
+        y = []  # Labels (direction of movement)
+
+        # Determine the maximum number of columns in X
+        max_num_columns = max(len(series.iloc[:, 0].values) for series in selected_buy_series_list)
+
+        # Step 1: Preprocess the Data
+        for series in selected_buy_series_list:
+            returns = series.iloc[:, 0].values
+            price_movements = np.sign(np.diff(returns))
+
+            labels = price_movements[-1]
+            # Pad shorter arrays with zeros to match the maximum length
+            padded_returns = np.pad(returns[1:], (0, max_num_columns - len(returns[1:])), 'constant')
+            X.append(padded_returns)
+            y.append(labels)
+
+        X = np.vstack(X)
+        y = np.hstack(y)
+
+        # Step 2: Prepare the Data
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Step 3: Build and Train the Random Forest Model
+        clf = RandomForestClassifier(n_estimators=100, random_state=42)
+        clf.fit(X_train, y_train)
+
+        # Step 4: Make Predictions
+        y_pred = clf.predict(X_test)
+
+        print(series)
 
 if __name__ == '__main__':
     instance = Algo2(start_date='2023-01-01',end_date='2023-08-21',tickers_list=['TSLA','AAPL','AMZN'],
