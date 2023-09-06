@@ -70,18 +70,18 @@ class Algo2:
         buy_dataframes = []
         sell_dataframes = []
 
-        for df in algo1_signals:
+        for prediction_dataframe in algo1_signals:
             # Access the "buy" and "sell" columns by name
-            ticker_column = df.iloc[:, 0]
-            buy_column = df.iloc[:, 1]
-            sell_column = df.iloc[:, 2]
+            ticker_column = prediction_dataframe.iloc[:, 0]
+            buy_column = prediction_dataframe.iloc[:, 1]
+            sell_column = prediction_dataframe.iloc[:, 2]
 
             # Create empty DataFrames to store the filtered buy and sell data
             filtered_buy_df = pd.DataFrame(columns=['Ticker', 'Buy_Date'])
             filtered_sell_df = pd.DataFrame(columns=['Ticker', 'Sell_Date'])
 
             # Iterate through buy and sell signals
-            for date, ticker, buy_signal, sell_signal in zip(df.index, ticker_column, buy_column, sell_column):
+            for date, ticker, buy_signal, sell_signal in zip(prediction_dataframe.index, ticker_column, buy_column, sell_column):
                 if buy_signal == 1:
                     buy_date = date  # Update buy_date when a "buy" signal is found
                     ticker_name = ticker
@@ -106,8 +106,8 @@ class Algo2:
         selected_buy_series_list = []
         selected_sell_series_list = []
 
-        for df, df1, df2 in zip(buy_dataframes, returns, sell_dataframes):
-            buy_column = df.iloc[:, 1]
+        for prediction_dataframe, df1, df2 in zip(buy_dataframes, returns, sell_dataframes):
+            buy_column = prediction_dataframe.iloc[:, 1]
             sell_column = df2.iloc[:, 1]
 
             for i in range(0, len(buy_column)):
@@ -131,36 +131,34 @@ class Algo2:
                 else:
                     selected_sell_series_list.append(pd.Series())
 
-        # Now we can begin with the modeling:
-        X = []  # Features (stock returns)
-        y = []  # Labels (direction of movement)
-
-        # Determine the maximum number of columns in X
-        max_num_columns = max(len(series.iloc[:, 0].values) for series in selected_buy_series_list)
-
-        # Step 1: Preprocess the Data
         for series in selected_buy_series_list:
             returns = series.iloc[:, 0].values
             price_movements = np.sign(np.diff(returns))
+            price_movements = price_movements.reshape(-1,1)
+            returns = returns[:-1]
 
-            labels = price_movements[-1]
-            # Pad shorter arrays with zeros to match the maximum length
-            padded_returns = np.pad(returns[1:], (0, max_num_columns - len(returns[1:])), 'constant')
-            X.append(padded_returns)
-            y.append(labels)
+            # Reshape "returns" to have two dimensions
+            returns = returns.reshape(-1, 1)
 
-        X = np.vstack(X)
-        y = np.hstack(y)
+            X_train, X_test, y_train, y_test = train_test_split(returns, price_movements, test_size=0.05, random_state=42)
 
-        # Step 2: Prepare the Data
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            clf = RandomForestClassifier(n_estimators=1000,random_state=42)
+            clf.fit(X_train,y_train)
 
-        # Step 3: Build and Train the Random Forest Model
-        clf = RandomForestClassifier(n_estimators=100, random_state=42)
-        clf.fit(X_train, y_train)
+            y_pred = clf.predict(X_test)
+            y_pred = y_pred.reshape(-1,1)
+            n = y_pred.shape[0]
+            last_n_dates = series.index[-n:]
+            # Create a structured array with two fields: "prediction" and "date"
+            structured_array = np.empty(n, dtype=[('prediction', float), ('date', 'datetime64[ns]')])
+            structured_array['prediction'] = y_pred[:, 0]
+            structured_array['date'] = last_n_dates
 
-        # Step 4: Make Predictions
-        y_pred = clf.predict(X_test)
+            # Convert the structured array to a DataFrame
+            prediction_dataframe = pd.DataFrame(structured_array)
+
+            # Rename the columns if needed
+            prediction_dataframe.columns = ['Prediction','Date']
 
         print(series)
 
