@@ -13,6 +13,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.ensemble import RandomForestRegressor
 
 class Algo2:
     def __init__(self,ticker=None, start_date=None,end_date=None, tickers_list=None,
@@ -101,6 +102,8 @@ class Algo2:
 
         # Now we can create some return vectors, where the end-date point is given by
         # the last date, which we get from buy_dataframes and sell_dataframes.
+
+        # 1: Data preparation:
         returns = self.return_data()
 
         selected_buy_series_list = []
@@ -131,36 +134,70 @@ class Algo2:
                 else:
                     selected_sell_series_list.append(pd.Series())
 
+        # 2. Data exploration.
+            # This should be added later, and it should include:
+                # Correlations.
+                # Potential outliers.
+
+        prediction_buy_list = []
         for series in selected_buy_series_list:
+
+            # 3: Data splitting:
             returns = series.iloc[:, 0].values
-            price_movements = np.sign(np.diff(returns))
-            price_movements = price_movements.reshape(-1,1)
             returns = returns[:-1]
 
             # Reshape "returns" to have two dimensions
             returns = returns.reshape(-1, 1)
 
-            X_train, X_test, y_train, y_test = train_test_split(returns, price_movements, test_size=0.05, random_state=42)
+            # 3: Splitting the data:
+            X_train, X_test, y_train, y_test = train_test_split(returns[:-1], returns[1:], test_size=0.25,
+                                                                random_state=42)
 
-            clf = RandomForestClassifier(n_estimators=1000,random_state=42)
-            clf.fit(X_train,y_train)
+            # 4: Feature Engineering:
+                # This should be added later, and it should include:
+                    # Detecting missing data or scaling features.
 
-            y_pred = clf.predict(X_test)
+            # 5: Model Training:
+            regr = RandomForestRegressor(n_estimators=1000,random_state=42)
+            regr.fit(X_train,y_train)
+
+            y_pred = regr.predict(X_test)
             y_pred = y_pred.reshape(-1,1)
             n = y_pred.shape[0]
             last_n_dates = series.index[-n:]
             # Create a structured array with two fields: "prediction" and "date"
-            structured_array = np.empty(n, dtype=[('prediction', float), ('date', 'datetime64[ns]')])
+            structured_array = np.empty(n, dtype=[('prediction', float), ('date', 'datetime64[ns]'),('Ticker', 'S10')])
             structured_array['prediction'] = y_pred[:, 0]
             structured_array['date'] = last_n_dates
+            structured_array['Ticker'] = series.columns[0]
 
             # Convert the structured array to a DataFrame
             prediction_dataframe = pd.DataFrame(structured_array)
 
             # Rename the columns if needed
-            prediction_dataframe.columns = ['Prediction','Date']
+            prediction_dataframe.columns = ['Prediction','Date','Ticker']
+            prediction_dataframe['Ticker'] = prediction_dataframe['Ticker'].str.decode('utf-8')
 
-        print(series)
+            prediction_buy_list.append(prediction_dataframe)
+
+            # 6: Model evaluation:
+
+            # 7: Model Interpretation:
+                # Analyze feature importance to understand which features contribute most.
+
+            # 8: Model Tuning.
+
+            # 9: Cross-Validation.
+
+            # 10: Repeat step 1-9, until satisfactory result.
+
+            # 11: Model Deployment.
+                # Let the model make predictions on new, unseen data.
+
+            # 12: Monitoring and Maintenance.
+                # Monitor the model's performance in a production environment.
+                # Update data and model if necessary.
+
 
 if __name__ == '__main__':
     instance = Algo2(start_date='2023-01-01',end_date='2023-08-21',tickers_list=['TSLA','AAPL','AMZN'],
