@@ -140,6 +140,8 @@ class Algo2:
                 # Potential outliers.
 
         prediction_buy_list = []
+        prediction_sell_list = []
+        # Buy signals:
         for series in selected_buy_series_list:
 
             # 3: Data splitting:
@@ -180,23 +182,65 @@ class Algo2:
 
             prediction_buy_list.append(prediction_dataframe)
 
-            # 6: Model evaluation:
+        # Sell signals: <----------------------------------------
+        for series_sell in selected_sell_series_list:
+            # 3: Data splitting:
+            returns = series_sell.iloc[:, 0].values
+            returns = returns[:-1]
 
-            # 7: Model Interpretation:
-                # Analyze feature importance to understand which features contribute most.
+            # Reshape "returns" to have two dimensions
+            returns = returns.reshape(-1, 1)
 
-            # 8: Model Tuning.
+            # 3: Splitting the data:
+            X_train, X_test, y_train, y_test = train_test_split(returns[:-1], returns[1:], test_size=0.25,
+                                                                random_state=42)
 
-            # 9: Cross-Validation.
+            # 4: Feature Engineering:
+            # This should be added later, and it should include:
+            # Detecting missing data or scaling features.
 
-            # 10: Repeat step 1-9, until satisfactory result.
+            # 5: Model Training:
+            regr = RandomForestRegressor(n_estimators=1000, random_state=42)
+            regr.fit(X_train, y_train)
 
-            # 11: Model Deployment.
-                # Let the model make predictions on new, unseen data.
+            y_pred = regr.predict(X_test)
+            y_pred = y_pred.reshape(-1, 1)
+            n = y_pred.shape[0]
+            last_n_dates = series_sell.index[-n:]
+            # Create a structured array with two fields: "prediction" and "date"
+            structured_array = np.empty(n, dtype=[('prediction', float), ('date', 'datetime64[ns]'),
+                                                  ('Ticker', 'S10')])
+            structured_array['prediction'] = y_pred[:, 0]
+            structured_array['date'] = last_n_dates
+            structured_array['Ticker'] = series_sell.columns[0]
 
-            # 12: Monitoring and Maintenance.
-                # Monitor the model's performance in a production environment.
-                # Update data and model if necessary.
+            # Convert the structured array to a DataFrame
+            prediction_dataframe = pd.DataFrame(structured_array)
+
+            # Rename the columns if needed
+            prediction_dataframe.columns = ['Prediction', 'Date', 'Ticker']
+            prediction_dataframe['Ticker'] = prediction_dataframe['Ticker'].str.decode('utf-8')
+
+            prediction_sell_list.append(prediction_dataframe)
+
+        print("k")
+        # 6: Model evaluation:
+
+        # 7: Model Interpretation:
+            # Analyze feature importance to understand which features contribute most.
+
+        # 8: Model Tuning.
+
+        # 9: Cross-Validation.
+
+        # 10: Repeat step 1-9, until satisfactory result.
+
+        # 11: Model Deployment.
+            # Let the model make predictions on new, unseen data.
+
+        # 12: Monitoring and Maintenance.
+            # Monitor the model's performance in a production environment.
+            # Update data and model if necessary.
 
 
 if __name__ == '__main__':
