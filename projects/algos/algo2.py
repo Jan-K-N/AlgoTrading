@@ -14,6 +14,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import r2_score
 
 class Algo2:
     def __init__(self,ticker=None, start_date=None,end_date=None, tickers_list=None,
@@ -182,6 +185,32 @@ class Algo2:
 
             prediction_buy_list.append(prediction_dataframe)
 
+            # 6: Model evaluation:
+            evaluation_list = []  # List to store evaluation dataframes
+            for true_df, pred_df in zip(selected_buy_series_list,prediction_buy_list):
+                true_values = true_df.iloc[:,0]
+                predicted_values = pred_df.iloc[:,[0,2]]
+
+                # Calculate evaluation metrics (e.g., MAE, MSE, RMSE, R-squared)
+                mae = mean_absolute_error(y_test, predicted_values.iloc[:,0])
+                mse = mean_squared_error(y_test, predicted_values.iloc[:,0])
+                rmse = np.sqrt(mse)
+                r2 = r2_score(y_test, predicted_values.iloc[:,0])
+
+                # Create a summary dataframe for this pair of dataframes
+                evaluation_summary = pd.DataFrame({
+                    'MAE': [mae],
+                    'MSE': [mse],
+                    'RMSE': [rmse],
+                    'R-squared': [r2]
+                })
+
+                # Append the summary dataframe to the evaluation_list
+                evaluation_list.append(evaluation_summary)
+            # evaluation_result = pd.concat(evaluation_list, axis=0, ignore_index=True)
+
+        print("k")
+
         # Sell signals: <----------------------------------------
         for series_sell in selected_sell_series_list:
             # 3: Data splitting:
@@ -223,7 +252,6 @@ class Algo2:
 
             prediction_sell_list.append(prediction_dataframe)
 
-        print("k")
         # 6: Model evaluation:
 
         # 7: Model Interpretation:
