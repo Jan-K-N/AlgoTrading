@@ -17,6 +17,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import r2_score
+from sklearn.model_selection import GridSearchCV
 
 class Algo2:
     def __init__(self,ticker=None, start_date=None,end_date=None, tickers_list=None,
@@ -144,6 +145,7 @@ class Algo2:
 
         prediction_buy_list = []
         prediction_sell_list = []
+        evaluation_list = []
         # Buy signals:
         for series in selected_buy_series_list:
 
@@ -163,10 +165,36 @@ class Algo2:
                     # Detecting missing data or scaling features.
 
             # 5: Model Training:
-            regr = RandomForestRegressor(n_estimators=1000,random_state=42)
-            regr.fit(X_train,y_train)
+            # regr = RandomForestRegressor(n_estimators=1500,random_state=42)
+            # regr.fit(X_train,y_train)
 
-            y_pred = regr.predict(X_test)
+            # Define a grid of hyperparameters to search
+            param_grid = {
+                'n_estimators': [100, 500, 1000],
+                'max_depth': [None, 10, 15],
+            }
+
+            # Create the GridSearchCV object
+            grid_search = GridSearchCV(estimator=RandomForestRegressor(random_state=42),
+                                       param_grid=param_grid, cv=5)
+
+            # Fit the model to the data and find the best hyperparameters
+            grid_search.fit(X_train, y_train)
+
+            # Access the best hyperparameters
+            best_params = grid_search.best_params_
+
+            # Create a new model with the best hyperparameters
+            best_regr = RandomForestRegressor(
+                n_estimators=best_params['n_estimators'],
+                max_depth=best_params['max_depth'],
+                random_state=42  # Include any other relevant hyperparameters
+            )
+
+            # Retrain the model with the best hyperparameters
+            best_regr.fit(X_train, y_train)
+
+            y_pred = best_regr.predict(X_test)
             y_pred = y_pred.reshape(-1,1)
             n = y_pred.shape[0]
             last_n_dates = series.index[-n:]
@@ -183,31 +211,22 @@ class Algo2:
             prediction_dataframe.columns = ['Prediction','Date','Ticker']
             prediction_dataframe['Ticker'] = prediction_dataframe['Ticker'].str.decode('utf-8')
 
-            prediction_buy_list.append(prediction_dataframe)
-
             # 6: Model evaluation:
-            evaluation_list = []  # List to store evaluation dataframes
-            for true_df, pred_df in zip(selected_buy_series_list,prediction_buy_list):
-                true_values = true_df.iloc[:,0]
-                predicted_values = pred_df.iloc[:,[0,2]]
+            predicted_values = prediction_dataframe.iloc[:,[0,2]]
 
-                # Calculate evaluation metrics (e.g., MAE, MSE, RMSE, R-squared)
-                mae = mean_absolute_error(y_test, predicted_values.iloc[:,0])
-                mse = mean_squared_error(y_test, predicted_values.iloc[:,0])
-                rmse = np.sqrt(mse)
-                r2 = r2_score(y_test, predicted_values.iloc[:,0])
+            # Calculate evaluation metrics:
+            mae = mean_absolute_error(y_test,predicted_values.iloc[:,0])
+            mse = mean_squared_error(y_test, predicted_values.iloc[:,0])
+            rmse = np.sqrt(mse)
 
-                # Create a summary dataframe for this pair of dataframes
-                evaluation_summary = pd.DataFrame({
-                    'MAE': [mae],
-                    'MSE': [mse],
-                    'RMSE': [rmse],
-                    'R-squared': [r2]
-                })
-
-                # Append the summary dataframe to the evaluation_list
-                evaluation_list.append(evaluation_summary)
-            # evaluation_result = pd.concat(evaluation_list, axis=0, ignore_index=True)
+            # Create a summary dataframe for this pair of dataframes
+            evaluation_summary = pd.DataFrame({
+                'MAE': [mae],
+                'MSE': [mse],
+                'RMSE': [rmse],
+            })
+            evaluation_list.append(evaluation_summary)
+            prediction_buy_list.append(prediction_dataframe)
 
         print("k")
 
