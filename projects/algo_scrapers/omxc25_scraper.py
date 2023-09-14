@@ -74,9 +74,3 @@ class OMXC25scraper:
         print("Retrieving ticker codes from...:",self.ticker_url)
         ticker_codes=self.scrape_ticker_codes()
         return ticker_codes
-
-if __name__ == "__main__":
-    instance = OMXC25scraper()
-    run = instance.run_scraper()
-    print("k")
-
