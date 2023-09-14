@@ -47,11 +47,13 @@ class OMXC25scraper:
 
             table = soup.find('table', {'class': 'wikitable sortable'})
             rows = table.find_all('tr')
-
+            # Make a ticker_codes list:
             ticker_codes = []
-
+            # Loop and insert in the list:
             for row in rows[1:]:
                 columns = row.find_all('td')
+                # Replace all whitespaces with "-" and add a ".CO", so that
+                # we can download the tickers on yahoo finance.
                 ticker_name = columns[2].text.strip().replace(" ", "-") + ".CO"
                 ticker_codes.append(ticker_name)
 
