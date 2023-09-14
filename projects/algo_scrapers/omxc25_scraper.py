@@ -58,7 +58,8 @@ class OMXC25scraper:
             return ticker_codes
 
         except requests.exceptions.RequestException as exc:
-            logging.error("Error occurred while accessing the website: %s", str(exc))
+            logging.error("Error occurred while accessing the website in the "
+                          "scraping process: %s", str(exc))
             return None
 
     def run_scraper(self)->list:
