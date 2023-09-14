@@ -48,16 +48,16 @@ class OMXC25scraper:
             table = soup.find('table', {'class': 'wikitable sortable'})
             rows = table.find_all('tr')
             # Make a ticker_codes list:
-            ticker_codes = []
+            ticker_codes_omxc25 = []
             # Loop and insert in the list:
             for row in rows[1:]:
                 columns = row.find_all('td')
                 # Replace all whitespaces with "-" and add a ".CO", so that
                 # we can download the tickers on yahoo finance.
                 ticker_name = columns[2].text.strip().replace(" ", "-") + ".CO"
-                ticker_codes.append(ticker_name)
+                ticker_codes_omxc25.append(ticker_name)
 
-            return ticker_codes
+            return ticker_codes_omxc25
 
         except requests.exceptions.RequestException as exc:
             logging.error("Error occurred while accessing the website in the "
@@ -74,3 +74,9 @@ class OMXC25scraper:
         print("Retrieving ticker codes from...:",self.ticker_url)
         ticker_codes=self.scrape_ticker_codes()
         return ticker_codes
+
+if __name__ == "__main__":
+    instance = OMXC25scraper()
+    run = instance.run_scraper()
+    print("k")
+
