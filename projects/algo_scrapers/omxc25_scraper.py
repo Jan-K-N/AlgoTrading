@@ -42,7 +42,7 @@ class OMXC25scraper:
             requests.exceptions.RequestException: If an error occurs while accessing the website.
         """
         try:
-            response = requests.get(self.ticker_url,timeout=10)
+            response = requests.get(self.ticker_url,timeout=15)
             soup = BeautifulSoup(response.text, 'html.parser')
 
             table = soup.find('table', {'class': 'wikitable sortable'})
