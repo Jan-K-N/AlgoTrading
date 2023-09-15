@@ -60,13 +60,13 @@ class OMXS30scraper:
             return ticker_codes_omxs30
 
         except requests.exceptions.RequestException as exc:
-            logging.error("Error occurred while accessing the website in the "
+            logging.error("An error occurred while accessing the website in the "
                           "scraping process: %s", str(exc))
             return None
 
     def run_scraper(self)->list:
         """
-        Run the ticker code scraping process.
+        Method to run the scraper. The method returns a list.
 
         Returns:
             list: A list of ticker codes obtained from the scraping process.
