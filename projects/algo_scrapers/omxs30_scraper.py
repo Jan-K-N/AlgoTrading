@@ -47,7 +47,7 @@ class OMXS30scraper:
 
             table = soup.find('table', {'class': 'wikitable sortable'})
             rows = table.find_all('tr')
-            # Make a ticker_codes list:
+            # Container to store the ticker codes in:
             ticker_codes_omxs30 = []
             # Loop and insert in the list:
             for row in rows[1:]:
