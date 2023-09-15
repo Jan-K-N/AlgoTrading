@@ -45,13 +45,13 @@ class OMXS30scraper:
             response = requests.get(self.ticker_url,timeout=15)
             soup = BeautifulSoup(response.text, 'html.parser')
 
-            table = soup.find('table', {'class': 'wikitable sortable'})
-            rows = table.find_all('tr')
+            scraped_table = soup.find('table', {'class': 'wikitable sortable'})
+            scraped_rows = scraped_table.find_all('tr')
 
             # Container to store the ticker codes in:
             ticker_codes_omxs30 = []
             # Open a loop to insert the ticker codes:
-            for ticker_row in rows[1:]:
+            for ticker_row in scraped_rows[1:]:
                 columns = ticker_row.find_all('td')
                 # Replace all whitespaces with "-" and add a ".ST", so that
                 # we can download the tickers on yahoo finance.
