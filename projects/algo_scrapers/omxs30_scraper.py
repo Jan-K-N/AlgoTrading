@@ -54,8 +54,8 @@ class OMXS30scraper:
                 columns = row.find_all('td')
                 # Replace all whitespaces with "-" and add a ".ST", so that
                 # we can download the tickers on yahoo finance.
-                ticker_name = columns[1].text.strip().replace(" ", "-") + ".ST"
-                ticker_codes_omxs30.append(ticker_name)
+                omxs30_tickername = columns[1].text.strip().replace(" ", "-") + ".ST"
+                ticker_codes_omxs30.append(omxs30_tickername)
 
             return ticker_codes_omxs30
 
@@ -72,5 +72,5 @@ class OMXS30scraper:
             list: A list of ticker codes obtained from the scraping process.
         """
         print("Retrieving ticker codes from...:",self.ticker_url)
-        ticker_codes=self.scrape_ticker_codes()
-        return ticker_codes
+        ticker_codes_omxs30=self.scrape_ticker_codes()
+        return ticker_codes_omxs30
