@@ -51,8 +51,8 @@ class OMXS30scraper:
             # Container to store the ticker codes in:
             ticker_codes_omxs30 = []
             # Open a loop to insert the ticker codes:
-            for row in rows[1:]:
-                columns = row.find_all('td')
+            for ticker_row in rows[1:]:
+                columns = ticker_row.find_all('td')
                 # Replace all whitespaces with "-" and add a ".ST", so that
                 # we can download the tickers on yahoo finance.
                 omxs30_tickername = columns[1].text.strip().replace(" ", "-") + ".ST"
@@ -61,7 +61,7 @@ class OMXS30scraper:
             return ticker_codes_omxs30
 
         except requests.exceptions.RequestException as exc:
-            logging.error("An error occurred while accessing the website in the "
+            logging.error("An error occurred in the process of accessing the website in the "
                           "scraping process: %s", str(exc))
             return None
 
