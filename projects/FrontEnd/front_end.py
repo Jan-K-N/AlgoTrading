@@ -107,11 +107,11 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
 
     elif market == 'OBX':
         instance_OBX = OBXscraper()
-        tickers_list = instance.run_scraper()
+        tickers_list = instance_OBX.run_scraper()
 
     elif market == 'OMXS30':
         instance_OMXS30 = OMXS30scraper()
-        tickers_list = instance.run_scraper()
+        tickers_list = instance_OMXS30.run_scraper()
 
     algo_instance = Algo1(start_date=start_date, end_date=end_date, tickers_list=tickers_list)
     output_list = algo_instance.algo1_loop()
