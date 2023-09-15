@@ -2,6 +2,7 @@
 Main script for ticker scraper in the Norwegian index (OBX). The class in the script
 outputs the ticker symbols in the index.
 """
+# pylint: disable=duplicate-code
 import logging
 import requests
 from bs4 import BeautifulSoup
