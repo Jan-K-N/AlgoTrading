@@ -22,7 +22,9 @@ sys.path.insert(3, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/proj
 from algos.algo1 import Algo1
 from s_and_p_scraper import SAndPScraper
 from dax_scraper import DAXScraper
-
+from omxc25_scraper import OMXC25scraper
+from obx_scraper import OBXscraper
+from omxs30_scraper import OMXS30scraper
 
 # Create the Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -30,7 +32,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # Define the app layout
 app.layout = html.Div(
     children=[
-        html.H1("Algo1 Loop Output"),
+        html.H1("Algo1 signal finder"),
         html.Div(
             children=[
                 dbc.Progress(value=0, id='progress-bar', style={'width': '50%', 'margin': 'auto'}),
@@ -38,7 +40,10 @@ app.layout = html.Div(
                     id='market-dropdown',
                     options=[
                         {'label': 'DAX', 'value': 'DAX'},
-                        {'label': 'S&P 500', 'value': 'SP500'}
+                        {'label': 'S&P 500', 'value': 'SP500'},
+                        {'label': 'OMXC25', 'value': 'OMXC25'},
+                        {'label': 'OBX', 'value': 'OBX'},
+                        {'label': 'OMXS30', 'value': 'OMXS30'}
                     ],
                     value='DAX',
                     clearable=False
@@ -95,6 +100,18 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
     elif market == 'SP500':
         instance_sp500 = SAndPScraper()
         tickers_list = instance_sp500.run_scraper()
+
+    elif market == 'OMXC25':
+        instance_OMXC25 = OMXC25scraper()
+        tickers_list = instance_OMXC25.run_scraper()
+
+    elif market == 'OBX':
+        instance_OBX = OBXscraper()
+        tickers_list = instance.run_scraper()
+
+    elif market == 'OMXS30':
+        instance_OMXS30 = OMXS30scraper()
+        tickers_list = instance.run_scraper()
 
     algo_instance = Algo1(start_date=start_date, end_date=end_date, tickers_list=tickers_list)
     output_list = algo_instance.algo1_loop()
