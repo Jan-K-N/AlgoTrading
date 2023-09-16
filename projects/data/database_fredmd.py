@@ -15,10 +15,12 @@ class FredMdDataDownloader:
         """
         # FRED-MD series IDs for the data you want to download
         self.series_ids = [
-            "UNRATE",  # Civilian Unemployment Rate
-            "GDPC1",   # Real Gross Domestic Product
-            "CPIAUCSL",  # Consumer Price Index for All Urban Consumers
-            # Add more series IDs as needed
+            "RPI",
+            "W875RX1",
+            "INDPRO",
+            "IPFPNSS",
+            "IPFINAL"
+
         ]
 
     def download_data(self, start_date, end_date):
@@ -37,10 +39,11 @@ class FredMdDataDownloader:
 
         return data
 
-if __name__ == "__main__":
-    # Example usage:
-    downloader = FredMdDataDownloader()
-    start_date = "2000-01-01"
-    end_date = "2023-12-31"
-    fred_md_data = downloader.download_data(start_date, end_date)
-    print(fred_md_data.head())
+# if __name__ == "__main__":
+#     # Example usage:
+#     downloader = FredMdDataDownloader()
+#     start_date = "2000-01-01"
+#     end_date = "2023-12-31"
+#
+#     fred_md_data = downloader.download_data(start_date, end_date)
+#     print(fred_md_data.head())

@@ -11,6 +11,10 @@ sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/proje
 from algo1 import Algo1
 # pylint: disable=import-error.
 from finance_database import Database
+from database_fredmd import FredMdDataDownloader
+
+from sklearn.ensemble import RandomForestRegressor
+import matplotlib.pyplot as plt
 
 class Algo1Backtest:
     """
@@ -280,15 +284,59 @@ class Algo1Backtest:
 
     def variable_importance(self):
         """
-        Method to asses the historical importance of different variables
-        and the return series of the algo.
+        Method to assess the historical importance of different variables
+        on the return series of the algo.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing variable importance scores.
         """
+        # Get the returns data
+        returns_list = self.backtest_returns()
+
+        # Initialize a DataFrame to store variable importance scores
+        variable_importance_df = pd.DataFrame(columns=['Variable', 'Importance'])
+
+        Downloader = FredMdDataDownloader()
+
+        your_features = Downloader.download_data(start_date=self.start_date,
+                                                 end_date=self.end_date)
+
+        # Loop through your features and assess their importance
+        for feature in your_features:
+            # Create a list to store importance scores for each ticker
+            importance_scores = []
+
+            # Loop through each ticker's returns data
+            for returns_df in returns_list:
+                # Get the returns and the feature values
+                returns = returns_df['Returns']
+                # feature_values = returns_df[feature]
+                feature_values = your_features[feature]
+
+                # Calculate the correlation between the returns and the feature
+                correlation = np.corrcoef(returns, feature_values)[0, 1]
+
+                # Append the correlation to the list
+                importance_scores.append(abs(correlation))  # Use absolute value for importance
+
+                # Calculate the mean importance score across all tickers
+            mean_importance = np.mean(importance_scores)
+
+            # Append the result to the DataFrame
+            variable_importance_df = variable_importance_df.append({'Variable': feature, 'Importance': mean_importance},
+                                                                   ignore_index=True)
+
+        # Sort the DataFrame by importance score in descending order
+        variable_importance_df = variable_importance_df.sort_values(by='Importance', ascending=False)
+
+        return variable_importance_df
 
 
 
 if __name__ == "__main__":
-    instance = Algo1Backtest(start_date="2020-04-03",end_date="2023-07-07",tickers_list=['TSLA','MATAS.CO','NNIT.CO'])
+    instance = Algo1Backtest(start_date="2010-04-03",end_date="2023-07-07",tickers_list=['TSLA','MATAS.CO'])
     run = instance.backtest_returns()
     run2 = instance.backtest_cumulative_returns()
     run3 = instance.compute_volatility()
+    run4 = instance.variable_importance()
     print("k")
