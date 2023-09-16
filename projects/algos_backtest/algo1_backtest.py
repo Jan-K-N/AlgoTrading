@@ -15,6 +15,8 @@ from finance_database import Database
 class Algo1Backtest:
     """
     A class to backtest Algo1. The class uses the output from Algo1.
+    The class contains various backtesting measures to backtest
+    the algo.
     """
     def __init__(self,start_date=None,end_date=None,tickers_list=None):
         """
@@ -249,3 +251,44 @@ class Algo1Backtest:
             cumulative_returns_list.append(cumulative_returns_df)
 
         return cumulative_returns_list
+
+    def compute_volatility(self):
+        """
+        Computes and retrieves the volatility of returns for each ticker
+        based on the buy/sell signals obtained from Algo1.
+
+        Returns:
+            List[pd.DataFrame]: A list of pandas DataFrames containing
+                the volatility data for each ticker. Each DataFrame
+                contains the following columns:
+                    - Ticker: Ticker symbol
+                    - Volatility: Volatility of returns
+        """
+        returns_list = self.backtest_returns()
+        volatility_list = []
+
+        for returns_df in returns_list:
+            ticker = returns_df['Ticker'].iloc[0]
+            volatility = np.std(returns_df['Log returns']) * np.sqrt(252)  # Annualized volatility
+            volatility_df = pd.DataFrame({
+                'Ticker': [ticker],
+                'Volatility': [volatility]
+            })
+            volatility_list.append(volatility_df)
+
+        return volatility_list
+
+    def variable_importance(self):
+        """
+        Method to asses the historical importance of different variables
+        and the return series of the algo.
+        """
+
+
+
+if __name__ == "__main__":
+    instance = Algo1Backtest(start_date="2020-04-03",end_date="2023-07-07",tickers_list=['TSLA','MATAS.CO','NNIT.CO'])
+    run = instance.backtest_returns()
+    run2 = instance.backtest_cumulative_returns()
+    run3 = instance.compute_volatility()
+    print("k")
