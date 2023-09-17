@@ -1,6 +1,7 @@
 """
 Main script for ticker scraper in the main index in Finland (OMXH25).
 The class in the script outputs the ticker symbols in the index.
+The ticker codes steem from wikipedia.
 """
 # pylint: disable=duplicate-code
 import logging
