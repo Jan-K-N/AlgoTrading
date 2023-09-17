@@ -83,8 +83,24 @@ class OMXC25scraper:
                               "KBHL.CO","JDAN.CO","SOLAR-B.CO",
                               "GREENH.CO","SPKSJF","CBRAIN.CO",
                               "PAAL-B.CO","AOJ-B.CO","MATAS.CO","NNIT.CO",
-                              "NLFSK.CO","BO.CO"]
+                              "NLFSK.CO","BO.CO","HH.CO",
+                              "TRIFOR.CO","SPG.CO","VJBA.CO",
+                              "SAS-DKK.CO","HART.CO","NORTHM.CO",
+                              "BNORDIK-CSE.CO","TIV.CO","TCM.CO",
+                              "COLUM.CO","RTX.CO","GUBRA.CO",
+                              "LASP.CO","FLUG-B.CO"]
+
+        additional_tickers_smallcap = ["ASTK.CO","BIOPOR.CO","SKJE.CO",
+                                       "DJUR.CO","HARB-B.CO","MNBA.CO",
+                                       "FED.CO","AGAT.CO","NRDF.CO",
+                                       "SKAKO.CO","CPHCAP-PREF.CO","AGF-B.CO",
+                                       "PEG.CO","BIF.CO","PARKEN.CO",
+                                       "KRE.CO","FYNBK.CO","PENNEO.CO",
+                                       "SBS.CO","GERHSP.CO","HVID.CO",
+                                       "ATLA-DKK.CO","LOLB.CO","GRLA.CO",
+                                       "SIF.CO"]
         ticker_codes.extend(additional_tickers)
+        ticker_codes.extend(additional_tickers_smallcap)
 
         return ticker_codes
 
