@@ -162,5 +162,6 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
 
     return progress_value, ticker_tables
 
+
 if __name__ == "__main__":
     app.run_server(debug=True)
