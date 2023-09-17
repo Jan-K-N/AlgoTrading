@@ -24,6 +24,7 @@ from algo_scrapers.dax_scraper import DAXScraper
 from algo_scrapers.omxc25_scraper import OMXC25scraper
 from algo_scrapers.obx_scraper import OBXscraper
 from algo_scrapers.omxs30_scraper import OMXS30scraper
+from algo_scrapers.omxh25_scraper import OMXH25scraper
 
 # Create the Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -42,7 +43,8 @@ app.layout = html.Div(
                         {'label': 'S&P 500', 'value': 'SP500'},
                         {'label': 'OMXC25', 'value': 'OMXC25'},
                         {'label': 'OBX', 'value': 'OBX'},
-                        {'label': 'OMXS30', 'value': 'OMXS30'}
+                        {'label': 'OMXS30', 'value': 'OMXS30'},
+                        {'label': 'OMXH25', 'value': 'OMXH25'}
                     ],
                     value='DAX',
                     clearable=False
@@ -111,6 +113,10 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
     elif market == 'OMXS30':
         instance_omxs30 = OMXS30scraper()
         tickers_list = instance_omxs30.run_scraper()
+
+    elif market == 'OMXH25':
+        instance_omxh25 = OMXH25scraper()
+        tickers_list = instance_omxh25.run_scraper()
 
     algo_instance = Algo1(start_date=start_date, end_date=end_date, tickers_list=tickers_list)
     output_list = algo_instance.algo1_loop()
