@@ -73,4 +73,22 @@ class OMXC25scraper:
         """
         print("Retrieving ticker codes from...:",self.ticker_url)
         ticker_codes=self.scrape_ticker_codes()
+
+        additional_tickers = ["JYSK.CO","NKT.CO","CHEMM.CO",
+                              "RILBA.CO","DNORD.CO","NTG.CO",
+                              "TRMD-A.CO","HLUN-B.CO","SPNO.CO",
+                              "ALMB.CO","DFDS.CO","STG.CO",
+                              "SCHO.CO","HLUN-A.CO","NOBLE.CO",
+                              "ROCK-A.CO","CARL-A.CO","BOOZT-DKK.CO",
+                              "KBHL.CO","JDAN.CO","SOLAR-B.CO",
+                              "GREENH.CO","SPKSJF","CBRAIN.CO",
+                              "PAAL-B.CO","AOJ-B.CO","MATAS.CO","NNIT.CO",
+                              "NLFSK.CO","BO.CO"]
+        ticker_codes.extend(additional_tickers)
+
         return ticker_codes
+
+# if __name__ == "__main__":
+#     instance = OMXC25scraper()
+#     run = instance.run_scraper()
+#     print("k")
