@@ -21,7 +21,7 @@ sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/proj
 from algos.algo1 import Algo1
 from algo_scrapers.s_and_p_scraper import SAndPScraper
 from algo_scrapers.dax_scraper import DAXScraper
-from algo_scrapers.omxc25_scraper import OMXC25scraper
+from algo_scrapers.danish_ticker_scraper import OMXC25scraper
 from algo_scrapers.obx_scraper import OBXscraper
 from algo_scrapers.omxs30_scraper import OMXS30scraper
 from algo_scrapers.omxh25_scraper import OMXH25scraper
@@ -41,7 +41,7 @@ app.layout = html.Div(
                     options=[
                         {'label': 'DAX', 'value': 'DAX'},
                         {'label': 'S&P 500', 'value': 'SP500'},
-                        {'label': 'OMXC25', 'value': 'OMXC25'},
+                        {'label': 'NASDAQ Copenhagen', 'value': 'NASDAQ Copenhagen'},
                         {'label': 'OBX', 'value': 'OBX'},
                         {'label': 'OMXS30', 'value': 'OMXS30'},
                         {'label': 'OMXH25', 'value': 'OMXH25'}
@@ -102,9 +102,9 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
         instance_sp500 = SAndPScraper()
         tickers_list = instance_sp500.run_scraper()
 
-    elif market == 'OMXC25':
-        instance_omxc25 = OMXC25scraper()
-        tickers_list = instance_omxc25.run_scraper()
+    elif market == 'NASDAQ Copenhagen':
+        instance_nasdaq_copenhagen = OMXC25scraper()
+        tickers_list = instance_nasdaq_copenhagen.run_scraper()
 
     elif market == 'OBX':
         instance_obx = OBXscraper()
