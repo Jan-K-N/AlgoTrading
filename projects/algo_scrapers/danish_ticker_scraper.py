@@ -74,37 +74,29 @@ class OMXC25scraper:
         print("Retrieving ticker codes from...:",self.ticker_url)
         ticker_codes=self.scrape_ticker_codes()
 
-        additional_tickers = ["JYSK.CO","NKT.CO","CHEMM.CO",
-                              "RILBA.CO","DNORD.CO","NTG.CO",
-                              "TRMD-A.CO","HLUN-B.CO","SPNO.CO",
-                              "ALMB.CO","DFDS.CO","STG.CO",
-                              "SCHO.CO","HLUN-A.CO","NOBLE.CO",
-                              "ROCK-A.CO","CARL-A.CO","BOOZT-DKK.CO",
-                              "KBHL.CO","JDAN.CO","SOLAR-B.CO",
-                              "GREENH.CO","SPKSJF","CBRAIN.CO",
-                              "PAAL-B.CO","AOJ-B.CO","MATAS.CO","NNIT.CO",
-                              "NLFSK.CO","BO.CO","HH.CO",
-                              "TRIFOR.CO","SPG.CO","VJBA.CO",
-                              "SAS-DKK.CO","HART.CO","NORTHM.CO",
-                              "BNORDIK-CSE.CO","TIV.CO","TCM.CO",
-                              "COLUM.CO","RTX.CO","GUBRA.CO",
-                              "LASP.CO","FLUG-B.CO"]
+        ticker_codes_additional=["AAB.CO","AGAT.CO","AGF-B.CO","AGILC.CO","ALEFRM.CO",
+        "AQP.CO","ASTK.CO","ASTRLS.CO","ATLA-DKK.CO","AUDNTS.CO",
+        "BACTIQ.CO","BO.CO","BNORDIK-CSE.CO","BIOPOR.CO","BRAINP.CO",
+        "KLEE-B.CO","AOJ-B.CO","HART.CO","BIF.CO","CBRAIN.CO",
+        "CEMAT.CO","CESSA.CO","COLUM.CO","CONFRZ.CO",
+        "CPHCAP-PREF32.CO","CPHCAP-PREF.CO","CPHCAP-ST.CO", "CSMED.CO",
+        "CURAS.CO","DANCAN.CO","DAC.CO","DAB.CO","DANT.CO",
+        "DATA.CO","ACT.CO","DJUR.CO","DONKEY.CO","EAC.CO",
+        "EGNETY.CO","ESG.CO","ERRIA.CO","FED.CO","FASTPC.CO",
+        "FFARMS.CO","FLUG-B.CO","FOM.CO","FREETR.CO","FYNBK.CO",
+        "GABR.CO","GERHSP.CO","GJ.CO","GREENH.CO","GREENM.CO",
+        "GRLA.CO","GUBRA.CO","GYLD-A.CO","GYLD-B.CO","HH.CO",
+        "HARB-B.CO","HOVE.CO","HRC.CO","HUSCO.CO","HVID.CO",
+        "HYDRCT.CO","HYPE.CO","IMPERO.CO","IMAIL.CO",
+        "KONSOL.CO","KRE.CO","LEDIBOND.CO","LOLB.CO",
+        "LUXOR-B","LASP.CO","MAPS.CO","MATAS.CO","MDUNDO.CO",
+        "MONSO.CO","MOVINN.CO","MTHH.CO","MNBA.CO","NEWCAP.CO",
+        "NEXCOM.CO","NLFSK.CO","NNIT.CO","NORD.CO","NRDF.CO",
+        "NORDIC.CO","NORTHM.CO","NTR-B.CO","ODICO.CO","YOYO.CO",
+        "ORPHA.CO","PARKST-A.CO","PARKEN.CO","PENNEO.CO",
+        "PAAL-B.CO","PEG.CO","PRIMOF.CO","QINTER.CO","RELE.CO"
+            ]
 
-        additional_tickers_smallcap = ["ASTK.CO","BIOPOR.CO","SKJE.CO",
-                                       "DJUR.CO","HARB-B.CO","MNBA.CO",
-                                       "FED.CO","AGAT.CO","NRDF.CO",
-                                       "SKAKO.CO","CPHCAP-PREF.CO","AGF-B.CO",
-                                       "PEG.CO","BIF.CO","PARKEN.CO",
-                                       "KRE.CO","FYNBK.CO","PENNEO.CO",
-                                       "SBS.CO","GERHSP.CO","HVID.CO",
-                                       "ATLA-DKK.CO","LOLB.CO","GRLA.CO",
-                                       "SIF.CO"]
-        ticker_codes.extend(additional_tickers)
-        ticker_codes.extend(additional_tickers_smallcap)
+        ticker_codes.extend(ticker_codes_additional)
 
         return ticker_codes
-
-# if __name__ == "__main__":
-#     instance = OMXC25scraper()
-#     run = instance.run_scraper()
-#     print("k")
