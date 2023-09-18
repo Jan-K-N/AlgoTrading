@@ -12,6 +12,7 @@ from algo1 import Algo1
 # pylint: disable=import-error.
 from finance_database import Database
 from database_fredmd import FredMdDataDownloader
+from danish_tickers import TickerCodeProvider
 
 from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
@@ -297,44 +298,52 @@ class Algo1Backtest:
         variable_importance_df = pd.DataFrame(columns=['Variable', 'Importance'])
 
         Downloader = FredMdDataDownloader()
+        Data_Downloader = Database()
 
-        your_features = Downloader.download_data(start_date=self.start_date,
-                                                 end_date=self.end_date)
+        Danish_tickers = TickerCodeProvider.get_ticker_codes()
+        Danish_returns = []
 
-        # Loop through your features and assess their importance
-        for feature in your_features:
-            # Create a list to store importance scores for each ticker
-            importance_scores = []
+        for ticker in Danish_tickers:
+            try:
+                Danish_return = Data_Downloader.compute_stock_return(start=self.start_date,
+                                                                     end=self.end_date,
+                                                                     ticker=ticker)
+                Danish_returns.append(Danish_return)
+            except ValueError as e:
+                # Handle the ValueError here (e.g., print a message or log it)
+                print(f"Error for {ticker}: {str(e)}")
+                continue  # Continue to the next iteration
 
-            # Loop through each ticker's returns data
-            for returns_df in returns_list:
-                # Get the returns and the feature values
-                returns = returns_df['Returns']
-                # feature_values = returns_df[feature]
-                feature_values = your_features[feature]
+        for ticker in self.tickers_list:
+            y = Data_Downloader.compute_stock_return(start=self.start_date, end=self.end_date, ticker=ticker)
+            for df in Danish_returns:
 
-                # Calculate the correlation between the returns and the feature
-                correlation = np.corrcoef(returns, feature_values)[0, 1]
+                # Find the common start date/index
+                common_start_date = max(y.index.min(), df.index.min())
 
-                # Append the correlation to the list
-                importance_scores.append(abs(correlation))  # Use absolute value for importance
+                # Adjust y to start from the common start date
+                y = y[y.index >= common_start_date]
 
-                # Calculate the mean importance score across all tickers
-            mean_importance = np.mean(importance_scores)
+                # If the dataframe in Danish_tickers is shorter, drop extra rows in y
+                if len(df) < len(y):
+                    y = y.iloc[:len(df)]
 
-            # Append the result to the DataFrame
-            variable_importance_df = variable_importance_df.append({'Variable': feature, 'Importance': mean_importance},
-                                                                   ignore_index=True)
+                # Extract Series from DataFrames
+                y_series = y.squeeze()  # This assumes y is a DataFrame with a single column
+                df_series = df.squeeze()  # This assumes df is a DataFrame with a single column
 
-        # Sort the DataFrame by importance score in descending order
-        variable_importance_df = variable_importance_df.sort_values(by='Importance', ascending=False)
+                # Calculate the correlation between the two Series
+                correlation = np.corrcoef(y_series, df_series)[0, 1]
+
+                # Now 'correlation' should contain the correlation between y_series and df_series
+        print("k")
 
         return variable_importance_df
 
 
 
 if __name__ == "__main__":
-    instance = Algo1Backtest(start_date="2010-04-03",end_date="2023-07-07",tickers_list=['TSLA','MATAS.CO'])
+    instance = Algo1Backtest(start_date="2020-04-05",end_date="2023-07-07",tickers_list=['TSLA'])
     run = instance.backtest_returns()
     run2 = instance.backtest_cumulative_returns()
     run3 = instance.compute_volatility()
