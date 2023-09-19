@@ -303,6 +303,8 @@ class Algo1Backtest:
         Danish_tickers = TickerCodeProvider.get_ticker_codes()
         Danish_returns = []
 
+        correlation_dataframe = pd.DataFrame(columns=['Ticker', 'Correlation'])
+
         for ticker in Danish_tickers:
             try:
                 Danish_return = Data_Downloader.compute_stock_return(start=self.start_date,
@@ -310,7 +312,7 @@ class Algo1Backtest:
                                                                      ticker=ticker)
                 Danish_returns.append(Danish_return)
             except ValueError as e:
-                # Handle the ValueError here (e.g., print a message or log it)
+                # Handle the ValueError here (We print a messeage. Could also be logged.)
                 print(f"Error for {ticker}: {str(e)}")
                 continue  # Continue to the next iteration
 
@@ -329,18 +331,18 @@ class Algo1Backtest:
                     y = y.iloc[:len(df)]
 
                 # Extract Series from DataFrames
-                y_series = y.squeeze()  # This assumes y is a DataFrame with a single column
-                df_series = df.squeeze()  # This assumes df is a DataFrame with a single column
+                y_series = y.squeeze()
+                df_series = df.squeeze()
 
                 # Calculate the correlation between the two Series
                 correlation = np.corrcoef(y_series, df_series)[0, 1]
 
-                # Now 'correlation' should contain the correlation between y_series and df_series
-        print("k")
+                correlation_dataframe = pd.concat(
+                    [correlation_dataframe, pd.DataFrame({'Ticker': [ticker], 'Correlation': [correlation]})])
+
+        print("test")
 
         return variable_importance_df
-
-
 
 if __name__ == "__main__":
     instance = Algo1Backtest(start_date="2020-04-05",end_date="2023-07-07",tickers_list=['TSLA'])
@@ -348,4 +350,4 @@ if __name__ == "__main__":
     run2 = instance.backtest_cumulative_returns()
     run3 = instance.compute_volatility()
     run4 = instance.variable_importance()
-    print("k")
+    print("test")
