@@ -322,13 +322,18 @@ class Algo1Backtest:
 
                 # Find the common start date/index
                 common_start_date = max(y.index.min(), df.index.min())
+                common_end_date = min(y.index.max(), df.index.max())
 
-                # Adjust y to start from the common start date
-                y = y[y.index >= common_start_date]
+                # Adjust y to start from the common start date and end at the common end date
+                y = y[(y.index >= common_start_date) & (y.index <= common_end_date)]
 
-                # If the dataframe in Danish_tickers is shorter, drop extra rows in y
+                # # If the dataframe in Danish_tickers is shorter, drop extra rows in y
+                # if len(df) < len(y):
+                #     y = y.iloc[:len(df)]
                 if len(df) < len(y):
                     y = y.iloc[:len(df)]
+                elif len(y) < len(df):
+                    df = df.iloc[:len(y)]
 
                 # Extract Series from DataFrames
                 y_series = y.squeeze()
