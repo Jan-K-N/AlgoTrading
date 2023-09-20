@@ -316,10 +316,14 @@ class Algo1Backtest:
                 print(f"Error for {ticker}: {str(e)}")
                 continue  # Continue to the next iteration
 
+        correlation_list = []
+
         for ticker in self.tickers_list:
             y = Data_Downloader.compute_stock_return(start=self.start_date, end=self.end_date, ticker=ticker)
-            for df in Danish_returns:
 
+            ticker_correlations = []  # Initialize a list to store correlations for this ticker
+
+            for df in Danish_returns:
                 # Find the common start date/index
                 common_start_date = max(y.index.min(), df.index.min())
                 common_end_date = min(y.index.max(), df.index.max())
@@ -327,9 +331,7 @@ class Algo1Backtest:
                 # Adjust y to start from the common start date and end at the common end date
                 y = y[(y.index >= common_start_date) & (y.index <= common_end_date)]
 
-                # # If the dataframe in Danish_tickers is shorter, drop extra rows in y
-                # if len(df) < len(y):
-                #     y = y.iloc[:len(df)]
+                # If the dataframe in Danish_tickers is shorter, drop extra rows in y
                 if len(df) < len(y):
                     y = y.iloc[:len(df)]
                 elif len(y) < len(df):
@@ -342,15 +344,23 @@ class Algo1Backtest:
                 # Calculate the correlation between the two Series
                 correlation = np.corrcoef(y_series, df_series)[0, 1]
 
-                correlation_dataframe = pd.concat(
-                    [correlation_dataframe, pd.DataFrame({'Ticker': [ticker], 'Correlation': [correlation]})])
+                # Append correlation information to the list
+                ticker_correlations.append(
+                    {'Signal ticker': ticker, 'Correlation': correlation, 'Ticker': df_series.name})
+
+            # Create a DataFrame for this ticker's correlations
+            correlation_dataframe = pd.DataFrame(ticker_correlations)
+
+            # Sort the DataFrame by correlation in descending order
+            correlation_dataframe = correlation_dataframe.sort_values(by='Correlation', ascending=False)
+            correlation_list.append(correlation_dataframe)
 
         print("test")
 
         return variable_importance_df
 
 if __name__ == "__main__":
-    instance = Algo1Backtest(start_date="2020-04-05",end_date="2023-07-07",tickers_list=['TSLA'])
+    instance = Algo1Backtest(start_date="2020-04-05",end_date="2023-07-07",tickers_list=['TSLA','FLS.CO'])
     run = instance.backtest_returns()
     run2 = instance.backtest_cumulative_returns()
     run3 = instance.compute_volatility()
