@@ -12,6 +12,7 @@ from dash import dash_table
 from dash import html
 from dash import dcc
 import dash_bootstrap_components as dbc
+import pandas as pd
 
 sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
@@ -66,6 +67,14 @@ app.layout = html.Div(
     ]
 )
 
+
+def count_changes(df):
+    if 'Buy' in df.columns:
+        buy_values = pd.to_numeric(df['Buy'])
+        sell_to_buy_changes = ((buy_values.diff() == -1) & (buy_values == 1)).sum()
+        buy_to_sell_changes = ((buy_values.diff() == 1) & (buy_values == -1)).sum()
+        return sell_to_buy_changes + buy_to_sell_changes
+    return 0
 
 @app.callback(
     [dash.dependencies.Output('progress-bar', 'value'),
@@ -125,16 +134,19 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
     if not output_list:
         return 0, html.Div(children=["No signals found for the chosen period"])
 
+    # Sort output_list based on the count of changes
+    output_list.sort(key=count_changes, reverse=True)
+
     ticker_tables = [
         html.Div(
             children=[
-                html.H2(f"{output_list[i]['Ticker'].iloc[0]} Signals"),
+                html.H2(f"{df['Ticker'].iloc[0]} Signals"),
                 dash_table.DataTable(
-                    id=f"{output_list[i]['Ticker'].iloc[0]}-table",
+                    id=f"{df['Ticker'].iloc[0]}-table",
                     columns=[{"name": "Date", "id": "Date"},
                              {"name": "Buy", "id": "Buy"},
                              {"name": "Sell", "id": "Sell"}],
-                    data=output_list[i].reset_index().to_dict("records"),
+                    data=df.reset_index().to_dict("records"),
                     style_table={"overflowX": "scroll"},
                     style_data_conditional=[
                         {
@@ -154,7 +166,7 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
                     ]
                 )
             ]
-        ) for i in range(len(output_list))
+        ) for df in output_list
     ]
 
     # Calculate progress value based on the number of processed tickers
@@ -165,3 +177,4 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
 
 if __name__ == "__main__":
     app.run_server(debug=True)
+
