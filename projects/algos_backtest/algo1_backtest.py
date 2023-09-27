@@ -269,19 +269,26 @@ class Algo1Backtest:
                     - Ticker: Ticker symbol
                     - Volatility: Volatility of returns
         """
-        returns_list = self.backtest_returns()
-        volatility_list = []
+        # returns_list = self.backtest_returns()
+        # volatility_list = []
+        #
+        # for returns_df in returns_list:
+        #     ticker = returns_df['Ticker'].iloc[0]
+        #     volatility = np.std(returns_df['Log returns']) * np.sqrt(252)  # Annualized volatility
+        #     volatility_df = pd.DataFrame({
+        #         'Ticker': [ticker],
+        #         'Volatility': [volatility]
+        #     })
+        #     volatility_list.append(volatility_df)
+        returns_data = {}
+        Downloader_f = Database()
+        for ticker in self.tickers_list:
+            data_returns = Downloader_f.compute_stock_return(self, start=self.start_date,
+                                           end=self.end_date,
+                                           ticker=ticker)
+            returns_data[ticker] = data_returns["Open"]
 
-        for returns_df in returns_list:
-            ticker = returns_df['Ticker'].iloc[0]
-            volatility = np.std(returns_df['Log returns']) * np.sqrt(252)  # Annualized volatility
-            volatility_df = pd.DataFrame({
-                'Ticker': [ticker],
-                'Volatility': [volatility]
-            })
-            volatility_list.append(volatility_df)
-
-        return volatility_list
+        return returns_data #volatility_list
 
     def variable_importance(self):
         """
