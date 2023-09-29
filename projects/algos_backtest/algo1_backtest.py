@@ -265,18 +265,38 @@ class Algo1Backtest:
                     - Volatility: Volatility of returns
         """
 
-        volatiity_df = pd.DataFrame()
-        database_instance = Database()
-        for ticker in self.tickers_list:
-            data_returns = database_instance.compute_stock_return(start=self.start_date,
-                                           end=self.end_date,
-                                           ticker=ticker)
-            trading_days = data_returns.shape[0]
-            # Calculate realized volatility as the standard deviation of daily returns
-            realized_volatility = np.sqrt(trading_days) * data_returns.std()
-            volatiity_df = pd.concat([volatiity_df,realized_volatility])
+        volatility_data = []  # Initialize a list to store DataFrames
 
-        return volatiity_df
+        database_instance = Database()
+
+        for ticker in self.tickers_list:
+            try:
+                data_returns = database_instance.compute_stock_return(start=self.start_date,
+                                                                      end=self.end_date,
+                                                                      ticker=ticker)
+
+                # Check if price data is not empty
+                if not data_returns.empty:
+                    trading_days = data_returns.shape[0]
+                    # Calculate realized volatility as the standard deviation of daily returns
+                    realized_volatility = np.sqrt(trading_days) * data_returns.std()
+
+                    # Append DataFrame to the list
+                    volatility_data.append(pd.DataFrame({'Ticker': [ticker],
+                                                         'Volatility': [realized_volatility]}))
+            except ValueError as e:
+                # Handle the ValueError here (print a message, log, etc.)
+                print(f"Error for {ticker}: {str(e)}")
+                continue  # Continue to the next iteration
+
+        if not volatility_data:
+            print("No valid tickers with non-empty price data.")
+            return pd.DataFrame(columns=['Ticker', 'Volatility'])  # Return an empty DataFrame
+
+        # Concatenate DataFrames in the list
+        volatility_df = pd.concat(volatility_data, ignore_index=True)
+
+        return volatility_df
 
     def variable_importance(self):
         """
