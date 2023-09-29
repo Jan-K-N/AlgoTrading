@@ -280,15 +280,15 @@ class Algo1Backtest:
 
     def variable_importance(self):
         """
-        Method to assess the historical importance of different variables
-        on the return series of the algo.
+        Assess the historical importance of different variables on the return series of the algo.
 
         Returns:
-            pd.DataFrame: A DataFrame containing variable importance scores.
+            List[pd.DataFrame]: A list of DataFrames containing variable importance scores.
+                                Each DataFrame includes the following columns:
+                                    - 'Signal ticker': Ticker symbol of the signal series.
+                                    - 'Correlation': Correlation coefficient with the target series.
+                                    - 'Ticker': Ticker symbol of the target series.
         """
-        # Initialize a DataFrame to store variable importance scores
-        variable_importance_df = pd.DataFrame(columns=['Variable', 'Importance'])
-
         data_downloader = Database()
 
         danish_tickers = TickerCodeProvider.get_ticker_codes()
@@ -300,40 +300,41 @@ class Algo1Backtest:
                                                                      end=self.end_date,
                                                                      ticker=ticker)
                 danish_returns.append(danish_return)
-            except ValueError as e:
-                # Handle the ValueError here (We print a messeage. Could also be logged.)
-                print(f"Error for {ticker}: {str(e)}")
+            except ValueError as error:
+                # Handle the ValueError here (We print a message. Could also be logged.)
+                print(f"Error for {ticker}: {str(error)}")
                 continue  # Continue to the next iteration
 
         correlation_list = []
 
         for ticker in self.tickers_list:
-            y = data_downloader.compute_stock_return(start=self.start_date,
+            target_series = data_downloader.compute_stock_return(start=self.start_date,
                                                      end=self.end_date,
                                                      ticker=ticker)
 
             ticker_correlations = []  # Initialize a list to store correlations for this ticker
 
-            for df in danish_returns:
+            for df_return in danish_returns:
                 # Find the common start date/index
-                common_start_date = max(y.index.min(), df.index.min())
-                common_end_date = min(y.index.max(), df.index.max())
+                common_start_date = max(target_series.index.min(), df_return.index.min())
+                common_end_date = min(target_series.index.max(), df_return.index.max())
 
                 # Adjust y to start from the common start date and end at the common end date
-                y = y[(y.index >= common_start_date) & (y.index <= common_end_date)]
+                target_series = target_series[(target_series.index >= common_start_date)
+                                              & (target_series.index <= common_end_date)]
 
                 # If the dataframe in Danish_tickers is shorter, drop extra rows in y
-                if len(df) < len(y):
-                    y = y.iloc[:len(df)]
-                elif len(y) < len(df):
-                    df = df.iloc[:len(y)]
+                if len(df_return) < len(target_series):
+                    target_series = target_series.iloc[:len(df_return)]
+                elif len(target_series) < len(df_return):
+                    df_return = df_return.iloc[:len(target_series)]
 
                 # Extract Series from DataFrames
-                y_series = y.squeeze()
-                df_series = df.squeeze()
+                target_series_squeezed = target_series.squeeze()
+                df_series = df_return.squeeze()
 
                 # Calculate the correlation between the two Series
-                correlation = np.corrcoef(y_series, df_series)[0, 1]
+                correlation = np.corrcoef(target_series_squeezed, df_series)[0, 1]
 
                 # Append correlation information to the list
                 ticker_correlations.append(
@@ -347,12 +348,4 @@ class Algo1Backtest:
                                                                       ascending=False)
             correlation_list.append(correlation_dataframe)
 
-        return variable_importance_df
-
-if __name__ == "__main__":
-    instance = Algo1Backtest(start_date="2020-04-05",end_date="2023-07-07",tickers_list=['TSLA','FLS.CO'])
-    run = instance.backtest_returns()
-    run2 = instance.backtest_cumulative_returns()
-    run3 = instance.compute_volatility()
-    run4 = instance.variable_importance()
-    print("test")
+        return correlation_list
