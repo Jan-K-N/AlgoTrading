@@ -11,11 +11,7 @@ sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/proje
 from algo1 import Algo1
 # pylint: disable=import-error.
 from finance_database import Database
-from database_fredmd import FredMdDataDownloader
 from danish_tickers import TickerCodeProvider
-
-from sklearn.ensemble import RandomForestRegressor
-import matplotlib.pyplot as plt
 
 class Algo1Backtest:
     """
@@ -263,32 +259,24 @@ class Algo1Backtest:
         based on the buy/sell signals obtained from Algo1.
 
         Returns:
-            List[pd.DataFrame]: A list of pandas DataFrames containing
-                the volatility data for each ticker. Each DataFrame
-                contains the following columns:
+            pandas.DataFrame: A DataFrame containing the volatility data for each ticker.
+                The DataFrame has the following columns:
                     - Ticker: Ticker symbol
                     - Volatility: Volatility of returns
         """
-        # returns_list = self.backtest_returns()
-        # volatility_list = []
-        #
-        # for returns_df in returns_list:
-        #     ticker = returns_df['Ticker'].iloc[0]
-        #     volatility = np.std(returns_df['Log returns']) * np.sqrt(252)  # Annualized volatility
-        #     volatility_df = pd.DataFrame({
-        #         'Ticker': [ticker],
-        #         'Volatility': [volatility]
-        #     })
-        #     volatility_list.append(volatility_df)
-        returns_data = {}
-        Downloader_f = Database()
+
+        volatiity_df = pd.DataFrame()
+        database_instance = Database()
         for ticker in self.tickers_list:
-            data_returns = Downloader_f.compute_stock_return(self, start=self.start_date,
+            data_returns = database_instance.compute_stock_return(start=self.start_date,
                                            end=self.end_date,
                                            ticker=ticker)
-            returns_data[ticker] = data_returns["Open"]
+            trading_days = data_returns.shape[0]
+            # Calculate realized volatility as the standard deviation of daily returns
+            realized_volatility = np.sqrt(trading_days) * data_returns.std()
+            volatiity_df = pd.concat([volatiity_df,realized_volatility])
 
-        return returns_data #volatility_list
+        return volatiity_df
 
     def variable_importance(self):
         """
@@ -298,26 +286,20 @@ class Algo1Backtest:
         Returns:
             pd.DataFrame: A DataFrame containing variable importance scores.
         """
-        # Get the returns data
-        returns_list = self.backtest_returns()
-
         # Initialize a DataFrame to store variable importance scores
         variable_importance_df = pd.DataFrame(columns=['Variable', 'Importance'])
 
-        Downloader = FredMdDataDownloader()
-        Data_Downloader = Database()
+        data_downloader = Database()
 
-        Danish_tickers = TickerCodeProvider.get_ticker_codes()
-        Danish_returns = []
+        danish_tickers = TickerCodeProvider.get_ticker_codes()
+        danish_returns = []
 
-        correlation_dataframe = pd.DataFrame(columns=['Ticker', 'Correlation'])
-
-        for ticker in Danish_tickers:
+        for ticker in danish_tickers:
             try:
-                Danish_return = Data_Downloader.compute_stock_return(start=self.start_date,
+                danish_return = data_downloader.compute_stock_return(start=self.start_date,
                                                                      end=self.end_date,
                                                                      ticker=ticker)
-                Danish_returns.append(Danish_return)
+                danish_returns.append(danish_return)
             except ValueError as e:
                 # Handle the ValueError here (We print a messeage. Could also be logged.)
                 print(f"Error for {ticker}: {str(e)}")
@@ -326,11 +308,13 @@ class Algo1Backtest:
         correlation_list = []
 
         for ticker in self.tickers_list:
-            y = Data_Downloader.compute_stock_return(start=self.start_date, end=self.end_date, ticker=ticker)
+            y = data_downloader.compute_stock_return(start=self.start_date,
+                                                     end=self.end_date,
+                                                     ticker=ticker)
 
             ticker_correlations = []  # Initialize a list to store correlations for this ticker
 
-            for df in Danish_returns:
+            for df in danish_returns:
                 # Find the common start date/index
                 common_start_date = max(y.index.min(), df.index.min())
                 common_end_date = min(y.index.max(), df.index.max())
@@ -359,10 +343,9 @@ class Algo1Backtest:
             correlation_dataframe = pd.DataFrame(ticker_correlations)
 
             # Sort the DataFrame by correlation in descending order
-            correlation_dataframe = correlation_dataframe.sort_values(by='Correlation', ascending=False)
+            correlation_dataframe = correlation_dataframe.sort_values(by='Correlation',
+                                                                      ascending=False)
             correlation_list.append(correlation_dataframe)
-
-        print("test")
 
         return variable_importance_df
 
