@@ -11,10 +11,13 @@ sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/proje
 from algo1 import Algo1
 # pylint: disable=import-error.
 from finance_database import Database
+from danish_tickers import TickerCodeProvider
 
 class Algo1Backtest:
     """
     A class to backtest Algo1. The class uses the output from Algo1.
+    The class contains various backtesting measures to backtest
+    the algo.
     """
     def __init__(self,start_date=None,end_date=None,tickers_list=None):
         """
@@ -249,3 +252,100 @@ class Algo1Backtest:
             cumulative_returns_list.append(cumulative_returns_df)
 
         return cumulative_returns_list
+
+    def compute_volatility(self):
+        """
+        Computes and retrieves the volatility of returns for each ticker
+        based on the buy/sell signals obtained from Algo1.
+
+        Returns:
+            pandas.DataFrame: A DataFrame containing the volatility data for each ticker.
+                The DataFrame has the following columns:
+                    - Ticker: Ticker symbol
+                    - Volatility: Volatility of returns
+        """
+
+        volatiity_df = pd.DataFrame()
+        database_instance = Database()
+        for ticker in self.tickers_list:
+            data_returns = database_instance.compute_stock_return(start=self.start_date,
+                                           end=self.end_date,
+                                           ticker=ticker)
+            trading_days = data_returns.shape[0]
+            # Calculate realized volatility as the standard deviation of daily returns
+            realized_volatility = np.sqrt(trading_days) * data_returns.std()
+            volatiity_df = pd.concat([volatiity_df,realized_volatility])
+
+        return volatiity_df
+
+    def variable_importance(self):
+        """
+        Assess the historical importance of different variables on the return series of the algo.
+
+        Returns:
+            List[pd.DataFrame]: A list of DataFrames containing variable importance scores.
+                                Each DataFrame includes the following columns:
+                                    - 'Signal ticker': Ticker symbol of the signal series.
+                                    - 'Correlation': Correlation coefficient with the target series.
+                                    - 'Ticker': Ticker symbol of the target series.
+        """
+        data_downloader = Database()
+
+        danish_tickers = TickerCodeProvider.get_ticker_codes()
+        danish_returns = []
+
+        for ticker in danish_tickers:
+            try:
+                danish_return = data_downloader.compute_stock_return(start=self.start_date,
+                                                                     end=self.end_date,
+                                                                     ticker=ticker)
+                danish_returns.append(danish_return)
+            except ValueError as error:
+                # Handle the ValueError here (We print a message. Could also be logged.)
+                print(f"Error for {ticker}: {str(error)}")
+                continue  # Continue to the next iteration
+
+        correlation_list = []
+
+        for ticker in self.tickers_list:
+            target_series = data_downloader.compute_stock_return(start=self.start_date,
+                                                     end=self.end_date,
+                                                     ticker=ticker)
+
+            ticker_correlations = []  # Initialize a list to store correlations for this ticker
+
+            for df_return in danish_returns:
+                # Find the common start date/index
+                common_start_date = max(target_series.index.min(), df_return.index.min())
+                common_end_date = min(target_series.index.max(), df_return.index.max())
+
+                # Adjust y to start from the common start date and end at the common end date
+                target_series = target_series[(target_series.index >= common_start_date)
+                                              & (target_series.index <= common_end_date)]
+
+                # If the dataframe in Danish_tickers is shorter, drop extra rows in y
+                if len(df_return) < len(target_series):
+                    target_series = target_series.iloc[:len(df_return)]
+                elif len(target_series) < len(df_return):
+                    df_return = df_return.iloc[:len(target_series)]
+
+                # Extract Series from DataFrames
+                target_series_squeezed = target_series.squeeze()
+                df_series = df_return.squeeze()
+
+                # Calculate the correlation between the two Series
+                correlation = np.corrcoef(target_series_squeezed, df_series)[0, 1]
+
+                # Append correlation information to the list
+                ticker_correlations.append(
+                    {'Signal ticker': ticker, 'Correlation': correlation, 'Ticker': df_series.name})
+
+            # Create a DataFrame for this ticker's correlations
+            correlation_dataframe = pd.DataFrame(ticker_correlations)
+
+            # Sort the DataFrame by correlation in descending order
+            correlation_dataframe = correlation_dataframe.sort_values(by='Correlation',
+                                                                      ascending=False)
+            correlation_list.append(correlation_dataframe)
+
+        return correlation_list
