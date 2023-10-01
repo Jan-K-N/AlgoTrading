@@ -284,9 +284,9 @@ class Algo1Backtest:
                     # Append DataFrame to the list
                     volatility_data.append(pd.DataFrame({'Ticker': [ticker],
                                                          'Volatility': [realized_volatility]}))
-            except ValueError as e:
+            except ValueError as error:
                 # Handle the ValueError here (print a message, log, etc.)
-                print(f"Error for {ticker}: {str(e)}")
+                print(f"Error for {ticker}: {str(error)}")
                 continue  # Continue to the next iteration
 
         if not volatility_data:
