@@ -42,7 +42,7 @@ app.layout = html.Div(
                         {'label': 'DAX', 'value': 'DAX'},
                         {'label': 'S&P 500', 'value': 'SP500'},
                         {'label': 'NASDAQ Copenhagen', 'value': 'NASDAQ Copenhagen'},
-                        {'label': 'OBX', 'value': 'OBX'},
+                        {'label': 'Norwegian', 'value': 'Norwegian'},
                         {'label': 'OMXS30', 'value': 'OMXS30'},
                         {'label': 'OMXH25', 'value': 'OMXH25'}
                     ],
@@ -106,9 +106,9 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
         instance_nasdaq_copenhagen = OMXC25scraper()
         tickers_list = instance_nasdaq_copenhagen.run_scraper()
 
-    elif market == 'OBX':
-        instance_obx = OBXscraper()
-        tickers_list = instance_obx.run_scraper()
+    elif market == 'Norwegian':
+        instance_norwegian = OBXscraper()
+        tickers_list = instance_norwegian.run_scraper()
 
     elif market == 'OMXS30':
         instance_omxs30 = OMXS30scraper()
