@@ -130,7 +130,9 @@ class Algo1:
 
         for ticker1 in self.tickers_list:
             try:
-                instance_1 = Algo1(ticker=ticker1, start_date=self.start_date, end_date=self.end_date)
+                instance_1 = Algo1(ticker=ticker1,
+                                   start_date=self.start_date,
+                                   end_date=self.end_date)
                 signals_1 = instance_1.generate_signals()
             except ValueError as error:
                 print(f"Error for {ticker1}: {str(error)}")

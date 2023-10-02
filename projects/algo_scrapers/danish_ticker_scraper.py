@@ -2,10 +2,12 @@
 Main script for ticker scraper in the Danish index (C25). The class in the script
 outputs the ticker codes in C25 index.
 """
+# pylint: disable=import-error
+# pylint: disable=wrong-import-position
 import logging
+import sys
 import requests
 from bs4 import BeautifulSoup
-import sys
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
