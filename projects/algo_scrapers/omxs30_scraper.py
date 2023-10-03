@@ -2,11 +2,18 @@
 Main script for ticker scraper in the Swedish index (OMXS30). The class in the script
 outputs the ticker symbols in the index.
 """
+# pylint: disable=duplicate-code
+# pylint: disable=import-error
+# pylint: disable=wrong-import-position
+import sys
 import logging
 import requests
 from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+
+sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+from swedish_tickers import TickerCodeProvider
 
 class OMXS30scraper:
     """
@@ -74,4 +81,8 @@ class OMXS30scraper:
         """
         print("Retrieving ticker codes from...:",self.ticker_url)
         ticker_codes_omxs30=self.scrape_ticker_codes()
+
+        ticker_codes_additional = TickerCodeProvider.get_ticker_codes()
+        ticker_codes_omxs30.extend(ticker_codes_additional)
+
         return ticker_codes_omxs30
