@@ -44,7 +44,7 @@ app.layout = html.Div(
                         {'label': 'NASDAQ Copenhagen', 'value': 'NASDAQ Copenhagen'},
                         {'label': 'Norwegian', 'value': 'Norwegian'},
                         {'label': 'Swedish', 'value': 'Swedish'},
-                        {'label': 'OMXH25', 'value': 'OMXH25'}
+                        {'label': 'Finish', 'value': 'Finish'}
                     ],
                     value='DAX',
                     clearable=False
@@ -114,9 +114,9 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
         instance_swedish = OMXS30scraper()
         tickers_list = instance_swedish.run_scraper()
 
-    elif market == 'OMXH25':
-        instance_omxh25 = OMXH25scraper()
-        tickers_list = instance_omxh25.run_scraper()
+    elif market == 'Finish':
+        instance_finish = OMXH25scraper()
+        tickers_list = instance_finish.run_scraper()
 
     algo_instance = Algo1(start_date=start_date, end_date=end_date, tickers_list=tickers_list)
     output_list = algo_instance.algo1_loop()
