@@ -129,8 +129,17 @@ class Algo1:
         signals_list = []
 
         for ticker1 in self.tickers_list:
-            instance_1 = Algo1(ticker=ticker1, start_date=self.start_date, end_date=self.end_date)
-            signals_1 = instance_1.generate_signals()
+            try:
+                instance_1 = Algo1(ticker=ticker1,
+                                   start_date=self.start_date,
+                                   end_date=self.end_date)
+                signals_1 = instance_1.generate_signals()
+            except KeyError as error:
+                print(f"KeyError for {ticker1}: {str(error)}")
+                continue
+            except ValueError as error:
+                print(f"ValueError for {ticker1}: {str(error)}")
+                continue
 
             condition1 = signals_1[ticker1 + '_Buy'] == 1
             condition2 = signals_1[ticker1 + '_Sell'] == 1

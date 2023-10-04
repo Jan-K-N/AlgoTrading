@@ -16,13 +16,15 @@ import dash_bootstrap_components as dbc
 sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
-sys.path.insert(3, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
 from algos.algo1 import Algo1
-from s_and_p_scraper import SAndPScraper
-from dax_scraper import DAXScraper
-
+from algo_scrapers.s_and_p_scraper import SAndPScraper
+from algo_scrapers.dax_scraper import DAXScraper
+from algo_scrapers.danish_ticker_scraper import OMXC25scraper
+from algo_scrapers.obx_scraper import OBXscraper
+from algo_scrapers.omxs30_scraper import OMXS30scraper
+from algo_scrapers.omxh25_scraper import OMXH25scraper
 
 # Create the Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -30,7 +32,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # Define the app layout
 app.layout = html.Div(
     children=[
-        html.H1("Algo1 Loop Output"),
+        html.H1("Algo1 signal finder"),
         html.Div(
             children=[
                 dbc.Progress(value=0, id='progress-bar', style={'width': '50%', 'margin': 'auto'}),
@@ -38,7 +40,11 @@ app.layout = html.Div(
                     id='market-dropdown',
                     options=[
                         {'label': 'DAX', 'value': 'DAX'},
-                        {'label': 'S&P 500', 'value': 'SP500'}
+                        {'label': 'S&P 500', 'value': 'SP500'},
+                        {'label': 'NASDAQ Copenhagen', 'value': 'NASDAQ Copenhagen'},
+                        {'label': 'Norwegian', 'value': 'Norwegian'},
+                        {'label': 'Swedish', 'value': 'Swedish'},
+                        {'label': 'Finish', 'value': 'Finish'}
                     ],
                     value='DAX',
                     clearable=False
@@ -95,6 +101,22 @@ def update_out_box(market:str, start_date:str, end_date:str)->(int, html.Div):
     elif market == 'SP500':
         instance_sp500 = SAndPScraper()
         tickers_list = instance_sp500.run_scraper()
+
+    elif market == 'NASDAQ Copenhagen':
+        instance_nasdaq_copenhagen = OMXC25scraper()
+        tickers_list = instance_nasdaq_copenhagen.run_scraper()
+
+    elif market == 'Norwegian':
+        instance_norwegian = OBXscraper()
+        tickers_list = instance_norwegian.run_scraper()
+
+    elif market == 'Swedish':
+        instance_swedish = OMXS30scraper()
+        tickers_list = instance_swedish.run_scraper()
+
+    elif market == 'Finish':
+        instance_finish = OMXH25scraper()
+        tickers_list = instance_finish.run_scraper()
 
     algo_instance = Algo1(start_date=start_date, end_date=end_date, tickers_list=tickers_list)
     output_list = algo_instance.algo1_loop()

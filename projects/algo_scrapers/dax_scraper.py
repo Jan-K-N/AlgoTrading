@@ -1,6 +1,6 @@
 """
-Main script for ticker scraper in dax. The class in the script
-outputs the ticker codes in the Dax.
+Main script for ticker scraper in DAX. The class in the script
+outputs the ticker codes in the DAX.
 """
 import logging
 import requests
