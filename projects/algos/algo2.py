@@ -239,7 +239,6 @@ class Algo2:
             # Retrain the model with the best hyperparameters on the entire dataset
             best_regr.fit(returns[:-1], returns[1:])
 
-            forecast1 = best_regr.predict(returns[:-1],returns[1:])
             forecast1 = best_regr.predict(returns[-1].reshape(1, -1))
 
         print("k")
@@ -305,7 +304,7 @@ class Algo2:
 
 
 if __name__ == '__main__':
-    instance = Algo2(start_date='2023-01-01',end_date='2023-08-21',tickers_list=['TSLA','AAPL','AMZN'],
+    instance = Algo2(start_date='2023-01-01',end_date='2023-10-04',tickers_list=['TSLA','AAPL','FLS.CO'],
                      days_back=0)
     f = instance.random_forest()
     k = instance.return_data()
