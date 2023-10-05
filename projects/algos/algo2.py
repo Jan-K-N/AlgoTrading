@@ -146,6 +146,7 @@ class Algo2:
         prediction_buy_list = []
         prediction_sell_list = []
         evaluation_list = []
+        one_step_ahead_forecast = []
         # Buy signals:
         for series in selected_buy_series_list:
 
@@ -227,6 +228,19 @@ class Algo2:
             })
             evaluation_list.append(evaluation_summary)
             prediction_buy_list.append(prediction_dataframe)
+
+            # Make actual out-of-sample one-step ahead forecast:
+            best_regr = RandomForestRegressor(
+                n_estimators=best_params['n_estimators'],
+                max_depth=best_params['max_depth'],
+                random_state=42  # Include any other relevant hyperparameters
+            )
+
+            # Retrain the model with the best hyperparameters on the entire dataset
+            best_regr.fit(returns[:-1], returns[1:])
+
+            forecast1 = best_regr.predict(returns[:-1],returns[1:])
+            forecast1 = best_regr.predict(returns[-1].reshape(1, -1))
 
         print("k")
 
