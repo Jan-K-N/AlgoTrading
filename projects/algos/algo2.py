@@ -1,7 +1,9 @@
 """
 Main script for algo2. This algo will find signals in the same way
-as algo1. However, after the signals are found, this algo1
-will do some more analysis.
+as algo1. However, after the signals are found, this algo will
+make use of a Random Forrest to predict the stock return
+for the next day. The direction of this predicted
+stock return, serves as the signal for the algo.
 """
 import sys
 from algo1 import Algo1
@@ -229,7 +231,8 @@ class Algo2:
             evaluation_list.append(evaluation_summary)
             prediction_buy_list.append(prediction_dataframe)
 
-            # Make actual out-of-sample one-step ahead forecast:
+            # Make actual out-of-sample one-step ahead forecast.
+            # To do this, we should use the best model from above:
             best_regr = RandomForestRegressor(
                 n_estimators=best_params['n_estimators'],
                 max_depth=best_params['max_depth'],
