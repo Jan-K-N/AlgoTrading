@@ -1,9 +1,13 @@
 """
 Main script for algo2. This algo will find signals in the same way
-as algo1. However, after the signals are found, this algo will
-make use of a Random Forrest to predict the stock return
+as algo1. However, instead of considering these signals as
+signals to buy/sell, this algo will instead only use them as
+a way to way stock candidates. When these candidates
+are found, a Random Forrest to predict the stock return
 for the next day. The direction of this predicted
-stock return, serves as the signal for the algo.
+stock return, serves as the actual signal for the algo.
+The opposite movement for the position is then determined
+by this specific algorithm.
 """
 import sys
 from algo1 import Algo1
@@ -148,7 +152,7 @@ class Algo2:
         prediction_buy_list = []
         prediction_sell_list = []
         evaluation_list = []
-        one_step_ahead_forecast = []
+        one_step_ahead_forecast_list = []
         # Buy signals:
         for series in selected_buy_series_list:
 
@@ -242,7 +246,24 @@ class Algo2:
             # Retrain the model with the best hyperparameters on the entire dataset
             best_regr.fit(returns[:-1], returns[1:])
 
+
+
             forecast1 = best_regr.predict(returns[-1].reshape(1, -1))
+            last_date = last_n_dates[-1]
+            one_day_ahead = last_date + pd.DateOffset(days=1)
+
+            # Create a DataFrame directly
+            structured_dateframe_forecasts = pd.DataFrame({
+                'Prediction': forecast1,
+                'Date': [one_day_ahead],
+                'Ticker': series.columns[0]
+            })
+
+            # Convert 'Date' column to datetime64[ns]
+            structured_dateframe_forecasts['Date'] = pd.to_datetime(structured_dateframe_forecasts['Date'])
+
+            # Append the DataFrame to the list
+            one_step_ahead_forecast_list.append(structured_dateframe_forecasts)
 
         print("k")
 
