@@ -153,9 +153,14 @@ class Algo2:
         prediction_sell_list = []
         evaluation_list = []
         one_step_ahead_forecast_list = []
+
+        # Common hyperparameters for RandomForestRegressor
+        common_regr_params = {
+            'random_state': 42,
+        }
+
         # Buy signals:
         for series in selected_buy_series_list:
-
             # 3: Data splitting:
             returns = series.iloc[:, 0].values
             returns = returns[:-1]
@@ -167,22 +172,15 @@ class Algo2:
             X_train, X_test, y_train, y_test = train_test_split(returns[:-1], returns[1:], test_size=0.25,
                                                                 random_state=42)
 
-            # 4: Feature Engineering:
-                # This should be added later, and it should include:
-                    # Detecting missing data or scaling features.
-
             # 5: Model Training:
-            # regr = RandomForestRegressor(n_estimators=1500,random_state=42)
-            # regr.fit(X_train,y_train)
-
             # Define a grid of hyperparameters to search
             param_grid = {
-                'n_estimators': [100, 500, 1000],
-                'max_depth': [None, 10, 15],
+                'n_estimators': [100, 200], # Add more here later.
+                'max_depth': [None, 10,], # Add more here later.
             }
 
             # Create the GridSearchCV object
-            grid_search = GridSearchCV(estimator=RandomForestRegressor(random_state=42),
+            grid_search = GridSearchCV(estimator=RandomForestRegressor(**common_regr_params),
                                        param_grid=param_grid, cv=5)
 
             # Fit the model to the data and find the best hyperparameters
@@ -195,35 +193,35 @@ class Algo2:
             best_regr = RandomForestRegressor(
                 n_estimators=best_params['n_estimators'],
                 max_depth=best_params['max_depth'],
-                random_state=42  # Include any other relevant hyperparameters
+                **common_regr_params  # Include any other relevant hyperparameters
             )
 
             # Retrain the model with the best hyperparameters
             best_regr.fit(X_train, y_train)
 
             y_pred = best_regr.predict(X_test)
-            y_pred = y_pred.reshape(-1,1)
-            n = y_pred.shape[0]
-            last_n_dates = series.index[-n:]
-            # Create a structured array with two fields: "prediction" and "date"
-            structured_array = np.empty(n, dtype=[('prediction', float), ('date', 'datetime64[ns]'),('Ticker', 'S10')])
-            structured_array['prediction'] = y_pred[:, 0]
-            structured_array['date'] = last_n_dates
-            structured_array['Ticker'] = series.columns[0]
+            y_pred = y_pred.reshape(-1, 1)
 
-            # Convert the structured array to a DataFrame
-            prediction_dataframe = pd.DataFrame(structured_array)
+            # Create a DataFrame directly
+            prediction_dataframe = pd.DataFrame({
+                'Prediction': y_pred[:, 0],
+                'Date': series.index[-len(y_pred):],
+                'Ticker': series.columns[0]
+            })
+
+            # Convert 'Date' column to datetime64[ns]
+            prediction_dataframe['Date'] = pd.to_datetime(prediction_dataframe['Date'])
 
             # Rename the columns if needed
-            prediction_dataframe.columns = ['Prediction','Date','Ticker']
+            prediction_dataframe.columns = ['Prediction', 'Date', 'Ticker']
             prediction_dataframe['Ticker'] = prediction_dataframe['Ticker'].str.decode('utf-8')
 
             # 6: Model evaluation:
-            predicted_values = prediction_dataframe.iloc[:,[0,2]]
+            predicted_values = prediction_dataframe.iloc[:, [0, 2]]
 
             # Calculate evaluation metrics:
-            mae = mean_absolute_error(y_test,predicted_values.iloc[:,0])
-            mse = mean_squared_error(y_test, predicted_values.iloc[:,0])
+            mae = mean_absolute_error(y_test, predicted_values.iloc[:, 0])
+            mse = mean_squared_error(y_test, predicted_values.iloc[:, 0])
             rmse = np.sqrt(mse)
 
             # Create a summary dataframe for this pair of dataframes
@@ -240,16 +238,14 @@ class Algo2:
             best_regr = RandomForestRegressor(
                 n_estimators=best_params['n_estimators'],
                 max_depth=best_params['max_depth'],
-                random_state=42  # Include any other relevant hyperparameters
+                **common_regr_params  # Include any other relevant hyperparameters
             )
 
             # Retrain the model with the best hyperparameters on the entire dataset
             best_regr.fit(returns[:-1], returns[1:])
 
-
-
             forecast1 = best_regr.predict(returns[-1].reshape(1, -1))
-            last_date = last_n_dates[-1]
+            last_date = prediction_dataframe['Date'].iloc[-1]
             one_day_ahead = last_date + pd.DateOffset(days=1)
 
             # Create a DataFrame directly
@@ -264,6 +260,48 @@ class Algo2:
 
             # Append the DataFrame to the list
             one_step_ahead_forecast_list.append(structured_dateframe_forecasts)
+
+        signals_list_buy = []
+        for ticker in self.tickers_list:
+            new_df = pd.DataFrame()
+            new_df["Ticker"] = [ticker]
+            new_df['Position'] = None
+            new_df['Buy price'] = None
+            new_df['Position date'] = None
+
+            for df in one_step_ahead_forecast_list:
+                if df['Prediction'].iloc[0] > 0:
+                    new_df.at[0, 'Position'] = 1
+                    prices = self.db_instance.get_price_data(start=self.start_date,
+                                                                      end=self.end_date,
+                                                                      ticker=ticker)['Adj Close']
+
+                    # Find the index of the closest date in the array
+                    index_of_closest_date = np.abs(prices.index - last_date).argmin()
+
+                    # Check if there is a next element
+                    if index_of_closest_date + 1 < len(prices):
+                        # Access the next element
+                        next_element = prices.index[index_of_closest_date + 1]
+                        buy_price = prices.loc[next_element]
+                        new_df['Buy price'] = buy_price
+                        new_df['Position date'] = next_element
+                        signals_list_buy.append(new_df)
+                    else:
+                        print("No next element. The last_date is the last element in price_at_signal.")
+                print("k")
+
+        # Now monitor:
+        signals_list_buy_updated = []
+        for ticker in self.tickers_list:
+            prices_actual = self.db_instance.get_price_data(start=self.start_date,
+                                                     end=self.end_date,
+                                                     ticker=ticker)['Adj Close']
+            for df2 in signals_list_buy:
+                last_date2 = df2['Position date'].iloc[0]
+                index_of_closest_date2 = np.abs(prices_actual - last_date2).iloc[0]
+
+
 
         print("k")
 
@@ -285,7 +323,7 @@ class Algo2:
             # Detecting missing data or scaling features.
 
             # 5: Model Training:
-            regr = RandomForestRegressor(n_estimators=1000, random_state=42)
+            regr = RandomForestRegressor(n_estimators=10, random_state=42)
             regr.fit(X_train, y_train)
 
             y_pred = regr.predict(X_test)
@@ -328,7 +366,7 @@ class Algo2:
 
 
 if __name__ == '__main__':
-    instance = Algo2(start_date='2023-01-01',end_date='2023-10-04',tickers_list=['TSLA','AAPL','FLS.CO'],
+    instance = Algo2(start_date='2023-01-01',end_date='2023-10-04',tickers_list=['TSLA'],
                      days_back=0)
     f = instance.random_forest()
     k = instance.return_data()
