@@ -264,19 +264,15 @@ class Algo2:
         signals_list_buy = []
         signals_list_buy_updated = []
         for ticker in self.tickers_list:
-            new_df = pd.DataFrame()
-            new_df["Ticker"] = [ticker]
-            new_df['Position'] = None
-            new_df['Buy price'] = None
-            new_df['Position date'] = None
 
-            new_df2 = pd.DataFrame()
-            new_df2["Ticker"] = [ticker]
-            new_df2['Position'] = None
-            new_df2['Latest price'] = None
-            new_df2['Position date'] = None
+
 
             for df in one_step_ahead_forecast_list:
+                new_df = pd.DataFrame()
+                new_df["Ticker"] = [ticker]
+                new_df['Position'] = None
+                new_df['Buy price'] = None
+                new_df['Position date'] = None
                 if df['Prediction'].iloc[0] > 0:
                     new_df.at[0, 'Position'] = 1
                     prices = self.db_instance.get_price_data(start=self.start_date,
@@ -284,7 +280,11 @@ class Algo2:
                                                                       ticker=ticker)['Adj Close']
 
                     # Find the index of the closest date in the array
-                    index_of_closest_date = np.abs(prices.index - last_date).argmin()
+                    last_date2 = df['Date'].iloc[-1]
+                    one_day_ahead2 = last_date2 + pd.DateOffset(days=1)
+
+
+                    index_of_closest_date = np.abs(prices.index - last_date2).argmin()
 
                     # Check if there is a next element
                     if index_of_closest_date + 1 < len(prices):
@@ -300,10 +300,14 @@ class Algo2:
 
             # Now monitor:
 
-            # Initialize final_df for each ticker
+        # Initialize final_df for each ticker
             final_df = pd.DataFrame()
-
             for df2 in signals_list_buy:
+                new_df2 = pd.DataFrame()
+                new_df2["Ticker"] = [ticker]
+                new_df2['Position'] = None
+                new_df2['Latest price'] = None
+                new_df2['Position date'] = None
                 first_iteration = True  # Flag for the first iteration
 
                 while True:
@@ -347,10 +351,10 @@ class Algo2:
                         # Break the loop if there is no next element
                         break
 
-            # Append the final DataFrame to the updated list
-            final_df = pd.concat([df2, new_df2], axis=0, ignore_index=True)
+                # Append the final DataFrame to the updated list
+                final_df = pd.concat([df2, new_df2], axis=0, ignore_index=True)
 
-        signals_list_buy_updated.append(final_df)
+            signals_list_buy_updated.append(final_df)
 
 
         print("k")
@@ -416,7 +420,7 @@ class Algo2:
 
 
 if __name__ == '__main__':
-    instance = Algo2(start_date='2023-01-01',end_date='2023-10-04',tickers_list=['TSLA','FLS.CO'],
+    instance = Algo2(start_date='2021-01-01',end_date='2023-10-04',tickers_list=['TSLA','FLS.CO'],
                      days_back=0)
     f = instance.random_forest()
     k = instance.return_data()
