@@ -24,6 +24,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
+from statsmodels.tsa.arima.model import ARIMA
 
 class Algo2:
     def __init__(self,ticker=None, start_date=None,end_date=None, tickers_list=None,
@@ -62,6 +63,15 @@ class Algo2:
             return_data_list.append(return_data)  # Append return data DataFrame to the list
 
         return return_data_list
+
+    def determine_position(self, latest_price, reference_price):
+        """
+        Method to control our position.
+        """
+        if latest_price > reference_price:
+            return 1  # Buy signal
+        else:
+            return -1  # Sell signal
 
     def random_forest(self):
         """
@@ -261,100 +271,109 @@ class Algo2:
             # Append the DataFrame to the list
             one_step_ahead_forecast_list.append(structured_dateframe_forecasts)
 
-        signals_list_buy = []
-        signals_list_buy_updated = []
-        for ticker in self.tickers_list:
+            signals_list_buy = []
+            signals_list_buy_updated = []
+            for ticker in self.tickers_list:
 
 
 
-            for df in one_step_ahead_forecast_list:
-                new_df = pd.DataFrame()
-                new_df["Ticker"] = [ticker]
-                new_df['Position'] = None
-                new_df['Buy price'] = None
-                new_df['Position date'] = None
-                if df['Prediction'].iloc[0] > 0:
-                    new_df.at[0, 'Position'] = 1
-                    prices = self.db_instance.get_price_data(start=self.start_date,
-                                                                      end=self.end_date,
-                                                                      ticker=ticker)['Adj Close']
+                for df in one_step_ahead_forecast_list:
+                    new_df = pd.DataFrame()
+                    new_df["Ticker"] = [ticker]
+                    new_df['Position'] = None
+                    new_df['Buy price'] = None
+                    new_df['Position date'] = None
+                    if df['Prediction'].iloc[0] > 0:
+                        new_df.at[0, 'Position'] = 1
+                        prices = self.db_instance.get_price_data(start=self.start_date,
+                                                                          end=self.end_date,
+                                                                          ticker=ticker)['Adj Close']
 
-                    # Find the index of the closest date in the array
-                    last_date2 = df['Date'].iloc[-1]
-                    one_day_ahead2 = last_date2 + pd.DateOffset(days=1)
+                        # Find the index of the closest date in the array
+                        last_date2 = df['Date'].iloc[-1]
+                        one_day_ahead2 = last_date2 + pd.DateOffset(days=1)
 
 
-                    index_of_closest_date = np.abs(prices.index - last_date2).argmin()
+                        index_of_closest_date = np.abs(prices.index - last_date2).argmin()
 
-                    # Check if there is a next element
-                    if index_of_closest_date + 1 < len(prices):
-                        # Access the next element
-                        next_element = prices.index[index_of_closest_date + 1]
-                        buy_price = prices.loc[next_element]
-                        new_df['Buy price'] = buy_price
-                        new_df['Position date'] = next_element
-                        signals_list_buy.append(new_df)
-                    else:
-                        print("No next element. The last_date is the last element in price_at_signal.")
-                print("k")
-
-            # Now monitor:
-
-        # Initialize final_df for each ticker
-            final_df = pd.DataFrame()
-            for df2 in signals_list_buy:
-                new_df2 = pd.DataFrame()
-                new_df2["Ticker"] = [ticker]
-                new_df2['Position'] = None
-                new_df2['Latest price'] = None
-                new_df2['Position date'] = None
-                first_iteration = True  # Flag for the first iteration
-
-                while True:
-                    prices_actual = self.db_instance.get_price_data(start=self.start_date,
-                                                                    end=self.end_date,
-                                                                    ticker=ticker)['Adj Close']
-                    if first_iteration:
-                        last_date2 = df2['Position date'].iloc[0]
-                        index_of_closest_date2 = np.abs(prices_actual.index - last_date2).argmin()
-                    else:
-                        last_date2 = new_df2['Position date'].iloc[-1]
-                        index_of_closest_date2 = np.abs(prices_actual.index - last_date2).argmin()
-
-                    if index_of_closest_date2 + 1 < len(prices_actual):
-                        next_element2 = prices_actual.index[index_of_closest_date2 + 1]
-
-                        # Calculate the latest price
-                        latest_price = prices_actual.loc[next_element2]
-
-                        # Update the Position based on your condition
-                        if first_iteration:
-                            if latest_price > df2['Buy price'].iloc[0]:
-                                new_df2['Position'] = 1
-                            else:
-                                new_df2['Position'] = -1
-                                break  # Break the loop if the condition is not fulfilled
-                            # Update new_df2 with the latest price and date
-                            new_df2['Latest price'] = latest_price
-                            new_df2['Position date'] = next_element2
-                            first_iteration = False  # Update the flag after the first iteration
+                        # Check if there is a next element
+                        if index_of_closest_date + 1 < len(prices):
+                            # Access the next element
+                            next_element = prices.index[index_of_closest_date + 1]
+                            buy_price = prices.loc[next_element]
+                            new_df['Buy price'] = buy_price
+                            new_df['Position date'] = next_element
+                            signals_list_buy.append(new_df)
                         else:
-                            if latest_price > new_df2['Latest price'].iloc[0]:
-                                new_df2['Position'] = 1
+                            print("No next element. The last_date is the last element in price_at_signal.")
+                    print("k")
+
+                # Now monitor:
+
+                # Initialize final_df for each ticker
+                final_df = pd.DataFrame()
+                for df2 in signals_list_buy:
+                    new_df2 = pd.DataFrame()
+                    new_df2["Ticker"] = [ticker]
+                    new_df2['Position'] = None
+                    new_df2['Latest price'] = None
+                    new_df2['Position date'] = None
+                    first_iteration = True  # Flag for the first iteration
+
+                    while True:
+                        prices_actual = self.db_instance.get_price_data(start=self.start_date,
+                                                                        end=self.end_date,
+                                                                        ticker=ticker)['Adj Close']
+                        if first_iteration:
+                            last_date2 = df2['Position date'].iloc[0]
+                            index_of_closest_date2 = np.abs(prices_actual.index - last_date2).argmin()
+                        else:
+                            last_date2 = new_df2['Position date'].iloc[-1]
+                            index_of_closest_date2 = np.abs(prices_actual.index - last_date2).argmin()
+
+                        if index_of_closest_date2 + 1 < len(prices_actual):
+                            next_element2 = prices_actual.index[index_of_closest_date2 + 1]
+
+                            # Calculate the returns. Should be used for forecasting in the monitor process.
+                            returns_actual = prices_actual.loc[:next_element2].pct_change().dropna()
+                            order = (1,1,1) # Tune later.
+                            model = ARIMA(returns_actual,order=order)
+                            results = model.fit()
+                            forecasts = results.forecast(steps=1)
+
+                            # Calculate the latest price
+                            latest_price = prices_actual.loc[next_element2]
+
+                            # Update the Position based on your condition
+                            if first_iteration:
+                                # In the if-statement below, we control our position:
+                                if self.determine_position(latest_price,reference_price=df2['Buy price'].iloc[0]) == 1: #latest_price > df2['Buy price'].iloc[0]: #forecasts.item() > 0:
+                                    new_df2['Position'] = 1
+                                else:
+                                    new_df2['Position'] = -1
+                                    break  # Break the loop if the condition is not fulfilled
+                                # Update new_df2 with the latest price and date
+                                new_df2['Latest price'] = latest_price
+                                new_df2['Position date'] = next_element2
+                                first_iteration = False  # Update the flag after the first iteration
                             else:
-                                new_df2['Position'] = -1
-                                break  # Break the loop if the condition is not fulfilled
-                            # Update new_df2 with the latest price and date
-                            new_df2['Latest price'] = latest_price
-                            new_df2['Position date'] = next_element2
-                    else:
-                        # Break the loop if there is no next element
-                        break
+                                # In the if-statement below, we control our position:
+                                if self.determine_position(latest_price,reference_price=df2['Buy price'].iloc[0]) == 1:  #latest_price > new_df2['Latest price'].iloc[0]: # forecasts.item() > 0:
+                                    new_df2['Position'] = 1
+                                else:
+                                    new_df2['Position'] = -1
+                                    break  # Break the loop if the condition is not fulfilled
+                                # Update new_df2 with the latest price and date
+                                new_df2['Latest price'] = latest_price
+                                new_df2['Position date'] = next_element2
+                        else:
+                            # Break the loop if there is no next element
+                            break
 
-                # Append the final DataFrame to the updated list
-                final_df = pd.concat([df2, new_df2], axis=0, ignore_index=True)
+                    # Append the final DataFrame to the updated list
+                    final_df = pd.concat([df2, new_df2], axis=0, ignore_index=True)
 
-            signals_list_buy_updated.append(final_df)
+                signals_list_buy_updated.append(final_df)
 
 
         print("k")
@@ -420,7 +439,7 @@ class Algo2:
 
 
 if __name__ == '__main__':
-    instance = Algo2(start_date='2021-01-01',end_date='2023-10-04',tickers_list=['TSLA','FLS.CO'],
+    instance = Algo2(start_date='2023-01-01',end_date='2023-10-04',tickers_list=['TSLA','FLS.CO'],
                      days_back=0)
     f = instance.random_forest()
     k = instance.return_data()
