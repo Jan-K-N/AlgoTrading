@@ -25,6 +25,8 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
 from statsmodels.tsa.arima.model import ARIMA
+from scipy import stats
+from statsmodels.stats.proportion import proportion_confint
 
 class Algo2:
     def __init__(self,ticker=None, start_date=None,end_date=None, tickers_list=None,
@@ -64,14 +66,80 @@ class Algo2:
 
         return return_data_list
 
-    def determine_position(self, latest_price, reference_price):
+    def determine_position_exit(self, latest_price,
+                                reference_price,
+                                pct_stop_loss = 0.02,
+                                returns_series=None):
         """
-        Method to control our position.
+        Method to control our position. The method is used after having taken a long position.
+        The method is used to control exit
+        positions. Hence, it includes a stop-loss mechanism.
+
+        # Ideas:
+            # Liquidity Considerations.
+                # Factor in liquidity constraints. If the instrument becomes less liquid,
+                it might be harder to exit at a desired price.
+
+
         """
-        if latest_price > reference_price:
-            return 1  # Buy signal
+        # Compute stop_loss:
+        stop_loss = reference_price - reference_price*pct_stop_loss
+
+        # Monte-Carlo:
+
+        # 1. Modelling:
+        initial_price = latest_price
+        mu = returns_series.mean()
+        sigma = returns_series.std()
+        volatility = 0.3
+        drift = 0.2
+        time_horizon = 252
+        threshold_distance = 5  # Distance from target to consider as a hit
+
+        # 2. Simulating:
+        num_simulations = 10000
+        # Generate random daily returns for each simulation using a more sophisticated model
+        returns = np.random.normal((mu - 0.5 * volatility ** 2) / time_horizon, volatility / np.sqrt(time_horizon),
+                                   (time_horizon, num_simulations))
+
+        # Initialize an array to store simulated prices
+        simulated_prices = np.zeros((time_horizon + 1, num_simulations))
+        simulated_prices[0] = initial_price
+
+        # Simulate daily prices using geometric Brownian motion with drift
+        simulated_returns = np.exp(np.cumsum(returns, axis=0))
+        simulated_prices[1:] = initial_price * np.exp(np.cumsum(returns, axis=0))
+
+        # Calculate probabilities of hitting the target price for each simulation
+        target_price = latest_price + 0.0001
+
+        # Calculate distances from the target price for each simulation
+        distances_from_target = np.abs(simulated_prices[-1, :] - target_price)
+
+        # Calculate probabilities of hitting the target price for each simulation
+        probability_hit_target = np.sum(distances_from_target < threshold_distance) / num_simulations
+
+
+        # Calculate mean and standard deviation of probabilities
+        mean_probability = np.mean(probability_hit_target)
+        std_probability = np.std(probability_hit_target)
+
+        # Define confidence level (e.g., 95%)
+        confidence_level = 0.95
+
+        # Calculate confidence interval
+        lower_ci, upper_ci = proportion_confint(np.sum(probability_hit_target), num_simulations, method='wilson')
+
+
+        if latest_price < stop_loss:
+            return -1
         else:
-            return -1  # Sell signal
+            return 1
+
+        # if latest_price > reference_price:
+        #     return 1  # Buy signal
+        # else:
+        #     return -1  # Sell signal
 
     def random_forest(self):
         """
@@ -274,9 +342,6 @@ class Algo2:
             signals_list_buy = []
             signals_list_buy_updated = []
             for ticker in self.tickers_list:
-
-
-
                 for df in one_step_ahead_forecast_list:
                     new_df = pd.DataFrame()
                     new_df["Ticker"] = [ticker]
@@ -347,7 +412,9 @@ class Algo2:
                             # Update the Position based on your condition
                             if first_iteration:
                                 # In the if-statement below, we control our position:
-                                if self.determine_position(latest_price,reference_price=df2['Buy price'].iloc[0]) == 1: #latest_price > df2['Buy price'].iloc[0]: #forecasts.item() > 0:
+                                if self.determine_position_exit(latest_price,
+                                                                reference_price=df2['Buy price'].iloc[0],
+                                                                returns_series=returns_actual) == 1: #latest_price > df2['Buy price'].iloc[0]: #forecasts.item() > 0:
                                     new_df2['Position'] = 1
                                 else:
                                     new_df2['Position'] = -1
@@ -358,7 +425,7 @@ class Algo2:
                                 first_iteration = False  # Update the flag after the first iteration
                             else:
                                 # In the if-statement below, we control our position:
-                                if self.determine_position(latest_price,reference_price=df2['Buy price'].iloc[0]) == 1:  #latest_price > new_df2['Latest price'].iloc[0]: # forecasts.item() > 0:
+                                if self.determine_position_exit(latest_price, reference_price=df2['Buy price'].iloc[0]) == 1:  #latest_price > new_df2['Latest price'].iloc[0]: # forecasts.item() > 0:
                                     new_df2['Position'] = 1
                                 else:
                                     new_df2['Position'] = -1
@@ -439,7 +506,8 @@ class Algo2:
 
 
 if __name__ == '__main__':
-    instance = Algo2(start_date='2023-01-01',end_date='2023-10-04',tickers_list=['TSLA','FLS.CO'],
+    instance = Algo2(start_date='2023-01-01',end_date='2023-10-04',tickers_list=['TSLA'],
                      days_back=0)
     f = instance.random_forest()
     k = instance.return_data()
+    print("k")
