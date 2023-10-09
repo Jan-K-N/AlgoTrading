@@ -12,7 +12,9 @@ by this specific algorithm.
 import sys
 from algo1 import Algo1
 sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+sys.path.insert(2,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/models')
 from finance_database import Database
+from random_forrest import RandomForrest
 from datetime import datetime,timedelta
 import pandas as pd
 import numpy as np
@@ -194,6 +196,7 @@ class Algo2:
         # 1: Data preparation:
         returns = self.return_data()
 
+
         selected_buy_series_list = []
         selected_sell_series_list = []
 
@@ -239,102 +242,24 @@ class Algo2:
 
         # Buy signals:
         for series in selected_buy_series_list:
-            # 3: Data splitting:
             returns = series.iloc[:, 0].values
             returns = returns[:-1]
 
             # Reshape "returns" to have two dimensions
             returns = returns.reshape(-1, 1)
 
-            # 3: Splitting the data:
-            X_train, X_test, y_train, y_test = train_test_split(returns[:-1], returns[1:], test_size=0.25,
-                                                                random_state=42)
-
-            # 5: Model Training:
-            # Define a grid of hyperparameters to search
-            param_grid = {
-                'n_estimators': [100, 200], # Add more here later.
-                'max_depth': [None, 10,], # Add more here later.
-            }
-
-            # Create the GridSearchCV object
-            grid_search = GridSearchCV(estimator=RandomForestRegressor(**common_regr_params),
-                                       param_grid=param_grid, cv=5)
-
-            # Fit the model to the data and find the best hyperparameters
-            grid_search.fit(X_train, y_train)
-
-            # Access the best hyperparameters
-            best_params = grid_search.best_params_
-
-            # Create a new model with the best hyperparameters
-            best_regr = RandomForestRegressor(
-                n_estimators=best_params['n_estimators'],
-                max_depth=best_params['max_depth'],
-                **common_regr_params  # Include any other relevant hyperparameters
-            )
-
-            # Retrain the model with the best hyperparameters
-            best_regr.fit(X_train, y_train)
-
-            y_pred = best_regr.predict(X_test)
-            y_pred = y_pred.reshape(-1, 1)
-
-            # Create a DataFrame directly
-            prediction_dataframe = pd.DataFrame({
-                'Prediction': y_pred[:, 0],
-                'Date': series.index[-len(y_pred):],
-                'Ticker': series.columns[0]
-            })
-
-            # Convert 'Date' column to datetime64[ns]
-            prediction_dataframe['Date'] = pd.to_datetime(prediction_dataframe['Date'])
-
-            # Rename the columns if needed
-            prediction_dataframe.columns = ['Prediction', 'Date', 'Ticker']
-            prediction_dataframe['Ticker'] = prediction_dataframe['Ticker'].str.decode('utf-8')
-
-            # 6: Model evaluation:
-            predicted_values = prediction_dataframe.iloc[:, [0, 2]]
-
-            # Calculate evaluation metrics:
-            mae = mean_absolute_error(y_test, predicted_values.iloc[:, 0])
-            mse = mean_squared_error(y_test, predicted_values.iloc[:, 0])
-            rmse = np.sqrt(mse)
-
-            # Create a summary dataframe for this pair of dataframes
-            evaluation_summary = pd.DataFrame({
-                'MAE': [mae],
-                'MSE': [mse],
-                'RMSE': [rmse],
-            })
-            evaluation_list.append(evaluation_summary)
-            prediction_buy_list.append(prediction_dataframe)
-
-            # Make actual out-of-sample one-step ahead forecast.
-            # To do this, we should use the best model from above:
-            best_regr = RandomForestRegressor(
-                n_estimators=best_params['n_estimators'],
-                max_depth=best_params['max_depth'],
-                **common_regr_params  # Include any other relevant hyperparameters
-            )
-
-            # Retrain the model with the best hyperparameters on the entire dataset
-            best_regr.fit(returns[:-1], returns[1:])
-
-            forecast1 = best_regr.predict(returns[-1].reshape(1, -1))
-            last_date = prediction_dataframe['Date'].iloc[-1]
-            one_day_ahead = last_date + pd.DateOffset(days=1)
+            random_forrest_instance = RandomForrest(series=returns[:-1],x_data=returns[1:])
+            random_forrest_predictor = random_forrest_instance.predictor()
+            one_day_ahead = series.index[-len(random_forrest_predictor[2]):] + pd.DateOffset(days=1)
 
             # Create a DataFrame directly
             structured_dateframe_forecasts = pd.DataFrame({
-                'Prediction': forecast1,
+                'Prediction': random_forrest_predictor[2].item(),
                 'Date': [one_day_ahead],
                 'Ticker': series.columns[0]
             })
 
-            # Convert 'Date' column to datetime64[ns]
-            structured_dateframe_forecasts['Date'] = pd.to_datetime(structured_dateframe_forecasts['Date'])
+            structured_dateframe_forecasts['Date']=structured_dateframe_forecasts['Date'].item()[0]
 
             # Append the DataFrame to the list
             one_step_ahead_forecast_list.append(structured_dateframe_forecasts)
@@ -506,8 +431,9 @@ class Algo2:
 
 
 if __name__ == '__main__':
-    instance = Algo2(start_date='2023-01-01',end_date='2023-10-04',tickers_list=['TSLA'],
+    instance = Algo2(start_date='2022-01-01',end_date='2023-10-04',tickers_list=['TSLA'],
                      days_back=0)
     f = instance.random_forest()
     k = instance.return_data()
+    # f1 = instance.determine_position_exit(ret)
     print("k")
