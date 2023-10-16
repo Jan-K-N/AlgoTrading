@@ -56,7 +56,8 @@ class Algo1Backtest:
     def backtest_prices(self):
         # pylint: disable=too-many-locals.
         """
-        Computes and retrieves the prices from the buy/sell signals obtained from Algo1.
+        This method computes and retrieves the prices
+        given the buy/sell signals from Algo1.
 
         Returns:
             List[List[pd.DataFrame]]: A list containing two sub-lists:
