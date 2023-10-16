@@ -1,4 +1,4 @@
-"""Main script for algo3/Arbitrage trading"""
+"""Main script for the algo3/Arbitrage trading"""
 # pylint: disable=wrong-import-position
 import sys
 import pandas as pd
