@@ -378,12 +378,3 @@ class Algo2:
                 signals_list_buy_updated.append(final_df)
 
         return signals_list_buy_updated
-
-
-if __name__ == '__main__':
-    instance = Algo2(start_date='2022-06-01',end_date='2023-10-04',tickers_list=['AAPL'],
-                     days_back=0)
-    f = instance.random_forest()
-    k = instance.return_data()
-    # f1 = instance.monte_carlo_monitor(return_series = k[0])
-    print("k")

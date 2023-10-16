@@ -2,6 +2,7 @@
 Main script for random forrest. The model can be used to predict,
 stock returns.
 """
+# pylint: disable=import-error
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
