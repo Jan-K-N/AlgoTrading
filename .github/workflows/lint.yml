@@ -1,10 +1,11 @@
 name: Lint
-  run: |
-    export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-    python -m pylint projects/**/*.py
+
 on:
   pull_request:
-  
+
+run: |
+  export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+  python -m pylint projects/**/*.py  
 jobs:
   lint:
     runs-on: ubuntu-latest
