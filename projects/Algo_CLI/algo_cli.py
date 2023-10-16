@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Main script for command line interface. The script can execute various FrontEnd scripts
 in an easy way.
@@ -62,7 +63,7 @@ class CommandLineInterface:
 
             while True:
                 print("\nChoose an option:")
-                print("1. Execute App 1")
+                print("1. For frontend to Algo1 - press 1.")
                 print("5. Exit")
 
                 choice = input("Enter your choice: ")
