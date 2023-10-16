@@ -45,7 +45,6 @@ class RandomForrest:
         """
         self.series = series
         self.x_data=x_data
-
     def predictor(self, out_of_sample=True):
         """
         Trains a RandomForestRegressor model, evaluates its performance, and makes predictions.
