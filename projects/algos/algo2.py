@@ -80,11 +80,11 @@ class Algo2:
         Returns:
             Output of Algorithm 1.
         """
-        instance_algo1 = Algo1(start_date=self.start_date,
+        algo1_instance = Algo1(start_date=self.start_date,
                                end_date=self.end_date,
                                tickers_list=self.tickers_list)
-        algo1_output = instance_algo1.algo1_loop()
-        return algo1_output
+        output_algo1 = algo1_instance.algo1_loop()
+        return output_algo1
 
     def return_data(self):
         """
