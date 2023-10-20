@@ -21,10 +21,13 @@ jobs:
         python -m pip install -r projects/algos/requirements.txt
         python -m pip install -r projects/FrontEnd/requirements.txt
 
-    - name: Set PYTHONPATH
+    - name: Debug Info
       run: |
-        export PYTHONPATH="${PYTHONPATH}:${GITHUB_WORKSPACE}"
+        echo "Current working directory: $(pwd)"
+        echo "PYTHONPATH: $PYTHONPATH"
+        pip list
 
     - name: Lint with pylint
       run: |
+        export PYTHONPATH="/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects"
         python -m pylint projects/**/*.py
