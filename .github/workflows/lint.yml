@@ -40,4 +40,7 @@ jobs:
         pip list
 
     - name: Lint with pylint
-      run: python -m pylint algos/**/*.py
+      run: |
+        for file in $(find projects -name "*.py"); do
+          python -m pylint "$file"
+        done
