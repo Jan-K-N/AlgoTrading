@@ -2,7 +2,7 @@ name: Lint
 
 on:
   pull_request:
-
+  
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -15,11 +15,8 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Debug Info
-      run: |
-        echo "Current working directory: $(pwd)"
-        echo "PYTHONPATH: $PYTHONPATH"
-        pip list
+    - name: Set PYTHONPATH
+      run: export PYTHONPATH="${PYTHONPATH}:/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects"
 
     - name: Install dependencies
       run: |
@@ -28,5 +25,4 @@ jobs:
         python -m pip install -r projects/FrontEnd/requirements.txt
 
     - name: Lint with pylint
-      run: |
-        python -m pylint projects/**/*.py
+      run: python -m pylint projects/**/*.py
