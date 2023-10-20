@@ -23,5 +23,5 @@ jobs:
 
     - name: Lint with pylint
       run: |
-        export PYTHONPATH="/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects"
+        export PYTHONPATH="${PYTHONPATH}:${GITHUB_WORKSPACE}"
         python -m pylint projects/**/*.py
