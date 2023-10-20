@@ -25,4 +25,4 @@ jobs:
         python -m pip install -r projects/FrontEnd/requirements.txt
 
     - name: Lint with pylint
-      run: python -m pylint /Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects
+      run: python -m pylint projects/**/*.py
