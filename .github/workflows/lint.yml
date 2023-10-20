@@ -15,6 +15,9 @@ jobs:
       with:
         python-version: 3.9
 
+    - name: Change working directory
+      run: cd /Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects
+
     - name: Create virtual environment
       run: python -m venv venv
 
