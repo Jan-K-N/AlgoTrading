@@ -30,5 +30,10 @@ jobs:
         python -m pip install -r projects/algos/requirements.txt
         python -m pip install -r projects/FrontEnd/requirements.txt
 
+    - name: Debug Info
+      run: |
+        echo "Current working directory: $(pwd)"
+        echo "PYTHONPATH: $PYTHONPATH"
+        pip list
     - name: Lint with pylint
       run: python -m pylint projects/**/*.py
