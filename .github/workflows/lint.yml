@@ -2,7 +2,7 @@ name: Lint
 
 on:
   pull_request:
-
+  
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -15,17 +15,14 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Change working directory
-      run: cd projects  # Change to your project directory
+    - name: Debug Info
+      run: |
+        echo "Current working directory: $(pwd)"
+        echo "PYTHONPATH: $PYTHONPATH"
+        pip list
 
-    - name: Create virtual environment
-      run: python -m venv venv
-
-    - name: Activate virtual environment
-      run: source venv/bin/activate
-      
     - name: Set PYTHONPATH
-      run: export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+      run: export PYTHONPATH="${PYTHONPATH}:${{ github.workspace }}/projects"
 
     - name: Install dependencies
       run: |
@@ -33,14 +30,6 @@ jobs:
         python -m pip install -r projects/algos/requirements.txt
         python -m pip install -r projects/FrontEnd/requirements.txt
 
-    - name: Debug Info
-      run: |
-        echo "Current working directory: $(pwd)"
-        echo "PYTHONPATH: $PYTHONPATH"
-        pip list
-
     - name: Lint with pylint
       run: |
-        for file in $(find projects -name "*.py"); do
-          python -m pylint "$file"
-        done
+        python -m pylint ${{ github.workspace }}/projects/**/*.py
