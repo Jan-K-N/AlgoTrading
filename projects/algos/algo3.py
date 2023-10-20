@@ -3,9 +3,9 @@
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
-from algo_scrapers.s_and_p_scraper import SAndPScraper
-from algo_scrapers.dax_scraper import DAXScraper
-from data.finance_database import Database
+from ..algo_scrapers.s_and_p_scraper import SAndPScraper
+from ..algo_scrapers.dax_scraper import DAXScraper
+from ..data.finance_database import Database
 
 class ArbitrageTrading:
     """
