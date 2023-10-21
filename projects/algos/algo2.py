@@ -9,27 +9,19 @@ stock return, serves as the actual signal for the algo.
 The opposite movement for the position is then determined
 by this specific algorithm.
 """
-# pylint: disable=import-error
 # pylint: disable=wrong-import-position
 # pylint: disable=inconsistent-return-statements
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-statements
-import sys
 from datetime import datetime, timedelta
 from typing import Union, Optional
-
 import numpy as np
 import pandas as pd
 from statsmodels.stats.proportion import proportion_confint
 from statsmodels.tsa.arima.model import ARIMA
-
-# Ensure that the paths are inserted before importing local modules
-sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/models')
-
-from finance_database import Database
-from random_forrest import RandomForrest
-from algo1 import Algo1
+from ..data.finance_database import Database
+from ..models.random_forrest import RandomForrest
+from ..algos.algo1 import Algo1
 
 class Algo2:
     """

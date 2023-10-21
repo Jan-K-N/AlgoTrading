@@ -1,16 +1,11 @@
-"""Main script for algo3"""
-# pylint: disable=import-error
+"""The main script for algo3/arbitrage trading"""
 # pylint: disable=wrong-import-position
-import sys
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
-
-sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
-sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-from s_and_p_scraper import SAndPScraper
-from dax_scraper import DAXScraper
-from finance_database import Database
+from ..algo_scrapers.s_and_p_scraper import SAndPScraper
+from ..algo_scrapers.dax_scraper import DAXScraper
+from ..data.finance_database import Database
 
 class ArbitrageTrading:
     """
