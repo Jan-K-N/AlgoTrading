@@ -21,7 +21,7 @@ from statsmodels.stats.proportion import proportion_confint
 from statsmodels.tsa.arima.model import ARIMA
 from data.finance_database import Database
 from models.random_forrest import RandomForrest
-from algo1 import Algo1
+from algos.algo1 import Algo1
 
 class Algo2:
     """
