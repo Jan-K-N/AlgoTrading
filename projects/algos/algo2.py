@@ -19,9 +19,9 @@ import numpy as np
 import pandas as pd
 from statsmodels.stats.proportion import proportion_confint
 from statsmodels.tsa.arima.model import ARIMA
-from data.finance_database import Database
-from models.random_forrest import RandomForrest
-from algos.algo1 import Algo1
+from ..data.finance_database import Database
+from ..models.random_forrest import RandomForrest
+from ..algos.algo1 import Algo1
 
 class Algo2:
     """
