@@ -9,19 +9,16 @@ stock return, serves as the actual signal for the algo.
 The opposite movement for the position is then determined
 by this specific algorithm.
 """
-# pylint: disable=import-error
 # pylint: disable=wrong-import-position
 # pylint: disable=inconsistent-return-statements
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-statements
 from datetime import datetime, timedelta
 from typing import Union, Optional
-
 import numpy as np
 import pandas as pd
 from statsmodels.stats.proportion import proportion_confint
 from statsmodels.tsa.arima.model import ARIMA
-
 from data.finance_database import Database
 from models.random_forrest import RandomForrest
 from algo1 import Algo1
