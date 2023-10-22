@@ -11,7 +11,6 @@ sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/proj
 from finance_database import Database
 import pandas as pd
 
-
 class Algo1:
     """
     A class representing an algorithm for generating trading signals based on
@@ -82,9 +81,6 @@ class Algo1:
         """
         Generates buy and sell signals based on RSI and Bollinger Bands strategies.
 
-        Args:
-        consecutive_days (int): The number of consecutive days the conditions should be met.
-
         Returns:
         signals : pd.DataFrame
             DataFrame containing the buy and sell signals.
@@ -119,8 +115,8 @@ class Algo1:
                 consecutive_buy = 0
                 consecutive_sell = 0
 
-            buy_signal.append(1 if consecutive_buy >= consecutive_days else 0)
-            sell_signal.append(-1 if consecutive_sell >= consecutive_days else 0)
+            buy_signal.append(1 if consecutive_buy >= self.consecutive_days else 0)  # Use self.consecutive_days
+            sell_signal.append(-1 if consecutive_sell >= self.consecutive_days else 0)  # Use self.consecutive_days
 
         signals = pd.DataFrame(data.index, columns=['Date'])
         signals[self.ticker + '_Buy'] = buy_signal
