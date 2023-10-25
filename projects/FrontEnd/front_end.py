@@ -6,9 +6,9 @@ the app to indicated how far the app is from being
 done executing.
 """
 import sys
-# sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
-# sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-# sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
+sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
+sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
 from datetime import datetime, timedelta
 import dash
 from dash import dash_table
@@ -29,7 +29,28 @@ from algo_scrapers.omxh25_scraper import OMXH25scraper
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Define the process_tickers function to process tickers in parallel
-def process_tickers(queue_tickers, start_date, end_date, consecutive_days, tickers): #market
+def process_tickers(queue_tickers, market, start_date, end_date, consecutive_days, tickers):
+    """
+    Process a chunk of tickers and generate trading signals for each ticker.
+
+    Parameters:
+    -----------
+        queue_tickers (Queue):
+            A queue for storing the output results.
+        start_date (str):
+            The start date for retrieving price data in the format 'YYYY-MM-DD'.
+        end_date (str):
+            The end date for retrieving price data in the format 'YYYY-MM-DD'.
+        consecutive_days (int):
+            The number of consecutive days the conditions should be met for generating signals.
+        tickers (list):
+            A list of ticker symbols to process.
+
+    Returns:
+    --------
+        None:
+            The processed results are placed in the queue.
+    """
     output_list = []
     for ticker1 in tickers:
         try:
@@ -114,6 +135,28 @@ app.layout = html.Div(
      dash.dependencies.Input('consecutive-days-input', 'value')]
 )
 def update_out_box(market, start_date, end_date, consecutive_days):
+    """
+    Update the output box with trading signals for the chosen market and time period.
+
+    Parameters:
+    -----------
+        market (str):
+            The market for which the signals are generated.
+        start_date (str):
+            The start date of the time period for which the signals are generated,
+            in the format 'YYYY-MM-DD'.
+        end_date (str):
+            The end date of the time period for which the signals are generated,
+            in the format 'YYYY-MM-DD'.
+        consecutive_days (int):
+            The number of consecutive days the conditions should be met for generating signals.
+
+    Returns:
+    --------
+        Tuple of (int, html.Div):
+            An integer indicating the progress value of the progress bar
+            and a div element containing tables with the generated signals for each ticker.
+    """
     if market == 'DAX':
         instance_dax = DAXScraper()
         tickers_list = instance_dax.run_scraper()
@@ -153,7 +196,6 @@ def update_out_box(market, start_date, end_date, consecutive_days):
                                                   tickers_chunk))
         ticker_process.start()
         processes.append(ticker_process)
-
 
     for ticker_process in processes:
         ticker_process.join()
