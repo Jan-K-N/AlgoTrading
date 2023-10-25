@@ -15,7 +15,7 @@ from data.finance_database import Database
 # pylint: disable=too-many-arguments.
 class Algo1:
     """
-    Algo1 - Algorithm for Trading Signal Generation
+    Algo1 - Algorithm for Trading Signal Generation.
 
     The Algo1 class is designed to generate trading signals based on
     the Relative Strength Index (RSI) and Bollinger Bands strategies.
