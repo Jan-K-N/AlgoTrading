@@ -10,26 +10,44 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Python and Create Virtual Environment
+    - name: Activate Python Virtual Environment for Algos
       run: |
-        python -m venv venv  # Create a virtual environment
+        source projects/algos/venv/bin/activate
       shell: bash
 
-    - name: Activate Virtual Environment
-      run: |
-        source venv/bin/activate  # Activate the virtual environment on Linux
-        # or
-        # venv\Scripts\activate  # Activate the virtual environment on Windows
-      shell: bash
-
-    - name: Install Dependencies
+    - name: Install Dependencies for Algos
       run: |
         pip install --upgrade pip
         pip install -r projects/algos/requirements.txt
+      shell: bash
+
+    - name: Lint Algos with pylint
+      run: |
+        pylint projects/algos/**/*.py
+      shell: bash
+
+    - name: Deactivate Algos Virtual Environment
+      run: |
+        deactivate
+      shell: bash
+
+    - name: Activate Python Virtual Environment for FrontEnd
+      run: |
+        source projects/FrontEnd/venv/bin/activate
+      shell: bash
+
+    - name: Install Dependencies for FrontEnd
+      run: |
+        pip install --upgrade pip
         pip install -r projects/FrontEnd/requirements.txt
       shell: bash
 
-    - name: Lint with pylint
+    - name: Lint FrontEnd with pylint
       run: |
-        pylint ${{ github.workspace }}/projects/**/*.py
+        pylint projects/FrontEnd/**/*.py
+      shell: bash
+
+    - name: Deactivate FrontEnd Virtual Environment
+      run: |
+        deactivate
       shell: bash
