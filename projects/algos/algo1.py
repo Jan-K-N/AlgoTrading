@@ -196,19 +196,19 @@ class Algo1:
                 print(f"ValueError for {ticker1}: {str(error)}")
                 continue
 
-            condition1 = signals_1[ticker1 + '_Buy'] == 1
-            condition2 = signals_1[ticker1 + '_Sell'] == 1
+            condition1_buy = signals_1[ticker1 + '_Buy'] == 1
+            condition2_sell = signals_1[ticker1 + '_Sell'] == 1
 
-            combined_condition = condition1 | condition2
+            combined_condition = condition1_buy | condition2_sell
 
             extracted_rows = signals_1[combined_condition]
 
-            new_df = pd.DataFrame()
-            new_df["Ticker"] = [ticker1] * len(extracted_rows)
-            new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
-            new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
-            new_df.index = extracted_rows['Date']
+            df_signals = pd.DataFrame()
+            df_signals["Ticker"] = [ticker1] * len(extracted_rows)
+            df_signals["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
+            df_signals["Sell"] = [-1 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
+            df_signals.index = extracted_rows['Date']
 
-            if not new_df.empty:
-                signals_list.append(new_df)
+            if not df_signals.empty:
+                signals_list.append(df_signals)
         return signals_list
