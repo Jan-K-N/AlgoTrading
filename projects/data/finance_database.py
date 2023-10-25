@@ -49,7 +49,6 @@ class Database():
                                   threads=True)
         return ticker_data
 
-
     def get_dividend_data(self, start:str=None, end:str=None, ticker:str=None):
         """Fetches dividend data for a given stock ticker between specified start and end dates.
 
