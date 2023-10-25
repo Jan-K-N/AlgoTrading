@@ -2,7 +2,7 @@ name: Lint
 
 on:
   pull_request:
-
+  
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -10,44 +10,27 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Activate Python Virtual Environment for Algos
-      run: |
-        source projects/algos/venv/bin/activate
-      shell: bash
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
 
-    - name: Install Dependencies for Algos
+    - name: Debug Info
       run: |
-        pip install --upgrade pip
-        pip install -r projects/algos/requirements.txt
-      shell: bash
+        echo "Current working directory: $(pwd)"
+        echo "PYTHONPATH: $PYTHONPATH"
+        pip list
 
-    - name: Lint Algos with pylint
-      run: |
-        pylint projects/algos/**/*.py
-      shell: bash
+    - name: Set PYTHONPATH
+      run: export PYTHONPATH="${PYTHONPATH}:${{ github.workspace }}/projects"
 
-    - name: Deactivate Algos Virtual Environment
+    - name: Install dependencies
       run: |
-        deactivate
-      shell: bash
+        python -m pip install --upgrade pip
+        python -m pip install -r projects/algos/requirements.txt
+        python -m pip install -r projects/FrontEnd/requirements.txt
 
-    - name: Activate Python Virtual Environment for FrontEnd
+    - name: Lint with pylint
       run: |
-        source projects/FrontEnd/venv/bin/activate
-      shell: bash
+        python -m pylint ${{ github.workspace }}/projects/**/*.py
 
-    - name: Install Dependencies for FrontEnd
-      run: |
-        pip install --upgrade pip
-        pip install -r projects/FrontEnd/requirements.txt
-      shell: bash
-
-    - name: Lint FrontEnd with pylint
-      run: |
-        pylint projects/FrontEnd/**/*.py
-      shell: bash
-
-    - name: Deactivate FrontEnd Virtual Environment
-      run: |
-        deactivate
-      shell: bash
