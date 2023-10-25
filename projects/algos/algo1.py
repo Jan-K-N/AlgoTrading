@@ -190,10 +190,10 @@ class Algo1:
                                    end_date=self.end_date)
                 signals_1 = instance_1.generate_signals()
             except KeyError as error:
-                print(f"KeyError for {ticker1}: {str(error)}")
+                print(f"KeyError for the {ticker1}: {str(error)}")
                 continue
             except ValueError as error:
-                print(f"ValueError for {ticker1}: {str(error)}")
+                print(f"ValueError for the {ticker1}: {str(error)}")
                 continue
 
             condition1_buy = signals_1[ticker1 + '_Buy'] == 1
