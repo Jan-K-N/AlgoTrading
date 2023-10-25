@@ -2,7 +2,7 @@ name: Lint
 
 on:
   pull_request:
-  
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -10,26 +10,26 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: 3.9
-
-    - name: Debug Info
+    - name: Set up Python and Create Virtual Environment
       run: |
-        echo "Current working directory: $(pwd)"
-        echo "PYTHONPATH: $PYTHONPATH"
-        pip list
+        python -m venv venv  # Create a virtual environment
+      shell: bash
 
-    - name: Set PYTHONPATH
-      run: export PYTHONPATH="${PYTHONPATH}:${{ github.workspace }}/projects"
-
-    - name: Install dependencies
+    - name: Activate Virtual Environment
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r projects/algos/requirements.txt
-        python -m pip install -r projects/FrontEnd/requirements.txt
+        source venv/bin/activate  # Activate the virtual environment on Linux
+        # or
+        # venv\Scripts\activate  # Activate the virtual environment on Windows
+      shell: bash
+
+    - name: Install Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r projects/algos/requirements.txt
+        pip install -r projects/FrontEnd/requirements.txt
+      shell: bash
 
     - name: Lint with pylint
       run: |
-        python -m pylint ${{ github.workspace }}/projects/**/*.py
+        pylint ${{ github.workspace }}/projects/**/*.py
+      shell: bash
