@@ -1,5 +1,5 @@
 """
-Main script for the Algo1.
+The main script for the Algo1.
 
 This script defines the Algo1 class for generating trading signals based
 on Relative Strength Index (RSI) and Bollinger Bands strategies.
