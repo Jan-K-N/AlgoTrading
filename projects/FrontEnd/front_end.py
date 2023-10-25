@@ -6,9 +6,9 @@ the app to indicated how far the app is from being
 done executing.
 """
 import sys
-sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
-sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
+# sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
+# sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+# sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
 from datetime import datetime, timedelta
 import dash
 from dash import dash_table
@@ -17,7 +17,7 @@ from dash import dcc
 import dash_bootstrap_components as dbc
 from multiprocessing import Process, Queue
 import pandas as pd
-from algos.algo1 import Algo1
+from algo1 import Algo1
 from algo_scrapers.s_and_p_scraper import SAndPScraper
 from algo_scrapers.dax_scraper import DAXScraper
 from algo_scrapers.danish_ticker_scraper import OMXC25scraper
@@ -29,11 +29,14 @@ from algo_scrapers.omxh25_scraper import OMXH25scraper
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Define the process_tickers function to process tickers in parallel
-def process_tickers(q, market, start_date, end_date, consecutive_days, tickers):
+def process_tickers(queue_tickers, start_date, end_date, consecutive_days, tickers): #market
     output_list = []
     for ticker1 in tickers:
         try:
-            instance_1 = Algo1(ticker=ticker1, start_date=start_date, end_date=end_date, consecutive_days=consecutive_days)
+            instance_1 = Algo1(ticker=ticker1,
+                               start_date=start_date,
+                               end_date=end_date,
+                               consecutive_days=consecutive_days)
             signals_1 = instance_1.generate_signals()
         except KeyError as error:
             print(f"KeyError for {ticker1}: {str(error)}")
@@ -58,7 +61,7 @@ def process_tickers(q, market, start_date, end_date, consecutive_days, tickers):
         if not new_df.empty:
             output_list.append(new_df)
 
-    q.put(output_list)
+    queue_tickers.put(output_list)
 
 app.layout = html.Div(
     children=[
@@ -136,19 +139,24 @@ def update_out_box(market, start_date, end_date, consecutive_days):
 
     # Create a queue for retrieving processed results
     results_queue = Queue()
-
     processes = []
 
     for i in range(num_processes):
         start_index = i * tickers_per_process
         end_index = (i + 1) * tickers_per_process if i != num_processes - 1 else num_tickers
         tickers_chunk = tickers_list[start_index:end_index]
-        p = Process(target=process_tickers, args=(results_queue, market, start_date, end_date, consecutive_days, tickers_chunk))
-        p.start()
-        processes.append(p)
+        ticker_process = Process(target=process_tickers, args=(results_queue,
+                                                  market,
+                                                  start_date,
+                                                  end_date,
+                                                  consecutive_days,
+                                                  tickers_chunk))
+        ticker_process.start()
+        processes.append(ticker_process)
 
-    for p in processes:
-        p.join()
+
+    for ticker_process in processes:
+        ticker_process.join()
 
     all_results = []
     for _ in range(num_processes):
@@ -161,13 +169,13 @@ def update_out_box(market, start_date, end_date, consecutive_days):
     ticker_tables = [
         html.Div(
             children=[
-                html.H2(f"{all_results[i]['Ticker'].iloc[0]} Signals"),  # Change output_list to all_results
+                html.H2(f"{all_results[i]['Ticker'].iloc[0]} Signals"),
                 dash_table.DataTable(
-                    id=f"{all_results[i]['Ticker'].iloc[0]}-table",  # Change output_list to all_results
+                    id=f"{all_results[i]['Ticker'].iloc[0]}-table",
                     columns=[{"name": "Date", "id": "Date"},
                              {"name": "Buy", "id": "Buy"},
                              {"name": "Sell", "id": "Sell"}],
-                    data=all_results[i].reset_index().to_dict("records"),  # Change output_list to all_results
+                    data=all_results[i].reset_index().to_dict("records"),
                     style_table={"overflowX": "scroll"},
                     style_data_conditional=[
                         {
