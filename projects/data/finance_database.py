@@ -43,8 +43,12 @@ class Database():
             self.start = start
         if end is not None:
             self.end = end
-        ticker_data = yf.download(tickers=self.ticker, start=self.start, end=self.end)
+        ticker_data = yf.download(tickers=self.ticker,
+                                  start=self.start,
+                                  end=self.end,
+                                  threads=True)
         return ticker_data
+
     def get_dividend_data(self, start:str=None, end:str=None, ticker:str=None):
         """Fetches dividend data for a given stock ticker between specified start and end dates.
 
@@ -105,5 +109,4 @@ class Database():
 
         # Drop 'NaN' values
         daily_returns = daily_returns.dropna()
-
         return daily_returns
