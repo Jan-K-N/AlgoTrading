@@ -5,15 +5,21 @@ input given by the user. A progress bar is included in
 the app to indicated how far the app is from being
 done executing.
 """
+# pylint: disable=wrong-import-order.
+# pylint: disable=wrong-import-position.
+# pylint: disable=import-error.
+# pylint: disable=too-many-arguments.
+# pylint: disable=too-many-locals.
+# pylint: disable=unused-argument.
+from datetime import datetime, timedelta
+from dash import dash_table
+from dash import html
+from dash import dcc
 import sys
 sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects')
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 sys.path.insert(2, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
-from datetime import datetime, timedelta
 import dash
-from dash import dash_table
-from dash import html
-from dash import dcc
 import dash_bootstrap_components as dbc
 from multiprocessing import Process, Queue
 import pandas as pd
