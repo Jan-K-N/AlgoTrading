@@ -19,8 +19,9 @@ class Algo1:
 
     The Algo1 class is designed to generate trading signals based on
     the Relative Strength Index (RSI) and Bollinger Bands strategies.
-    It provides methods for calculating RSI, Bollinger Bands, generating buy
-    and sell signals, and executing the algorithm for multiple tickers.
+    It provides methods for calculating RSI, Bollinger Bands,
+    generating buy and sell signals, and executing the algorithm
+    for multiple tickers.
 
     Attributes:
     -----------
