@@ -57,7 +57,8 @@ class Algo1:
     """
 
     def __init__(self, ticker=None, start_date=None,
-                 end_date=None, tickers_list=None, consecutive_days=None):
+                 end_date=None, tickers_list=None, consecutive_days=None,
+                 consecutive_days_sell=None):
         """
         Initialize the Algo1 instance.
 
@@ -81,6 +82,7 @@ class Algo1:
         self.end_date = end_date
         self.tickers_list = tickers_list
         self.consecutive_days = consecutive_days
+        self.consecutive_days_sell = consecutive_days_sell
 
     def rsi(self) -> pd.Series:
         """
@@ -158,7 +160,7 @@ class Algo1:
                             and consecutive_buy >= self.consecutive_days) else 0
                 sell_signal[i] = -1 if (
                             self.consecutive_days is not None and
-                            consecutive_sell >= self.consecutive_days) else 0
+                            consecutive_sell >= self.consecutive_days_sell) else 0
             else:
                 consecutive_buy = 0
                 consecutive_sell = 0
