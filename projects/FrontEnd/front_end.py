@@ -50,6 +50,8 @@ def process_tickers(queue_tickers, market, start_date,
             The end date for retrieving price data in the format 'YYYY-MM-DD'.
         consecutive_days (int):
             The number of consecutive days the conditions should be met for generating signals.
+        consecutive_days_sell (int):
+            The number of consecutive days the sell conditions should be met for generating signals.
         tickers (list):
             A list of ticker symbols to process.
 
@@ -75,7 +77,7 @@ def process_tickers(queue_tickers, market, start_date,
             continue
 
         condition1 = signals_1[ticker1 + '_Buy'] == 1
-        condition2 = signals_1[ticker1 + '_Sell'] == 1
+        condition2 = signals_1[ticker1 + '_Sell'] == -1
 
         combined_condition = condition1 | condition2
 
@@ -165,6 +167,8 @@ def update_out_box(market, start_date, end_date, consecutive_days, consecutive_d
             in the format 'YYYY-MM-DD'.
         consecutive_days (int):
             The number of consecutive days the conditions should be met for generating signals.
+        consecutive_days_sell (int):
+            The number of consecutive days the sell conditions should be met for generating signals.
 
     Returns:
     --------

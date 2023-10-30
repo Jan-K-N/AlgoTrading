@@ -38,6 +38,9 @@ class Algo1:
         consecutive_days (int or None):
             The number of consecutive days the conditions should be met
             to generate signals. If None, the default is None.
+        consecutive_days_sell (int or None):
+            The number of consecutive days the sell conditions should be met
+            to generate signals. If None, the default is None.
 
     Methods:
     --------
@@ -76,6 +79,9 @@ class Algo1:
             consecutive_days (int or None):
                 The number of consecutive days the conditions should be met to
                 generate signals. If None, the default is None.
+            consecutive_days_sell (int or None):
+                The number of consecutive days the sell conditions should be met
+                to generate signals. If None, the default is None.
         """
         self.ticker = ticker
         self.start_date = start_date
