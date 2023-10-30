@@ -35,7 +35,8 @@ from algo_scrapers.omxh25_scraper import OMXH25scraper
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Define the process_tickers function to process tickers in parallel
-def process_tickers(queue_tickers, market, start_date, end_date, consecutive_days, tickers):
+def process_tickers(queue_tickers, market, start_date,
+                    end_date, consecutive_days, consecutive_days_sell, tickers):
     """
     Process a chunk of tickers and generate trading signals for each ticker.
 
@@ -63,7 +64,8 @@ def process_tickers(queue_tickers, market, start_date, end_date, consecutive_day
             instance_1 = Algo1(ticker=ticker1,
                                start_date=start_date,
                                end_date=end_date,
-                               consecutive_days=consecutive_days)
+                               consecutive_days=consecutive_days,
+                               consecutive_days_sell=consecutive_days_sell)
             signals_1 = instance_1.generate_signals()
         except KeyError as error:
             print(f"KeyError for {ticker1}: {str(error)}")
@@ -125,6 +127,12 @@ app.layout = html.Div(
                     placeholder='Consecutive Days',
                     value=4,
                 ),
+                dcc.Input(
+                    id='consecutive-days-sell-input',
+                    type='number',
+                    placeholder='Consecutive Days sell',
+                    value=1,
+                ),
                 html.Div(id='out-box')
             ],
             style={"display": "inline-block", "width": "100%"},
@@ -138,9 +146,10 @@ app.layout = html.Div(
     [dash.dependencies.Input('market-dropdown', 'value'),
      dash.dependencies.Input('date-range-picker', 'start_date'),
      dash.dependencies.Input('date-range-picker', 'end_date'),
-     dash.dependencies.Input('consecutive-days-input', 'value')]
+     dash.dependencies.Input('consecutive-days-input', 'value'),
+     dash.dependencies.Input('consecutive-days-sell-input', 'value')]
 )
-def update_out_box(market, start_date, end_date, consecutive_days):
+def update_out_box(market, start_date, end_date, consecutive_days, consecutive_days_sell):
     """
     Update the output box with trading signals for the chosen market and time period.
 
@@ -198,7 +207,7 @@ def update_out_box(market, start_date, end_date, consecutive_days):
                                                   market,
                                                   start_date,
                                                   end_date,
-                                                  consecutive_days,
+                                                  consecutive_days,consecutive_days_sell,
                                                   tickers_chunk))
         ticker_process.start()
         processes.append(ticker_process)

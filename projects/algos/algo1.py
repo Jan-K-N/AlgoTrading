@@ -159,7 +159,7 @@ class Algo1:
                             self.consecutive_days is not None
                             and consecutive_buy >= self.consecutive_days) else 0
                 sell_signal[i] = -1 if (
-                            self.consecutive_days is not None and
+                            self.consecutive_days_sell is not None and
                             consecutive_sell >= self.consecutive_days_sell) else 0
             else:
                 consecutive_buy = 0
