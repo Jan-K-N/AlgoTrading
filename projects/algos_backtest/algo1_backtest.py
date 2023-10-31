@@ -19,19 +19,32 @@ class Algo1Backtest:
     The class contains various backtesting measures to backtest
     the algo.
     """
-    def __init__(self,start_date=None,end_date=None,tickers_list=None):
+    def __init__(self,start_date=None,end_date=None,
+                 tickers_list=None,consecutive_days=None,
+                 consecutive_days_sell=None):
         """
         Initialize the Algo1Backtest object.
 
         Args:
-            start_date (str): The start date of the backtest period. Defaults to None.
-            end_date (str): The end date of the backtest period. Defaults to None.
-            tickers_list (List[str]): A list of ticker symbols to be used for backtesting.
+            start_date (str):
+                The start date of the backtest period. Defaults to None.
+            end_date (str):
+                The end date of the backtest period. Defaults to None.
+            tickers_list (List[str]):
+                A list of ticker symbols to be used for backtesting.
             Defaults to None.
+            consecutive_days (int or None):
+                The number of consecutive days the conditions should be met to
+                generate signals. If None, the default is None.
+            consecutive_days_sell (int or None):
+                The number of consecutive days the sell conditions should be met
+                to generate signals. If None, the default is None.
         """
         self.start_date = start_date
         self.end_date = end_date
         self.tickers_list = tickers_list
+        self.consecutive_days = consecutive_days
+        self.consecutive_days_sell = consecutive_days_sell
 
     def run_algo1(self):
         """
