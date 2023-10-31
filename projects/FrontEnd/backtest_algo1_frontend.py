@@ -29,6 +29,8 @@ class Algo1BacktestApp:
         self.title = "Algo1 Backtest Returns. Simple returns."
         self.default_start_date = '2010-02-01'
         self.default_end_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        self.default_consecutive_days = 2
+        self.default_consecutive_days_sell = 2
 
     def run(self):
         """

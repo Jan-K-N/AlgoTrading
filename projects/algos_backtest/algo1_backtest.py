@@ -61,7 +61,9 @@ class Algo1Backtest:
         """
         instance_algo1 = Algo1(start_date=self.start_date,
                                end_date=self.end_date,
-                               tickers_list=self.tickers_list)
+                               tickers_list=self.tickers_list,
+                               consecutive_days = self.consecutive_days,
+                               consecutive_days_sell = self.consecutive_days_sell)
         algo1_output = instance_algo1.algo1_loop()
 
         return algo1_output
