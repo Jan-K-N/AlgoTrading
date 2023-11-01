@@ -9,7 +9,7 @@ sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/proje
 sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 # pylint: disable=import-error.
 from algo1 import Algo1
-# pylint: disable=import-error.
+# pylint: disable=duplicate-code.
 from finance_database import Database
 from danish_tickers import TickerCodeProvider
 
