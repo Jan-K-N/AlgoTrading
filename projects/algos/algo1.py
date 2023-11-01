@@ -7,6 +7,7 @@ It provides methods for calculating RSI, Bollinger Bands, generating
 buy and sell signals, and executing the algorithm for multiple tickers.
 """
 # pylint: disable=import-error.
+# pylint: disable=wrong-import-position.
 import sys
 import pandas as pd
 import numpy as np
