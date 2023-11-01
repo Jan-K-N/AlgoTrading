@@ -8,7 +8,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-
 sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos_backtest')
 
 # pylint: disable=wrong-import-position.
@@ -29,6 +28,8 @@ class Algo1BacktestApp:
         self.title = "Algo1 Backtest Returns. Simple returns."
         self.default_start_date = '2010-02-01'
         self.default_end_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        self.default_consecutive_days = 2
+        self.default_consecutive_days_sell = 2
 
     def run(self):
         """
@@ -41,7 +42,10 @@ class Algo1BacktestApp:
         start_date, end_date = self.get_date_inputs()
         tickers = self.get_ticker_input()
 
-        returns_df_list = self.run_backtest(start_date, end_date, tickers)
+        consecutive_days, consecutive_days_sell = self.get_consecutive_days_input()
+        returns_df_list = self.run_backtest(start_date, end_date,
+                                            tickers, consecutive_days,
+                                            consecutive_days_sell)
 
         if returns_df_list:
             combined_df = pd.concat(returns_df_list, ignore_index=True)
@@ -80,7 +84,22 @@ class Algo1BacktestApp:
         tickers = [ticker.strip() for ticker in ticker_input.split(',')]
         return tickers
 
-    def run_backtest(self, start_date, end_date, tickers):
+    def get_consecutive_days_input(self):
+        """
+        Get the consecutive days input.
+
+        Returns:
+            Tuple[int, int]: The consecutive days and consecutive days sell values.
+        """
+        consecutive_days = st.number_input('Consecutive Days (Buy)',
+                                           value=self.default_consecutive_days)
+        consecutive_days_sell = st.number_input('Consecutive Days (Sell)',
+                                                value=self.default_consecutive_days_sell)
+        return consecutive_days, consecutive_days_sell
+
+    # pylint: disable=too-many-arguments.
+    def run_backtest(self, start_date, end_date, tickers,
+                     consecutive_days, consecutive_days_sell):
         """
         Run the backtest for the given tickers.
 
@@ -88,7 +107,12 @@ class Algo1BacktestApp:
             start_date (str): The start date in ISO format.
             end_date (str): The end date in ISO format.
             tickers (List[str]): The list of tickers.
-
+            consecutive_days (int or None):
+                The number of consecutive days the conditions should be met to
+                generate signals. If None, the default is None.
+            consecutive_days_sell (int or None):
+                The number of consecutive days the sell conditions should be met
+                to generate signals. If None, the default is None.
         Returns:
             List[pd.DataFrame]: The list of dataframes containing
              'Buy Date', 'Sell Date', and 'Returns' columns.
@@ -97,7 +121,9 @@ class Algo1BacktestApp:
         for ticker in tickers:
             instance_backtest = Algo1Backtest(start_date=start_date,
                                               end_date=end_date,
-                                              tickers_list=[ticker])
+                                              tickers_list=[ticker],
+                                              consecutive_days=consecutive_days,
+                                              consecutive_days_sell=consecutive_days_sell)
             returns_df_list.extend(instance_backtest.backtest_returns())
         return returns_df_list
 
@@ -112,7 +138,6 @@ class Algo1BacktestApp:
         fig = px.line(combined_df, x='Sell Date', y='Returns', color='Ticker',
                       title='Algo1 Backtest Returns')
         st.plotly_chart(fig)
-
 
 if __name__ == "__main__":
     app = Algo1BacktestApp()

@@ -9,7 +9,7 @@ sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/proje
 sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 # pylint: disable=import-error.
 from algo1 import Algo1
-# pylint: disable=import-error.
+# pylint: disable=duplicate-code.
 from finance_database import Database
 from danish_tickers import TickerCodeProvider
 
@@ -19,19 +19,33 @@ class Algo1Backtest:
     The class contains various backtesting measures to backtest
     the algo.
     """
-    def __init__(self,start_date=None,end_date=None,tickers_list=None):
+    # pylint: disable=too-many-arguments.
+    def __init__(self,start_date=None,end_date=None,
+                 tickers_list=None,consecutive_days=None,
+                 consecutive_days_sell=None):
         """
         Initialize the Algo1Backtest object.
 
         Args:
-            start_date (str): The start date of the backtest period. Defaults to None.
-            end_date (str): The end date of the backtest period. Defaults to None.
-            tickers_list (List[str]): A list of ticker symbols to be used for backtesting.
+            start_date (str):
+                The start date of the backtest period. Defaults to None.
+            end_date (str):
+                The end date of the backtest period. Defaults to None.
+            tickers_list (List[str]):
+                A list of ticker symbols to be used for backtesting.
             Defaults to None.
+            consecutive_days (int or None):
+                The number of consecutive days the conditions should be met to
+                generate signals. If None, the default is None.
+            consecutive_days_sell (int or None):
+                The number of consecutive days the sell conditions should be met
+                to generate signals. If None, the default is None.
         """
         self.start_date = start_date
         self.end_date = end_date
         self.tickers_list = tickers_list
+        self.consecutive_days = consecutive_days
+        self.consecutive_days_sell = consecutive_days_sell
 
     def run_algo1(self):
         """
@@ -46,10 +60,39 @@ class Algo1Backtest:
             algo1_output (Any): The output of the Algo1 algorithm.
 
         """
-        instance_algo1 = Algo1(start_date=self.start_date,
-                               end_date=self.end_date,
-                               tickers_list=self.tickers_list)
-        algo1_output = instance_algo1.algo1_loop()
+        output_list = []
+        for ticker1 in self.tickers_list:
+            try:
+                instance_1 = Algo1(ticker=ticker1,
+                                   start_date=self.start_date,
+                                   end_date=self.end_date,
+                                   consecutive_days=self.consecutive_days,
+                                   consecutive_days_sell=self.consecutive_days_sell)
+                signals_1 = instance_1.generate_signals()
+            except KeyError as error:
+                print(f"KeyError for {ticker1}: {str(error)}")
+                continue
+            except ValueError as error:
+                print(f"ValueError for {ticker1}: {str(error)}")
+                continue
+
+            condition1 = signals_1[ticker1 + '_Buy'] == 1
+            condition2 = signals_1[ticker1 + '_Sell'] == -1
+
+            combined_condition = condition1 | condition2
+
+            extracted_rows = signals_1[combined_condition]
+
+            new_df = pd.DataFrame()
+            new_df["Ticker"] = [ticker1] * len(extracted_rows)
+            new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
+            new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
+            new_df.index = extracted_rows['Date']
+
+            if not new_df.empty:
+                output_list.append(new_df)
+
+        algo1_output = output_list
 
         return algo1_output
 
