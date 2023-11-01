@@ -19,6 +19,7 @@ class Algo1Backtest:
     The class contains various backtesting measures to backtest
     the algo.
     """
+    # pylint: disable=too-many-arguments.
     def __init__(self,start_date=None,end_date=None,
                  tickers_list=None,consecutive_days=None,
                  consecutive_days_sell=None):
@@ -59,12 +60,39 @@ class Algo1Backtest:
             algo1_output (Any): The output of the Algo1 algorithm.
 
         """
-        instance_algo1 = Algo1(start_date=self.start_date,
-                               end_date=self.end_date,
-                               tickers_list=self.tickers_list,
-                               consecutive_days = self.consecutive_days,
-                               consecutive_days_sell = self.consecutive_days_sell)
-        algo1_output = instance_algo1.algo1_loop()
+        output_list = []
+        for ticker1 in self.tickers_list:
+            try:
+                instance_1 = Algo1(ticker=ticker1,
+                                   start_date=self.start_date,
+                                   end_date=self.end_date,
+                                   consecutive_days=self.consecutive_days,
+                                   consecutive_days_sell=self.consecutive_days_sell)
+                signals_1 = instance_1.generate_signals()
+            except KeyError as error:
+                print(f"KeyError for {ticker1}: {str(error)}")
+                continue
+            except ValueError as error:
+                print(f"ValueError for {ticker1}: {str(error)}")
+                continue
+
+            condition1 = signals_1[ticker1 + '_Buy'] == 1
+            condition2 = signals_1[ticker1 + '_Sell'] == -1
+
+            combined_condition = condition1 | condition2
+
+            extracted_rows = signals_1[combined_condition]
+
+            new_df = pd.DataFrame()
+            new_df["Ticker"] = [ticker1] * len(extracted_rows)
+            new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
+            new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
+            new_df.index = extracted_rows['Date']
+
+            if not new_df.empty:
+                output_list.append(new_df)
+
+        algo1_output = output_list
 
         return algo1_output
 

@@ -8,7 +8,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-
 sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos_backtest')
 
 # pylint: disable=wrong-import-position.
@@ -44,7 +43,9 @@ class Algo1BacktestApp:
         tickers = self.get_ticker_input()
 
         consecutive_days, consecutive_days_sell = self.get_consecutive_days_input()
-        returns_df_list = self.run_backtest(start_date, end_date, tickers, consecutive_days, consecutive_days_sell)
+        returns_df_list = self.run_backtest(start_date, end_date,
+                                            tickers, consecutive_days,
+                                            consecutive_days_sell)
 
         if returns_df_list:
             combined_df = pd.concat(returns_df_list, ignore_index=True)
@@ -96,6 +97,7 @@ class Algo1BacktestApp:
                                                 value=self.default_consecutive_days_sell)
         return consecutive_days, consecutive_days_sell
 
+    # pylint: disable=too-many-arguments.
     def run_backtest(self, start_date, end_date, tickers,
                      consecutive_days, consecutive_days_sell):
         """
