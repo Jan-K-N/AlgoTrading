@@ -1,11 +1,14 @@
 """The main script for algo3/arbitrage trading"""
 # pylint: disable=wrong-import-position
+import sys
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
-from ..algo_scrapers.s_and_p_scraper import SAndPScraper
-from ..algo_scrapers.dax_scraper import DAXScraper
-from ..data.finance_database import Database
+sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
+sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+from s_and_p_scraper import SAndPScraper
+from dax_scraper import DAXScraper
+from finance_database import Database
 
 class ArbitrageTrading:
     """
@@ -154,14 +157,13 @@ class ArbitrageTrading:
             data_frame = pd.DataFrame(index=self.data.index)
             asset1_name = asset1.name
             asset2_name = asset2.name
-            data_frame[asset1_name] = np.where(spread > spread_mean + 1.5 * spread_std,
-                                               1,
-                                               np.where(spread < spread_mean -
-                                                        1.5 * spread_std, -1, 0))
-            data_frame[asset2_name] = np.where(spread > spread_mean + 1.5 * spread_std,
-                                               -1,
-                                               np.where(spread < spread_mean -
-                                                        1.5 * spread_std, 1, 0))
+            data_frame[asset1_name] = np.where(spread > spread_mean + 2 * spread_std, 1,
+                                               np.where(spread < spread_mean - 2 * spread_std, -1, 0))
+            data_frame[asset2_name] = np.where(spread > spread_mean + 2 * spread_std, -1,
+                                               np.where(spread < spread_mean - 2 * spread_std, 1, 0))
+
+            # # Set all '0' values to np.nan
+            # data_frame[data_frame == 0] = np.nan
 
             arbitrage_opportunities.append({
                 'Pair': (asset1_name, asset2_name),
@@ -175,3 +177,9 @@ class ArbitrageTrading:
                                         opportunity['Pair'][1]]].nunique().sum() > 2]
 
         return arbitrage_opportunities
+
+if __name__ == "__main__":
+    instance = ArbitrageTrading(start_date="2020-01-01",end_date="2023-01-01",
+                                market="DAX")
+    k = instance.arbitrage_strategy()
+    print("k")
