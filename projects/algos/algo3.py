@@ -1,5 +1,6 @@
 """The main script for algo3/arbitrage trading"""
 # pylint: disable=wrong-import-position
+# pylint: disable=import-error
 import sys
 import pandas as pd
 import numpy as np
@@ -162,11 +163,15 @@ class ArbitrageTrading:
             asset1_name = asset1.name
             asset2_name = asset2.name
 
-            # When spread > spread_mean + self.spread_factor * spread_std, go long in asset1 and short in asset2
-            data_frame[asset1_name] = np.where(spread > spread_mean + self.spread_factor * spread_std, 1, 0)
-            data_frame[asset2_name] = np.where(spread > spread_mean + self.spread_factor * spread_std, -1, 0)
+            # When spread > spread_mean +
+            # self.spread_factor * spread_std, go long in asset1 and short in asset2
+            data_frame[asset1_name] = np.where(spread > spread_mean
+                                               + self.spread_factor * spread_std, 1, 0)
+            data_frame[asset2_name] = np.where(spread > spread_mean
+                                               + self.spread_factor * spread_std, -1, 0)
 
-            # When spread < spread_mean - self.spread_factor * spread_std, go short in asset1 and long in asset2
+            # When spread < spread_mean -
+            # self.spread_factor * spread_std, go short in asset1 and long in asset2
             data_frame[asset1_name] = data_frame[asset1_name] + np.where(
                 spread < spread_mean - self.spread_factor * spread_std, -1, 0)
             data_frame[asset2_name] = data_frame[asset2_name] + np.where(
