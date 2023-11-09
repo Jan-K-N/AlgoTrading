@@ -1,6 +1,7 @@
 """The main script for algo3/arbitrage trading"""
 # pylint: disable=wrong-import-position
 # pylint: disable=import-error
+# pylint: disable=too-many-arguments
 import sys
 import pandas as pd
 import numpy as np
@@ -51,6 +52,9 @@ class ArbitrageTrading:
                 Default is None.
             market (str): Market name for which the data is to be scraped
                 ('DAX' for DAX index, '^GSPC' for S&P 500). Default is None.
+            spread_factor (int): How many standard deviations do we consider
+                as a deviation?
+            p_level (int): P-level used in the cointegration test.
         """
         self.start_date = start_date
         self.end_date = end_date
@@ -73,7 +77,7 @@ class ArbitrageTrading:
             instance_sp500 = SAndPScraper()
             tickers_list = instance_sp500.run_scraper()
 
-        returns_dataframe = pd.DataFrame()  # Initialize an empty dataframe
+        returns_dataframe = pd.DataFrame()
 
         for ticker in tickers_list:
             data_instance = Database()
@@ -177,7 +181,6 @@ class ArbitrageTrading:
             data_frame[asset2_name] = data_frame[asset2_name] + np.where(
                 spread < spread_mean - self.spread_factor * spread_std, 1, 0)
 
-            # # Set all '0' values to np.nan
             data_frame = data_frame.replace(0, np.nan)
             data_frame = data_frame.dropna()
 
@@ -193,9 +196,3 @@ class ArbitrageTrading:
                                         opportunity['Pair'][1]]].nunique().sum() > 2]
 
         return arbitrage_opportunities
-
-if __name__ == "__main__":
-    instance = ArbitrageTrading(start_date="2020-01-01",end_date="2023-01-01",
-                                market="DAX",spread_factor=2.5,p_level=0.001)
-    k = instance.arbitrage_strategy()
-    print("k")
