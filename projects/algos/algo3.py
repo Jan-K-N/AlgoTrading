@@ -1,11 +1,16 @@
 """The main script for algo3/arbitrage trading"""
 # pylint: disable=wrong-import-position
+# pylint: disable=import-error
+# pylint: disable=too-many-arguments
+import sys
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
-from ..algo_scrapers.s_and_p_scraper import SAndPScraper
-from ..algo_scrapers.dax_scraper import DAXScraper
-from ..data.finance_database import Database
+sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
+sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+from s_and_p_scraper import SAndPScraper
+from dax_scraper import DAXScraper
+from finance_database import Database
 
 class ArbitrageTrading:
     """
@@ -34,7 +39,9 @@ class ArbitrageTrading:
             Implements the arbitrage trading strategy based on cointegrated pairs.
 
     """
-    def __init__(self, start_date=None, end_date=None, market=None):
+    def __init__(self, start_date=None, end_date=None,
+                 market=None,spread_factor=None,
+                 p_level=None):
         """
         Initialize the ArbitrageTrading object.
 
@@ -45,11 +52,16 @@ class ArbitrageTrading:
                 Default is None.
             market (str): Market name for which the data is to be scraped
                 ('DAX' for DAX index, '^GSPC' for S&P 500). Default is None.
+            spread_factor (int): How many standard deviations do we consider
+                as a deviation?
+            p_level (int): P-level used in the cointegration test.
         """
         self.start_date = start_date
         self.end_date = end_date
         self.market = market
         self.data = self.get_data()
+        self.spread_factor = spread_factor
+        self.p_level = p_level
 
     def get_data(self):
         """
@@ -65,7 +77,7 @@ class ArbitrageTrading:
             instance_sp500 = SAndPScraper()
             tickers_list = instance_sp500.run_scraper()
 
-        returns_dataframe = pd.DataFrame()  # Initialize an empty dataframe
+        returns_dataframe = pd.DataFrame()
 
         for ticker in tickers_list:
             data_instance = Database()
@@ -113,7 +125,7 @@ class ArbitrageTrading:
                 score_matrix[i, j] = score
                 pvalue_matrix[i, j] = pvalue
 
-                if pvalue < 0.05:
+                if pvalue < self.p_level:
                     pairs.append((i, j))
 
         return pairs, score_matrix, pvalue_matrix
@@ -154,14 +166,23 @@ class ArbitrageTrading:
             data_frame = pd.DataFrame(index=self.data.index)
             asset1_name = asset1.name
             asset2_name = asset2.name
-            data_frame[asset1_name] = np.where(spread > spread_mean + 1.5 * spread_std,
-                                               1,
-                                               np.where(spread < spread_mean -
-                                                        1.5 * spread_std, -1, 0))
-            data_frame[asset2_name] = np.where(spread > spread_mean + 1.5 * spread_std,
-                                               -1,
-                                               np.where(spread < spread_mean -
-                                                        1.5 * spread_std, 1, 0))
+
+            # When spread > spread_mean +
+            # self.spread_factor * spread_std, go long in asset1 and short in asset2
+            data_frame[asset1_name] = np.where(spread > spread_mean
+                                               + self.spread_factor * spread_std, 1, 0)
+            data_frame[asset2_name] = np.where(spread > spread_mean
+                                               + self.spread_factor * spread_std, -1, 0)
+
+            # When spread < spread_mean -
+            # self.spread_factor * spread_std, go short in asset1 and long in asset2
+            data_frame[asset1_name] = data_frame[asset1_name] + np.where(
+                spread < spread_mean - self.spread_factor * spread_std, -1, 0)
+            data_frame[asset2_name] = data_frame[asset2_name] + np.where(
+                spread < spread_mean - self.spread_factor * spread_std, 1, 0)
+
+            data_frame = data_frame.replace(0, np.nan)
+            data_frame = data_frame.dropna()
 
             arbitrage_opportunities.append({
                 'Pair': (asset1_name, asset2_name),
