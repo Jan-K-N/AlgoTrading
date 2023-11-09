@@ -35,6 +35,6 @@ tenacity==8.2.2
 tzdata==2023.3
 urllib3==2.0.2
 webencodings==0.5.1
-Werkzeug==2.3.3
+Werkzeug==3.0.1
 xmltodict==0.13.0
 yfinance==0.2.18
