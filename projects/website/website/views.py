@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from datetime import timedelta, date
 from django.shortcuts import render
 
+
 def home(request):
     # You can add your news content here later
     news_content = []
@@ -11,5 +12,7 @@ def home(request):
     context = {'news_content': news_content}
     return render(request, 'myapp/home.html', context)
 
+# def about(request):
+#     return HttpResponse("About Page")
 def about(request):
-    return HttpResponse("About Page")
+    return render(request, 'myapp/about.html')
