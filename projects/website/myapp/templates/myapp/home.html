@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KN AlgoTrading</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            background-color: #222; /* Dark background color */
+            color: #fff; /* Text color, change as needed */
+            margin: 0;
+        }
+
+        #navigation {
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #content {
+            display: flex;
+            justify-content: space-between; /* Distribute content along the row */
+            padding: 20px;
+        }
+
+        #newsfeed-box {
+            width: 60%; /* Adjust the width of the newsfeed box */
+        }
+
+        #signals {
+            width: 35%; /* Adjust the width of the tables box */
+        }
+
+        h1 {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="navigation">
+        <h1>KN-AlgoTrading</h1>
+        <!-- Link to the About page on the left-hand side -->
+        <a href="{% url 'about' %}">About Page</a>
+    </div>
+
+    <div id="content">
+        <div id="newsfeed-box">
+            <h3>Newsfeed</h3>
+            <!-- Newsfeed content will go here -->
+            <p>
+                This is some news.
+            </p>
+            <p>
+                More news.
+            </p>
+        </div>
+
+        <div id="signals">
+            <h3>Signals</h3>
+            <!-- Tables content will go here -->
+            <p>
+                Trading signals to come.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
