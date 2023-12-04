@@ -2,7 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-
+# pylint: disable=import-outside-toplevel.
 
 def main():
     """Run administrative tasks."""
