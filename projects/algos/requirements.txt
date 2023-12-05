@@ -4,7 +4,7 @@ astroid==2.15.4
 asttokens==2.2.1
 backcall==0.2.0
 beautifulsoup4==4.12.2
-certifi==2022.12.7
+certifi==2023.7.22
 cffi==1.15.1
 charset-normalizer==3.1.0
 cryptography==41.0.4
