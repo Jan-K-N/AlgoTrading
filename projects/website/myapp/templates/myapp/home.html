@@ -58,6 +58,14 @@
         </div>
 
 <div id="signals">
+
+
+    <!-- Add this before your table -->
+<!--<div style="color: white;">{{ signals_data }}</div>-->
+
+    <div style="color: white;">{{ instance }}</div>
+
+<div id="signals">
     <h3>Signals</h3>
     <table>
         <thead>
@@ -66,29 +74,55 @@
                 <th>Signal</th>
                 <th>Price</th>
                 <th>Date</th>
-                <th>Algo</th>
             </tr>
         </thead>
         <tbody>
-            <!-- Add rows dynamically based on your signals -->
+            {% for signal in signals_data %}
             <tr>
-                <td>AAPL</td>
-                <td>Buy</td>
-                <td>150.25</td>
-                <td>2023-12-01</td>
-                <td>1</td>
+                <td>{{ signal.ticker }}</td>
+                <td>{{ signal.signal }}</td>
+                <td>{{ signal.price }}</td>
+                <td>{{ signal.date }}</td>
             </tr>
-            <tr>
-                <td>GOOGL</td>
-                <td>Sell</td>
-                <td>2800.50</td>
-                <td>2023-12-02</td>
-                <td>1</td>
-            </tr>
-            <!-- Add more rows as needed -->
+            {% endfor %}
         </tbody>
     </table>
 </div>
+
+
+
+
+<!--    <h3>Signals</h3>-->
+<!--    <table>-->
+<!--        <thead>-->
+<!--            <tr>-->
+<!--                <th>Ticker</th>-->
+<!--                <th>Signal</th>-->
+<!--                <th>Price</th>-->
+<!--                <th>Date</th>-->
+<!--                <th>Algo</th>-->
+<!--            </tr>-->
+<!--        </thead>-->
+<!--        <tbody>-->
+<!--            &lt;!&ndash; Add rows dynamically based on your signals &ndash;&gt;-->
+<!--            <tr>-->
+<!--                <td>AAPL</td>-->
+<!--                <td>Buy</td>-->
+<!--                <td>160.25</td>-->
+<!--                <td>2023-12-01</td>-->
+<!--                <td>1</td>-->
+<!--            </tr>-->
+<!--            <tr>-->
+<!--                <td>GOOGL</td>-->
+<!--                <td>Sell</td>-->
+<!--                <td>2800.50</td>-->
+<!--                <td>2023-12-02</td>-->
+<!--                <td>1</td>-->
+<!--            </tr>-->
+<!--            &lt;!&ndash; Add more rows as needed &ndash;&gt;-->
+<!--        </tbody>-->
+<!--    </table>-->
+<!--</div>-->
     </div>
 </body>
 </html>
