@@ -30,7 +30,7 @@
         }
 
         #signals {
-            width: 35%; /* Adjust the width of the tables box */
+            width: 55%; /* Adjust the width of the tables box */
         }
 
         h1 {
@@ -71,18 +71,18 @@
         <thead>
             <tr>
                 <th>Ticker</th>
-                <th>Signal</th>
-                <th>Price</th>
+                <th>Buy</th>
+                <th>Sell</th>
                 <th>Date</th>
             </tr>
         </thead>
         <tbody>
             {% for signal in signals_data %}
             <tr>
-                <td>{{ signal.ticker }}</td>
-                <td>{{ signal.signal }}</td>
-                <td>{{ signal.price }}</td>
-                <td>{{ signal.date }}</td>
+                <td>{{ signal.Ticker }}</td>
+                <td>{{ signal.Buy }}</td>
+                <td>{{ signal.Sell }}</td>
+                <td>{{ signal.Date }}</td>
             </tr>
             {% endfor %}
         </tbody>
