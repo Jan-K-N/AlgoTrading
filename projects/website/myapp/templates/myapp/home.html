@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KN AlgoTrading</title>
+    <title>KN Trading</title>
     <style>
-        body {
+        /* Your existing styles remain unchanged */
+
+       body {
             display: flex;
             flex-direction: column;
             background-color: #222; /* Dark background color */
@@ -13,42 +15,29 @@
             margin: 0;
         }
 
-        #navigation {
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
+        #date-form {
+            margin-top: 20px;
+            color: white;
         }
 
-        #content {
-            display: flex;
-            justify-content: space-between; /* Distribute content along the row */
-            padding: 20px;
+        #date-form label {
+            margin-right: 10px;
         }
 
-        #newsfeed-box {
-            width: 60%; /* Adjust the width of the newsfeed box */
-        }
-
-        #signals {
-            width: 55%; /* Adjust the width of the tables box */
-        }
-
-        h1 {
-            margin: 0;
+        #date-form input {
+            width: 100px;
         }
     </style>
 </head>
 <body>
     <div id="navigation">
-        <h1>KN-AlgoTrading</h1>
-        <!-- Link to the About page on the left-hand side -->
+        <h1>KN Trading</h1>
         <a href="{% url 'about' %}">About Page</a>
     </div>
 
     <div id="content">
         <div id="newsfeed-box">
             <h3>Newsfeed</h3>
-            <!-- Newsfeed content will go here -->
             <p>
                 This is some news.
             </p>
@@ -57,16 +46,55 @@
             </p>
         </div>
 
-<div id="signals">
+        <div id="signals">
+            <h3>Signals</h3>
 
+            <!-- Form for filtering start_date and end_date -->
+            <form id="date-form" method="GET" action="">
+                <label for="start-date">Start Date:</label>
+                <input type="date" name="start_date" value="{{ start_date|default:'' }}">
 
-    <!-- Add this before your table -->
-<!--<div style="color: white;">{{ signals_data }}</div>-->
+                <label for="end-date">End Date:</label>
+                <input type="date" name="end_date" value="{{ end_date|default:'' }}">
 
-    <div style="color: white;">{{ instance }}</div>
+                <button type="submit">Apply Filter</button>
+            </form>
 
-<div id="signals">
-    <h3>Signals</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Buy</th>
+                        <th>Sell</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for signal in signals_data %}
+                    <tr>
+                        <td>{{ signal.Ticker }}</td>
+                        <td>{{ signal.Buy }}</td>
+                        <td>{{ signal.Sell }}</td>
+                        <td>{{ signal.Date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="swedish-stocks-signals">
+    <h3>Swedish Stocks Signals</h3>
+
+            <!-- Form for filtering start_date and end_date -->
+        <form id="date-form" method="GET" action="">
+            <label for="start-date">Start Date:</label>
+            <input type="date" name="start_date" value="{{ start_date|default:'' }}">
+
+            <label for="end-date">End Date:</label>
+            <input type="date" name="end_date" value="{{ end_date|default:'' }}">
+
+            <button type="submit">Apply Filter</button>
+        </form>
+
     <table>
         <thead>
             <tr>
@@ -77,7 +105,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for signal in signals_data %}
+            {% for signal in swedish_stocks_signals_data %}
             <tr>
                 <td>{{ signal.Ticker }}</td>
                 <td>{{ signal.Buy }}</td>
@@ -88,41 +116,6 @@
         </tbody>
     </table>
 </div>
-
-
-
-
-<!--    <h3>Signals</h3>-->
-<!--    <table>-->
-<!--        <thead>-->
-<!--            <tr>-->
-<!--                <th>Ticker</th>-->
-<!--                <th>Signal</th>-->
-<!--                <th>Price</th>-->
-<!--                <th>Date</th>-->
-<!--                <th>Algo</th>-->
-<!--            </tr>-->
-<!--        </thead>-->
-<!--        <tbody>-->
-<!--            &lt;!&ndash; Add rows dynamically based on your signals &ndash;&gt;-->
-<!--            <tr>-->
-<!--                <td>AAPL</td>-->
-<!--                <td>Buy</td>-->
-<!--                <td>160.25</td>-->
-<!--                <td>2023-12-01</td>-->
-<!--                <td>1</td>-->
-<!--            </tr>-->
-<!--            <tr>-->
-<!--                <td>GOOGL</td>-->
-<!--                <td>Sell</td>-->
-<!--                <td>2800.50</td>-->
-<!--                <td>2023-12-02</td>-->
-<!--                <td>1</td>-->
-<!--            </tr>-->
-<!--            &lt;!&ndash; Add more rows as needed &ndash;&gt;-->
-<!--        </tbody>-->
-<!--    </table>-->
-<!--</div>-->
     </div>
 </body>
 </html>
