@@ -35,57 +35,13 @@
         <a href="{% url 'about' %}">About Page</a>
     </div>
 
-    <div id="content">
-        <div id="newsfeed-box">
-            <h3>Newsfeed</h3>
-            <p>
-                This is some news.
-            </p>
-            <p>
-                More news.
-            </p>
-        </div>
+ <div id="content">
+    <!-- Newsfeed and signals for Danish stocks -->
+    <div id="signals">
+        <h3>Danish Stocks Signals</h3>
 
-        <div id="signals">
-            <h3>Signals</h3>
-
-            <!-- Form for filtering start_date and end_date -->
-            <form id="date-form" method="GET" action="">
-                <label for="start-date">Start Date:</label>
-                <input type="date" name="start_date" value="{{ start_date|default:'' }}">
-
-                <label for="end-date">End Date:</label>
-                <input type="date" name="end_date" value="{{ end_date|default:'' }}">
-
-                <button type="submit">Apply Filter</button>
-            </form>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Ticker</th>
-                        <th>Buy</th>
-                        <th>Sell</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for signal in signals_data %}
-                    <tr>
-                        <td>{{ signal.Ticker }}</td>
-                        <td>{{ signal.Buy }}</td>
-                        <td>{{ signal.Sell }}</td>
-                        <td>{{ signal.Date }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div id="swedish-stocks-signals">
-    <h3>Swedish Stocks Signals</h3>
-
-            <!-- Form for filtering start_date and end_date -->
-        <form id="date-form" method="GET" action="">
+        <!-- Form for filtering start_date and end_date for Danish stocks -->
+        <form id="danish-stocks-date-form" method="GET" action="">
             <label for="start-date">Start Date:</label>
             <input type="date" name="start_date" value="{{ start_date|default:'' }}">
 
@@ -95,30 +51,72 @@
             <button type="submit">Apply Filter</button>
         </form>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Ticker</th>
-                <th>Buy</th>
-                <th>Sell</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for signal in swedish_stocks_signals_data %}
-            <tr>
-                <td>{{ signal.Ticker }}</td>
-                <td>{{ signal.Buy }}</td>
-                <td>{{ signal.Sell }}</td>
-                <td>{{ signal.Date }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        {% for signal_data in omxc25_signals_data %}
+        <table>
+            <!-- Table content for Danish stocks -->
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Buy</th>
+                    <th>Sell</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in signal_data %}
+                <tr>
+                    <td>{{ row.Ticker }}</td>
+                    <td>{{ row.Buy }}</td>
+                    <td>{{ row.Sell }}</td>
+                    <td>{{ row.Date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
     </div>
-</body>
-</html>
+
+    <!-- Newsfeed and signals for Swedish stocks -->
+    <div id="swedish-stocks-signals">
+        <h3>Swedish Stocks Signals</h3>
+
+        <!-- Form for filtering start_date and end_date for Swedish stocks -->
+        <form id="swedish-stocks-date-form" method="GET" action="">
+            <label for="start-date">Start Date:</label>
+            <input type="date" name="start_date" value="{{ start_date|default:'' }}">
+
+            <label for="end-date">End Date:</label>
+            <input type="date" name="end_date" value="{{ end_date|default:'' }}">
+
+            <button type="submit">Apply Filter</button>
+        </form>
+
+        {% for signal_data in swedish_stocks_signals_data %}
+        <table>
+            <!-- Table content for Swedish stocks -->
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Buy</th>
+                    <th>Sell</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in signal_data %}
+                <tr>
+                    <td>{{ row.Ticker }}</td>
+                    <td>{{ row.Buy }}</td>
+                    <td>{{ row.Sell }}</td>
+                    <td>{{ row.Date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+    </div>
+
+</div>
 
 
 
