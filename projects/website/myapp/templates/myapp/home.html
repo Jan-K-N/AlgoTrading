@@ -1,3 +1,5 @@
+<!-- myapp/templates/myapp/home.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +9,7 @@
     <style>
         /* Your existing styles remain unchanged */
 
-       body {
+        body {
             display: flex;
             flex-direction: column;
             background-color: #222; /* Dark background color */
@@ -35,88 +37,107 @@
         <a href="{% url 'about' %}">About Page</a>
     </div>
 
- <div id="content">
-    <!-- Newsfeed and signals for Danish stocks -->
-    <div id="signals">
-        <h3>Danish Stocks Signals</h3>
+    <div id="content">
+        <!-- Newsfeed and signals for Danish stocks -->
+        <div id="signals">
+            <h3>Danish Stocks Signals</h3>
 
-        <!-- Form for filtering start_date and end_date for Danish stocks -->
-        <form id="danish-stocks-date-form" method="GET" action="">
-            <label for="start-date">Start Date:</label>
-            <input type="date" name="start_date" value="{{ start_date|default:'' }}">
+            <!-- Form for filtering start_date and end_date for Danish stocks -->
+            <form id="danish-stocks-date-form" method="GET" action="">
+                <label for="start-date">Start Date:</label>
+                <input type="date" name="start_date" value="{{ start_date|default:'' }}">
 
-            <label for="end-date">End Date:</label>
-            <input type="date" name="end_date" value="{{ end_date|default:'' }}">
+                <label for="end-date">End Date:</label>
+                <input type="date" name="end_date" value="{{ end_date|default:'' }}">
 
-            <button type="submit">Apply Filter</button>
-        </form>
+                <button type="submit">Apply Filter</button>
+            </form>
 
-        {% for signal_data in omxc25_signals_data %}
-        <table>
-            <!-- Table content for Danish stocks -->
-            <thead>
-                <tr>
-                    <th>Ticker</th>
-                    <th>Buy</th>
-                    <th>Sell</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in signal_data %}
-                <tr>
-                    <td>{{ row.Ticker }}</td>
-                    <td>{{ row.Buy }}</td>
-                    <td>{{ row.Sell }}</td>
-                    <td>{{ row.Date }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endfor %}
+            {% if omxc25_signals_data %}
+                <table>
+                    <!-- Table content for Danish stocks -->
+                    <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Buy</th>
+                            <th>Sell</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                {% for signal_df in omxc25_signals_data %}
+                    <table>
+                        <!-- Table content for Danish stocks -->
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Buy</th>
+                                <th>Sell</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                            <tbody>
+                                {% for index, row in signal_df.iterrows %}
+                                    <tr>
+                                        <td>{{ row.Ticker }}</td>
+                                        <td>{{ row.Buy }}</td>
+                                        <td>{{ row.Sell }}</td>
+                                        <td>{{ row.Date|date:"Y-m-d" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                    </table>
+            {% empty %}
+                <p>No data available for Danish stocks.</p>
+            {% endfor %}
     </div>
 
-    <!-- Newsfeed and signals for Swedish stocks -->
-    <div id="swedish-stocks-signals">
-        <h3>Swedish Stocks Signals</h3>
+        <!-- Newsfeed and signals for Swedish stocks -->
+        <div id="swedish-stocks-signals">
+            <h3>Swedish Stocks Signals</h3>
 
-        <!-- Form for filtering start_date and end_date for Swedish stocks -->
-        <form id="swedish-stocks-date-form" method="GET" action="">
-            <label for="start-date">Start Date:</label>
-            <input type="date" name="start_date" value="{{ start_date|default:'' }}">
+            <!-- Form for filtering start_date and end_date for Swedish stocks -->
+            <form id="swedish-stocks-date-form" method="GET" action="">
+                <label for="start-date">Start Date:</label>
+                <input type="date" name="start_date" value="{{ start_date|default:'' }}">
 
-            <label for="end-date">End Date:</label>
-            <input type="date" name="end_date" value="{{ end_date|default:'' }}">
+                <label for="end-date">End Date:</label>
+                <input type="date" name="end_date" value="{{ end_date|default:'' }}">
 
-            <button type="submit">Apply Filter</button>
-        </form>
+                <button type="submit">Apply Filter</button>
+            </form>
 
-        {% for signal_data in swedish_stocks_signals_data %}
-        <table>
-            <!-- Table content for Swedish stocks -->
-            <thead>
-                <tr>
-                    <th>Ticker</th>
-                    <th>Buy</th>
-                    <th>Sell</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in signal_data %}
-                <tr>
-                    <td>{{ row.Ticker }}</td>
-                    <td>{{ row.Buy }}</td>
-                    <td>{{ row.Sell }}</td>
-                    <td>{{ row.Date }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endfor %}
+            {% if swedish_stocks_signals_data %}
+                <table>
+                    <!-- Table content for Swedish stocks -->
+                    <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Buy</th>
+                            <th>Sell</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for signal_df in swedish_stocks_signals_data %}
+                            {% for index, row in signal_df.iterrows %}
+                                <tr>
+                                    <td>{{ row.Ticker }}</td>
+                                    <td>{{ row.Buy }}</td>
+                                    <td>{{ row.Sell}}</td>
+                                    <td>{{ row.Date|date:"Y-m-d" }}</td>
+                                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% empty %}
+    <p>No data available for Danish stocks.</p>
+{% endfor %}
+{% endif %}
     </div>
+</body>
+</html>
 
-</div>
 
 
 
