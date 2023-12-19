@@ -15,7 +15,7 @@ from algo1 import Algo1
 print("k")
 
 def get_signals_data(scraper, start_date, end_date):
-    signals_data = []
+    output_list = []
 
     tickers_list = scraper.run_scraper()
 
@@ -48,7 +48,19 @@ def get_signals_data(scraper, start_date, end_date):
         new_df.index = extracted_rows['Date']
 
         if not new_df.empty:
-            signals_data.append(new_df)
+            output_list.append(new_df)
+
+        signals_data = []
+
+        for i, output_df in enumerate(output_list):
+            signal_entry = {
+                'Ticker': output_df.iloc[-1].Ticker,
+                'Buy': output_df.iloc[-1].Buy,
+                'Sell': output_df.iloc[-1].Sell,
+                'Date': output_df.index[-1].strftime('%Y-%m-%d'),
+            }
+
+            signals_data.append(signal_entry)
 
     return signals_data
 
@@ -66,15 +78,12 @@ def home(request):
         end_date = default_end_date
 
     omxc25_scraper = OMXC25scraper()
-    swedish_stocks_scraper = OMXS30scraper()
 
     omxc25_signals_data = get_signals_data(omxc25_scraper, start_date, end_date)
-    swedish_stocks_signals_data = get_signals_data(swedish_stocks_scraper, start_date, end_date)
 
     context = {
         'news_content': news_content,
         'omxc25_signals_data': omxc25_signals_data,
-        'swedish_stocks_signals_data': swedish_stocks_signals_data,
         'start_date': start_date,
         'end_date': end_date,
     }
