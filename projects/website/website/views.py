@@ -1,5 +1,4 @@
 # myapp/views.py
-from django.http import HttpResponse
 from datetime import timedelta, date, datetime
 
 import sys
@@ -8,15 +7,26 @@ sys.path.append('/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/project
 import pandas as pd
 
 from danish_ticker_scraper import OMXC25scraper
-from omxs30_scraper import OMXS30scraper
 from django.shortcuts import render
 from algo1 import Algo1
 
-print("k")
 
-def get_signals_data(scraper, start_date, end_date):
+def get_signals_data(scraper: object, start_date: str, end_date: str):
+    """
+    Retrieves trading signals data for a given scraper, start date, and end date.
+
+    Parameters:
+    _________
+        scraper (object): An object with a 'run_scraper' method to retrieve a list of tickers.
+        start_date (str): Start date for the signal analysis in the format 'YYYY-MM-DD'.
+        end_date (str): End date for the signal analysis in the format 'YYYY-MM-DD'.
+
+    Returns:
+    _________
+        list: A list of dictionaries, each containing trading signals data for a specific ticker.
+        Each dictionary has keys 'Ticker', 'Buy', 'Sell', and 'Date'.
+    """
     output_list = []
-
     tickers_list = scraper.run_scraper()
 
     for ticker in tickers_list:
@@ -65,6 +75,17 @@ def get_signals_data(scraper, start_date, end_date):
     return signals_data
 
 def home(request):
+    """
+    Renders the home page with news content and trading signals data for Danish stocks.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the home page.
+    """
     news_content = []
 
     default_end_date = datetime.now().strftime('%Y-%m-%d')
@@ -91,5 +112,15 @@ def home(request):
     return render(request, 'myapp/home.html', context)
 
 def about(request):
-    return render(request, 'myapp/about.html')
+    """
+    Renders the about page.
 
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the about page.
+    """
+    return render(request, 'myapp/about.html')
