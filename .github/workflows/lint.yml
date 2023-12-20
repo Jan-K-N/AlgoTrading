@@ -21,9 +21,6 @@ jobs:
         echo "PYTHONPATH: $PYTHONPATH"
         pip list
 
-    - name: Set PYTHONPATH
-      run: export PYTHONPATH="${PYTHONPATH}:${{ github.workspace }}/projects"
-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -32,5 +29,5 @@ jobs:
 
     - name: Lint with pylint
       run: |
-        python -m pylint ${{ github.workspace }}/projects/**/*.py
-
+        export PYTHONPATH="${PYTHONPATH}:${{ github.workspace }}/projects"
+        find projects -name '*.py' | xargs pylint
