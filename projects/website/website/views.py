@@ -1,5 +1,31 @@
+"""
+Views for KN Trading Django web application.
+
+This module contains Django views for the KN Trading web application.
+The views include functions to retrieve trading signals data, render
+the home page with news content and trading signals for Danish stocks,
+and render the about page.
+
+Functions:
+    - get_signals_data(scraper: object, start_date: str, end_date: str) -> list:
+        Retrieves trading signals data for a given scraper, start date, and end date.
+
+    - home(request) -> HttpResponse:
+        Renders the home page with news content and trading signals data for Danish stocks.
+
+    - about(request) -> HttpResponse:
+        Renders the about page.
+
+Dependencies:
+    - datetime: Module for working with dates and times.
+    - sys: System-specific parameters and functions.
+    - pandas: Data manipulation library.
+    - danish_ticker_scraper: Custom module for scraping Danish stock tickers.
+    - render: Function for rendering HTML responses in Django.
+    - algo1: Custom module for implementing trading algorithms.
+"""
 # myapp/views.py
-from datetime import timedelta, date, datetime
+from datetime import timedelta, datetime
 
 import sys
 sys.path.append("/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos")
