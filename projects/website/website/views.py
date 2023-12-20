@@ -25,12 +25,17 @@ Dependencies:
     - algo1: Custom module for implementing trading algorithms.
 """
 # myapp/views.py
+# pylint: disable=wrong-import-order.
+# pylint: disable=wrong-import-position.
+# pylint: disable=import-error.
+# pylint: disable=unused-variable.
+# pylint: disable=too-many-locals.
 from datetime import timedelta, datetime
+import pandas as pd
 
 import sys
 sys.path.append("/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos")
 sys.path.append('/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
-import pandas as pd
 
 from danish_ticker_scraper import OMXC25scraper
 from django.shortcuts import render
