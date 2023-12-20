@@ -1,5 +1,5 @@
 """
-Views for KN Trading Django web application.
+Views for KN Trading Django web application:
 
 This module contains Django views for the KN Trading web application.
 The views include functions to retrieve trading signals data, render
@@ -35,7 +35,6 @@ import pandas as pd
 from danish_ticker_scraper import OMXC25scraper
 from django.shortcuts import render
 from algo1 import Algo1
-
 
 def get_signals_data(scraper: object, start_date: str, end_date: str):
     """
