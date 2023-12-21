@@ -143,7 +143,7 @@ def home(request):
 
 def sweden_signals(request):
     # Code here:
-    
+
 
     return render(request, 'myapp/sweden_signals.html', context)
 
