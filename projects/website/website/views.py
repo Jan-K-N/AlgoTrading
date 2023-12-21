@@ -141,6 +141,12 @@ def home(request):
 
     return render(request, 'myapp/home.html', context)
 
+def sweden_signals(request):
+    # Code here:
+    
+
+    return render(request, 'myapp/sweden_signals.html', context)
+
 def about(request):
     """
     Renders the about page.
