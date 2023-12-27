@@ -159,7 +159,7 @@ def sweden_signals(request):
     omxs30_signals_data = get_signals_data(omxs30_scraper, start_date, end_date)
 
     context = {
-        'omxc25_signals_data': omxs30_signals_data,
+        'omxs30_signals_data': omxs30_signals_data,
         'start_date': start_date,
         'end_date': end_date,
     }
