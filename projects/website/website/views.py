@@ -143,6 +143,17 @@ def home(request):
     return render(request, 'myapp/home.html', context)
 
 def sweden_signals(request):
+    """
+    Renders the Swedish page with trading signals.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the Swedish page.
+    """
 
     default_end_date = datetime.now().strftime('%Y-%m-%d')
     default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
