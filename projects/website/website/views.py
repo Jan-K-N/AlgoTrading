@@ -38,6 +38,7 @@ sys.path.append("/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/project
 sys.path.append('/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
 
 from danish_ticker_scraper import OMXC25scraper
+from omxs30_scraper import OMXS30scraper
 from django.shortcuts import render
 from algo1 import Algo1
 
@@ -140,6 +141,41 @@ def home(request):
     }
 
     return render(request, 'myapp/home.html', context)
+
+def sweden_signals(request):
+    """
+    Renders the Swedish page with trading signals.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the Swedish page.
+    """
+
+    default_end_date = datetime.now().strftime('%Y-%m-%d')
+    default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+
+    if request.method == 'GET':
+        start_date = request.GET.get('start_date', default_start_date)
+        end_date = request.GET.get('end_date', default_end_date)
+    else:
+        start_date = default_start_date
+        end_date = default_end_date
+
+    omxs30_scraper = OMXS30scraper()
+
+    omxs30_signals_data = get_signals_data(omxs30_scraper, start_date, end_date)
+
+    context = {
+        'omxs30_signals_data': omxs30_signals_data,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+
+    return render(request, 'myapp/sweden_signals.html', context)
 
 def about(request):
     """
