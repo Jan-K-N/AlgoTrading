@@ -42,7 +42,8 @@ from omxs30_scraper import OMXS30scraper
 from django.shortcuts import render
 from algo1 import Algo1
 
-def get_signals_data(scraper: object, start_date: str, end_date: str):
+def get_signals_data(scraper: object, start_date: str, end_date: str,
+                     consecutive_days: int = 1, consecutive_days_sell: int = 1):
     """
     Retrieves trading signals data for a given scraper, start date, and end date.
 
@@ -65,8 +66,8 @@ def get_signals_data(scraper: object, start_date: str, end_date: str):
             instance = Algo1(ticker=ticker,
                              start_date=start_date,
                              end_date=end_date,
-                             consecutive_days=1,
-                             consecutive_days_sell=1)
+                             consecutive_days=consecutive_days,
+                             consecutive_days_sell=consecutive_days_sell)
             signals = instance.generate_signals()
         except KeyError as error:
             print(f"KeyError for {ticker}: {str(error)}")
@@ -125,13 +126,20 @@ def home(request):
     if request.method == 'GET':
         start_date = request.GET.get('start_date', default_start_date)
         end_date = request.GET.get('end_date', default_end_date)
+        consecutive_days = int(request.GET.get('consecutive_days', 1))
+        consecutive_days_sell = int(request.GET.get('consecutive_days_sell', 1))
     else:
         start_date = default_start_date
         end_date = default_end_date
+        consecutive_days = 1
+        consecutive_days_sell = 1
 
     omxc25_scraper = OMXC25scraper()
 
-    omxc25_signals_data = get_signals_data(omxc25_scraper, start_date, end_date)
+    # Pass consecutive_days and consecutive_days_sell to get_signals_data function
+    omxc25_signals_data = get_signals_data(omxc25_scraper, start_date, end_date,
+                                           consecutive_days, consecutive_days_sell)
+
 
     context = {
         'news_content': news_content,
