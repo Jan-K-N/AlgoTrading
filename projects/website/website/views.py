@@ -169,13 +169,18 @@ def sweden_signals(request):
     if request.method == 'GET':
         start_date = request.GET.get('start_date', default_start_date)
         end_date = request.GET.get('end_date', default_end_date)
+        consecutive_days = int(request.GET.get('consecutive_days', 1))
+        consecutive_days_sell = int(request.GET.get('consecutive_days_sell', 1))
     else:
         start_date = default_start_date
         end_date = default_end_date
+        consecutive_days = 1
+        consecutive_days_sell = 1
 
     omxs30_scraper = OMXS30scraper()
 
-    omxs30_signals_data = get_signals_data(omxs30_scraper, start_date, end_date)
+    omxs30_signals_data = get_signals_data(omxs30_scraper, start_date, end_date,
+                                           consecutive_days,consecutive_days_sell)
 
     context = {
         'omxs30_signals_data': omxs30_signals_data,
