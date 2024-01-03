@@ -19,6 +19,13 @@
                     <input type="date" name="start_date" value="{{ start_date|default:'' }}">
                     <label for="end-date">End Date:</label>
                     <input type="date" name="end_date" value="{{ end_date|default:'' }}">
+
+                    <label for="consecutive-days">Consecutive Days:</label>
+                    <input type="number" name="consecutive_days" value="{{ consecutive_days|default:1 }}">
+
+                    <label for="consecutive-days-sell">Consecutive Days Sell:</label>
+                    <input type="number" name="consecutive_days_sell" value="{{ consecutive_days_sell|default:1 }}">
+
                     <button type="submit">Apply Filter</button>
                 </form>
             <table>
