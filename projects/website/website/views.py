@@ -162,7 +162,6 @@ def danish_signals(request):
      _________
          HttpResponse: The rendered HTML response for the home page.
      """
-    news_content = []
 
     default_end_date = datetime.now().strftime('%Y-%m-%d')
     default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
@@ -183,9 +182,7 @@ def danish_signals(request):
     # Pass consecutive_days and consecutive_days_sell to get_signals_data function
     omxc25_signals_data = get_signals_data(omxc25_scraper, start_date, end_date,
                                            consecutive_days, consecutive_days_sell)
-
     context = {
-        'news_content': news_content,
         'omxc25_signals_data': omxc25_signals_data,
         'start_date': start_date,
         'end_date': end_date,
