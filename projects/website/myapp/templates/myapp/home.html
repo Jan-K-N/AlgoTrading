@@ -38,60 +38,21 @@
     </div>
 
     <div id="content">
-        <div id="newsfeed-box">
-            <h3>Newsfeed</h3>
-            <p>
-                This is some news.
-            </p>
-            <p>
-                More news.
-            </p>
-        </div>
+        <div id="Welcome box">
+            <h3>Welcome to KN Trading</h3>
+                <p>
+                    Navigation option 1
+                </p>
+                <p>
+                    Navigation option x
+                </p>
 
-        <div id="signals">
-            <h3>Signals</h3>
 
-            <!-- Form for filtering start_date and end_date -->
-            <form id="date-form" method="GET" action="">
-                <label for="start-date">Start Date:</label>
-                <input type="date" name="start_date" value="{{ start_date|default:'' }}">
-
-                <label for="end-date">End Date:</label>
-                <input type="date" name="end_date" value="{{ end_date|default:'' }}">
-
-                <label for="consecutive-days">Consecutive Days:</label>
-                <input type="number" name="consecutive_days" value="{{ consecutive_days|default:1 }}">
-
-                <label for="consecutive-days-sell">Consecutive Days Sell:</label>
-                <input type="number" name="consecutive_days_sell" value="{{ consecutive_days_sell|default:1 }}">
-
-                <button type="submit">Apply Filter</button>
-            </form>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Ticker</th>
-                        <th>Buy</th>
-                        <th>Sell</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for signal in omxc25_signals_data %}
-                    <tr>
-                        <td>{{ signal.Ticker }}</td>
-                        <td>{{ signal.Buy }}</td>
-                        <td>{{ signal.Sell }}</td>
-                        <td>{{ signal.Date }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
     </div>
 </body>
 </html>
+
 
 
 
