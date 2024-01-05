@@ -108,7 +108,7 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
 
 def home(request):
     """
-    Renders the home page with news content and trading signals data for Danish stocks.
+    Renders the home page.
 
     Parameters:
     _________
@@ -118,7 +118,21 @@ def home(request):
     _________
         HttpResponse: The rendered HTML response for the home page.
     """
-    news_content = []
+
+    return render(request, 'myapp/home.html')
+
+def danish_signals(request):
+    """
+     Renders the Danish page with trading signals data for Danish stocks.
+
+     Parameters:
+     _________
+         request: The HTTP request object.
+
+     Returns:
+     _________
+         HttpResponse: The rendered HTML response for the home page.
+     """
 
     default_end_date = datetime.now().strftime('%Y-%m-%d')
     default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
@@ -139,16 +153,14 @@ def home(request):
     # Pass consecutive_days and consecutive_days_sell to get_signals_data function
     omxc25_signals_data = get_signals_data(omxc25_scraper, start_date, end_date,
                                            consecutive_days, consecutive_days_sell)
-
-
     context = {
-        'news_content': news_content,
         'omxc25_signals_data': omxc25_signals_data,
         'start_date': start_date,
         'end_date': end_date,
     }
 
-    return render(request, 'myapp/home.html', context)
+
+    return render(request, 'myapp/danish_signals.html', context)
 
 def sweden_signals(request):
     """
