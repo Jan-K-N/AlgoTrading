@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 #sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-from ...bb import BollingerBandsStrategy
+from bb import BollingerBandsStrategy
 from rsi import RSIStrategy
 from finance_database import Database
 
