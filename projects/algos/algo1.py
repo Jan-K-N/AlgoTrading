@@ -11,9 +11,9 @@ buy and sell signals, and executing the algorithm for multiple tickers.
 import sys
 import pandas as pd
 import numpy as np
-sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
+#sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
 sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-from bb import BollingerBandsStrategy
+from ...bb import BollingerBandsStrategy
 from rsi import RSIStrategy
 from finance_database import Database
 
@@ -226,3 +226,8 @@ class Algo1:
             if not df_signals.empty:
                 signals_list.append(df_signals)
         return signals_list
+
+if __name__ == "__main__":
+    instance = Algo1(tickers_list=['TSLA','FLS.CO'],start_date="2022-01-01",end_date="2023-01-01")
+    k = instance.algo1_loop()
+    print("k")
