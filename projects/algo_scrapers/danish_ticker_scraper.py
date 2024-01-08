@@ -6,13 +6,14 @@ outputs the ticker codes in C25 index.
 # pylint: disable=wrong-import-position
 import logging
 import sys
+sys.path.append("..")
 import requests
 from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
-sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-from danish_tickers import TickerCodeProvider
+#sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+from data.danish_tickers import TickerCodeProvider
 
 class OMXC25scraper:
     """
