@@ -11,11 +11,13 @@ buy and sell signals, and executing the algorithm for multiple tickers.
 import sys
 import pandas as pd
 import numpy as np
-#sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/strategies')
-sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-from bb import BollingerBandsStrategy
-from rsi import RSIStrategy
-from finance_database import Database
+
+sys.path.append("..")
+
+
+from strategies.bb import BollingerBandsStrategy
+from strategies.rsi import RSIStrategy
+from data.finance_database import Database
 
 # pylint: disable=too-many-arguments.
 class Algo1:

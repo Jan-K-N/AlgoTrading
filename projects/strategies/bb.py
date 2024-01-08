@@ -9,7 +9,8 @@ import numpy as np
 # pylint: disable=import-error.
 # pylint: disable=wrong-import-position.
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-from finance_database import Database
+sys.path.append("..")
+from data.finance_database import Database
 class BollingerBandsStrategy:
     """
     Implements a trading strategy based on Bollinger Bands.
