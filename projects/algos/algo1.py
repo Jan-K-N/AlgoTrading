@@ -6,15 +6,11 @@ on Relative Strength Index (RSI) and Bollinger Bands strategies.
 It provides methods for calculating RSI, Bollinger Bands, generating
 buy and sell signals, and executing the algorithm for multiple tickers.
 """
-# pylint: disable=import-error.
 # pylint: disable=wrong-import-position.
 import sys
 import pandas as pd
 import numpy as np
-
 sys.path.append("..")
-
-
 from strategies.bb import BollingerBandsStrategy
 from strategies.rsi import RSIStrategy
 from data.finance_database import Database
@@ -228,8 +224,3 @@ class Algo1:
             if not df_signals.empty:
                 signals_list.append(df_signals)
         return signals_list
-
-if __name__ == "__main__":
-    instance = Algo1(tickers_list=['TSLA','FLS.CO'],start_date="2022-01-01",end_date="2023-01-01")
-    k = instance.algo1_loop()
-    print("k")
