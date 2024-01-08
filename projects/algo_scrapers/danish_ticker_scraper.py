@@ -6,8 +6,9 @@ outputs the ticker codes in C25 index.
 import logging
 import sys
 import os
-sys.path.insert(0, '../')
-from danish_tickers import TickerCodeProvider
+#sys.path.insert(0, '..')
+sys.path.insert(0, '.../AlgoTrading/projects/')
+from .data.danish_tickers import TickerCodeProvider
 import requests
 from bs4 import BeautifulSoup
 
