@@ -5,8 +5,8 @@ so that it can contain backtest and other features.
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
 import sys
-sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-from finance_database import Database
+sys.path.append("..")
+from data.finance_database import Database
 import pandas as pd
 import pandas_ta as pta
 
