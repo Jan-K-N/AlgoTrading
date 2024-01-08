@@ -145,7 +145,3 @@ class BollingerBandsStrategy:
             print("ALERT: Selling signal today")
 
         return data
-
-if __name__ == '__main__':
-    k = BollingerBandsStrategy(ticker = 'TSLA', start_date='2022-01-01', end_date='2023-04-25')
-    f = k.backtest()
