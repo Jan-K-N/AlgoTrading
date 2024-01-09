@@ -6,15 +6,15 @@ The ticker codes steem from wikipedia.
 # pylint: disable=duplicate-code
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
-import sys
 import logging
+import sys
 import requests
 from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
-sys.path.insert(0, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-from finish_tickers import TickerCodeProvider
+sys.path.insert(0, '..')
+from data.finish_tickers import TickerCodeProvider
 
 class OMXH25scraper:
     """
