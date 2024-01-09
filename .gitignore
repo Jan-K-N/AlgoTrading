@@ -2,7 +2,6 @@
 *.xml
 *.iml
 *.pyc
-.pylintrc
 requirements.txt
 projects/algos/algo1.log
 projects/algos/Dockerfile
