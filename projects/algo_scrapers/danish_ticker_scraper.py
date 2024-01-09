@@ -4,10 +4,13 @@ outputs the ticker codes in C25 index.
 """
 import logging
 import sys
-sys.path.insert(0, '..')
-from data.danish_tickers import TickerCodeProvider
+
 import requests
 from bs4 import BeautifulSoup
+
+sys.path.insert(0, '..')
+from data.danish_tickers import TickerCodeProvider
+
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -81,8 +84,3 @@ class OMXC25scraper:
         ticker_codes.extend(ticker_codes_additional)
 
         return ticker_codes
-
-if __name__ == "__main__":
-    k = OMXC25scraper()
-    ticker_codes = k.run_scraper()
-    print("k")
