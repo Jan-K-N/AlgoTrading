@@ -2,6 +2,7 @@
 Main script for ticker scraper in the Danish index (C25). The class in the script
 outputs the ticker codes in C25 index.
 """
+# pylint: disable=wrong-import-position
 import logging
 import sys
 
