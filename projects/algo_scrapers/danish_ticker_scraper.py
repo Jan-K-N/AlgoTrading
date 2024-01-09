@@ -2,13 +2,10 @@
 Main script for ticker scraper in the Danish index (C25). The class in the script
 outputs the ticker codes in C25 index.
 """
-# pylint: disable=wrong-import-position
 import logging
 import sys
-import os
-#sys.path.insert(0, '..')
-sys.path.insert(0, '.../AlgoTrading/projects/')
-from .data.danish_tickers import TickerCodeProvider
+sys.path.insert(0, '..')
+from data.danish_tickers import TickerCodeProvider
 import requests
 from bs4 import BeautifulSoup
 
@@ -84,3 +81,8 @@ class OMXC25scraper:
         ticker_codes.extend(ticker_codes_additional)
 
         return ticker_codes
+
+if __name__ == "__main__":
+    k = OMXC25scraper()
+    ticker_codes = k.run_scraper()
+    print("k")
