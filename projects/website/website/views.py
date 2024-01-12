@@ -155,6 +155,8 @@ def danish_signals(request):
         'omxc25_signals_data': omxc25_signals_data,
         'start_date': start_date,
         'end_date': end_date,
+        'consecutive_days': consecutive_days,
+        'consecutive_days_sell': consecutive_days_sell,
     }
 
 
@@ -196,6 +198,8 @@ def sweden_signals(request):
         'omxs30_signals_data': omxs30_signals_data,
         'start_date': start_date,
         'end_date': end_date,
+        'consecutive_days': consecutive_days,
+        'consecutive_days_sell': consecutive_days_sell,
     }
 
     return render(request, 'myapp/sweden_signals.html', context)
