@@ -15,40 +15,56 @@
             margin: 0;
         }
 
-        #date-form {
-            margin-top: 20px;
-            color: white;
+        #title {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
         }
 
-        #date-form label {
-            margin-right: 10px;
+        #navigation {
+            text-align: left;
+            padding: 20px;
+            background-color: #222;
         }
 
-        #date-form input {
-            width: 100px;
+        .nav-link {
+            display: inline-block;
+            margin: 0 10px;
         }
+
+        #nav-intro {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #ccc;
+        }
+
+        #navigation a {
+            display: block;
+            padding: 10px;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        #content {
+            padding: 20px;
+        }
+
     </style>
 </head>
 <body>
-    <div id="navigation">
+    <div id="title">
         <h1>KN Trading</h1>
-        <a href="{% url 'about' %}">About Page</a>
-        <a href="{% url 'sweden_signals' %}">Sweden Signals</a>
-        <a href="{% url 'danish_signals' %}">Danish Signals</a>
     </div>
 
-    <div id="content">
-        <div id="Welcome box">
-            <h3>Welcome to KN Trading</h3>
-                <p>
-                    Navigation option 1
-                </p>
-                <p>
-                    Navigation option x
-                </p>
-
-
+    <div id="navigation">
+        <div id="nav-intro">
+            <p>Explore the different KN trading signals below.</p>
         </div>
+        <div class="nav-link"><a href="{% url 'about' %}">About Page</a></div>
+        <div class="nav-link"><a href="{% url 'sweden_signals' %}">Sweden Signals</a></div>
+        <div class="nav-link"><a href="{% url 'danish_signals' %}">Danish Signals</a></div>
     </div>
 </body>
 </html>

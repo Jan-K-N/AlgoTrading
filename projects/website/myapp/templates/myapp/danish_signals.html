@@ -11,20 +11,60 @@
             color: #fff;
             margin: 0;
         }
+
+        #signals {
+            margin: 20px;
+        }
+
+        #date-form {
+            margin-top: 20px;
+            color: white;
+        }
+
+        #date-form label {
+            margin-right: 10px;
+        }
+
+        #date-form input {
+            width: 150px; /* Adjust the width as needed */
+            margin-right: 10px;
+        }
+
+        #date-form button {
+            margin-top: 10px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,td {
+            border: 1px solid #fff;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333;
+        }
+
     </style>
         <div id = "signals">
             <h3>Signals</h3>
                 <form id = "date-form" method="GET" action="">
                     <label for="start-date">Start Date:</label>
                     <input type="date" name="start_date" value="{{ start_date|default:'' }}">
+
                     <label for="end-date">End Date:</label>
                     <input type="date" name="end_date" value="{{ end_date|default:'' }}">
 
                     <label for="consecutive-days">Consecutive Days:</label>
-                    <input type="number" name="consecutive_days" value="{{ consecutive_days|default:1 }}">
+                    <input type="number" name="consecutive_days" value="{{ consecutive_days }}">
 
                     <label for="consecutive-days-sell">Consecutive Days Sell:</label>
-                    <input type="number" name="consecutive_days_sell" value="{{ consecutive_days_sell|default:1 }}">
+                    <input type="number" name="consecutive_days_sell" value="{{ consecutive_days_sell }}">
 
                     <button type="submit">Apply Filter</button>
                 </form>
