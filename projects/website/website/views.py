@@ -27,20 +27,18 @@ Dependencies:
 # myapp/views.py
 # pylint: disable=wrong-import-order.
 # pylint: disable=wrong-import-position.
-# pylint: disable=import-error.
 # pylint: disable=unused-variable.
 # pylint: disable=too-many-locals.
 from datetime import timedelta, datetime
 import pandas as pd
 
 import sys
-sys.path.append("/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos")
-sys.path.append('/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algo_scrapers')
+sys.path.insert(0,'..')
 
-from danish_ticker_scraper import OMXC25scraper
-from omxs30_scraper import OMXS30scraper
+from algo_scrapers.danish_ticker_scraper import OMXC25scraper
+from algo_scrapers.omxs30_scraper import OMXS30scraper
 from django.shortcuts import render
-from algo1 import Algo1
+from algos.algo1 import Algo1
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
