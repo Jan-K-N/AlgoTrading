@@ -12,8 +12,8 @@ COPY Pipfile.lock .
 RUN pip install pipenv
 
 # Copy the application code to the working directory
-COPY projects/algos/algo2.py .
-COPY projects/algos/algo3.py .
+COPY AlgoTrading/projects/algos/algo2.py .
+COPY AlgoTrading/projects/algos/algo3.py .
 
 # Set the entrypoint command
 CMD ["pipenv", "run", "python", "algo2.py", "algo3.py"]
