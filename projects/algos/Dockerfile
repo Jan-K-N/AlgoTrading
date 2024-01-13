@@ -5,14 +5,11 @@ FROM python:3.9
 WORKDIR /app
 
 # Copy the Pipfile and Pipfile.lock to the working directory
-COPY AlgoTrading/Pipfile .
-COPY AlgoTrading/Pipfile.lock .
+COPY Pipfile .
+COPY Pipfile.lock .
 
 # Install Pipenv
 RUN pip install pipenv
-
-# Install the dependencies
-RUN pipenv install --deploy --ignore-pipfile
 
 # Copy the application code to the working directory
 COPY projects/algos/algo2.py .
@@ -20,5 +17,6 @@ COPY projects/algos/algo3.py .
 
 # Set the entrypoint command
 CMD ["pipenv", "run", "python", "algo2.py", "algo3.py"]
+
 
 
