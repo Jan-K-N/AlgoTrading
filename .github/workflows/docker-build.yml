@@ -2,15 +2,16 @@ name: Build Docker Image
 
 on:
   pull_request:
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-      
-    - name: Build Docker image
+
+    - name: Build Docker images
       run: |
-        docker build -t my-image-name -f projects/algos/Dockerfile .
+        find . -type f -name Dockerfile -exec sh -c 'dir=$(dirname {}); docker build -t my-image-name -f {} $dir' \;
+
