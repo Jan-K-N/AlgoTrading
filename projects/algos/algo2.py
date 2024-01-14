@@ -17,11 +17,13 @@ from datetime import datetime, timedelta
 from typing import Union, Optional
 import numpy as np
 import pandas as pd
+import sys
 from statsmodels.stats.proportion import proportion_confint
 from statsmodels.tsa.arima.model import ARIMA
-from ..data.finance_database import Database
-from ..models.random_forrest import RandomForrest
-from ..algos.algo1 import Algo1
+sys.path.insert(0,'..')
+from data.finance_database import Database
+from models.random_forrest import RandomForrest
+from algos.algo1 import Algo1
 
 class Algo2:
     """
@@ -76,6 +78,7 @@ class Algo2:
                                end_date=self.end_date,
                                tickers_list=self.tickers_list)
         output_algo1 = algo1_instance.algo1_loop()
+
         return output_algo1
 
     def return_data(self):
@@ -181,6 +184,195 @@ class Algo2:
                 return -1
 
     # pylint: disable=too-many-locals
+    # def random_forest(self):
+    #     """
+    #     Function for creating a random forest for stock returns.
+    #
+    #     Returns:
+    #         List of DataFrames: Buy/sell signals and related information.
+    #     """
+    #     algo1_signals = self.run_algo1()
+    #     buy_dataframes = []
+    #     sell_dataframes = []
+    #
+    #     for prediction_dataframe in algo1_signals:
+    #         ticker_column = prediction_dataframe.iloc[:, 0]
+    #         buy_column = prediction_dataframe.iloc[:, 1]
+    #         sell_column = prediction_dataframe.iloc[:, 2]
+    #
+    #         filtered_buy_df = pd.DataFrame(columns=['Ticker', 'Buy_Date'])
+    #         filtered_sell_df = pd.DataFrame(columns=['Ticker', 'Sell_Date'])
+    #
+    #         for date, ticker, buy_signal, sell_signal in zip(prediction_dataframe.index,
+    #                                                          ticker_column,
+    #                                                          buy_column,
+    #                                                          sell_column):
+    #             if buy_signal == 1:
+    #                 buy_date = date
+    #                 ticker_name = ticker
+    #                 filtered_buy_df = pd.concat(
+    #                     [filtered_buy_df, pd.DataFrame({'Ticker': [ticker_name],
+    #                                                     'Buy_Date': [buy_date]})],
+    #                     ignore_index=True)
+    #             if sell_signal == -1:
+    #                 sell_date = date
+    #                 ticker_name = ticker
+    #                 filtered_sell_df = pd.concat(
+    #                     [filtered_sell_df, pd.DataFrame({'Ticker': [ticker_name],
+    #                                                      'Sell_Date': [sell_date]})],
+    #                     ignore_index=True)
+    #
+    #         buy_dataframes.append(filtered_buy_df)
+    #         sell_dataframes.append(filtered_sell_df)
+    #
+    #     returns = self.return_data()
+    #     selected_buy_series_list = []
+    #     selected_sell_series_list = []
+    #
+    #     for prediction_dataframe, df1, df2 in zip(buy_dataframes, returns, sell_dataframes):
+    #         buy_column = prediction_dataframe.iloc[:, 1]
+    #         sell_column = df2.iloc[:, 1]
+    #
+    #         for _, buy_date in enumerate(buy_column):
+    #             if buy_date in df1.index:
+    #                 selected_buy_series = df1.loc[df1.index <= buy_date]
+    #                 selected_buy_series['buy_signal_date'] = buy_date
+    #                 selected_buy_series_list.append(selected_buy_series)
+    #             else:
+    #                 selected_buy_series_list.append(pd.Series())
+    #
+    #         for _, sell_date in enumerate(sell_column):
+    #             if sell_date in df1.index:
+    #                 selected_sell_series = df1.loc[df1.index <= sell_date]
+    #                 selected_sell_series['sell_signal_date'] = sell_date
+    #                 selected_sell_series_list.append(selected_sell_series)
+    #             else:
+    #                 selected_sell_series_list.append(pd.Series())
+    #
+    #     one_step_ahead_forecast_list = []
+    #     # pylint: disable=too-many-nested-blocks
+    #     for series in selected_buy_series_list:
+    #         returns = series.iloc[:, 0].values
+    #         returns = returns[:-1]
+    #         returns = returns.reshape(-1, 1)
+    #
+    #         random_forest_instance = RandomForrest(series=returns[:-1], x_data=returns[1:])
+    #         random_forest_predictor = random_forest_instance.predictor()
+    #         one_day_ahead = series.index[-len(random_forest_predictor[2]):] + pd.DateOffset(days=1)
+    #
+    #         structured_dataframe_forecasts = pd.DataFrame({
+    #             'Prediction': random_forest_predictor[2].item(),
+    #             'Date': [one_day_ahead],
+    #             'Ticker': series.columns[0]
+    #         })
+    #
+    #         structured_dataframe_forecasts['Date'] =\
+    #             structured_dataframe_forecasts['Date'].item()[0]
+    #
+    #         one_step_ahead_forecast_list.append(structured_dataframe_forecasts)
+    #
+    #         signals_list_buy = []
+    #         signals_list_buy_updated = []
+    #
+    #         for ticker in self.tickers_list:
+    #             for forecast_dataframe in one_step_ahead_forecast_list:
+    #                 new_df = pd.DataFrame()
+    #                 new_df["Ticker"] = [ticker]
+    #                 new_df['Position'] = None
+    #                 new_df['Buy price'] = None
+    #                 new_df['Position date'] = None
+    #
+    #                 if forecast_dataframe['Prediction'].iloc[0] <= 0:
+    #                     continue
+    #
+    #                 prices = self.db_instance.get_price_data(
+    #                     start=self.start_date,
+    #                     end=self.end_date,
+    #                     ticker=ticker
+    #                 )['Adj Close']
+    #
+    #                 last_date2 = forecast_dataframe['Date'].iloc[-1]
+    #                 index_of_closest_date = np.abs(prices.index - last_date2).argmin()
+    #
+    #                 if index_of_closest_date + 1 >= len(prices):
+    #                     continue
+    #
+    #                 next_element = prices.index[index_of_closest_date + 1]
+    #                 buy_price = prices.loc[next_element]
+    #
+    #                 new_df['Buy price'] = buy_price
+    #                 new_df['Position date'] = next_element
+    #
+    #                 signals_list_buy_updated.append(new_df)
+    #
+    #             final_df = pd.DataFrame()
+    #             for df2 in signals_list_buy:
+    #                 new_df2 = pd.DataFrame()
+    #                 new_df2["Ticker"] = [ticker]
+    #                 new_df2['Position'] = None
+    #                 new_df2['Latest price'] = None
+    #                 new_df2['Position date'] = None
+    #                 first_iteration = True
+    #
+    #                 while True:
+    #                     prices_actual = self.db_instance.get_price_data(start=self.start_date,
+    #                                                                     end=self.end_date,
+    #                                                                     ticker=ticker)['Adj Close']
+    #
+    #                     if first_iteration:
+    #                         last_date2 = df2['Position date'].iloc[0]
+    #                         index_of_closest_date2 = np.abs(prices_actual.index
+    #                                                         - last_date2).argmin()
+    #                     else:
+    #                         last_date2 = new_df2['Position date'].iloc[-1]
+    #                         index_of_closest_date2 = np.abs(
+    #                             prices_actual.index - last_date2).argmin()
+    #
+    #                     if index_of_closest_date2 + 1 < len(prices_actual):
+    #                         next_element2 = prices_actual.index[index_of_closest_date2 + 1]
+    #                         returns_actual = prices_actual.loc[:next_element2].pct_change().dropna()
+    #                         order = (2, 1, 2)
+    #                         model = ARIMA(returns_actual, order=order)
+    #                         results = model.fit()
+    #                         forecasts_array = results.forecasts
+    #                         last_row = forecasts_array[-1]
+    #                         forecasts = last_row[-1]
+    #                         target = (df2['Buy price'].iloc[0]
+    #                                   + df2['Buy price'].iloc[0] * forecasts).item()
+    #
+    #                         latest_price = prices_actual.loc[next_element2]
+    #
+    #                         if first_iteration:
+    #                             if self.monte_carlo_monitor(
+    #                                     latest_price,
+    #                                     reference_price=df2['Buy price'].iloc[0],
+    #                                     returns_series=returns_actual,
+    #                                     forecast_target=target) == 1:
+    #                                 new_df2['Position'] = 1
+    #                             else:
+    #                                 new_df2['Position'] = -1
+    #                                 break
+    #                             new_df2['Latest price'] = latest_price
+    #                             new_df2['Position date'] = next_element2
+    #                             first_iteration = False
+    #                         else:
+    #                             if self.monte_carlo_monitor(
+    #                                     latest_price,
+    #                                     reference_price=df2['Buy price'].iloc[0]) == 1:
+    #                                 new_df2['Position'] = 1
+    #                             else:
+    #                                 new_df2['Position'] = -1
+    #                                 break
+    #                             new_df2['Latest price'] = latest_price
+    #                             new_df2['Position date'] = next_element2
+    #                     else:
+    #                         break
+    #
+    #                 final_df = pd.concat([df2, new_df2], axis=0, ignore_index=True)
+    #
+    #             signals_list_buy_updated.append(final_df)
+    #
+    #     return signals_list_buy_updated
     def random_forest(self):
         """
         Function for creating a random forest for stock returns.
@@ -191,6 +383,7 @@ class Algo2:
         algo1_signals = self.run_algo1()
         buy_dataframes = []
         sell_dataframes = []
+        signals_list_buy_updated = []  # Initialize the variable
 
         for prediction_dataframe in algo1_signals:
             ticker_column = prediction_dataframe.iloc[:, 0]
@@ -247,7 +440,7 @@ class Algo2:
                     selected_sell_series_list.append(pd.Series())
 
         one_step_ahead_forecast_list = []
-        # pylint: disable=too-many-nested-blocks
+
         for series in selected_buy_series_list:
             returns = series.iloc[:, 0].values
             returns = returns[:-1]
@@ -263,13 +456,12 @@ class Algo2:
                 'Ticker': series.columns[0]
             })
 
-            structured_dataframe_forecasts['Date'] =\
+            structured_dataframe_forecasts['Date'] = \
                 structured_dataframe_forecasts['Date'].item()[0]
 
             one_step_ahead_forecast_list.append(structured_dataframe_forecasts)
 
             signals_list_buy = []
-            signals_list_buy_updated = []
 
             for ticker in self.tickers_list:
                 for forecast_dataframe in one_step_ahead_forecast_list:
@@ -300,73 +492,81 @@ class Algo2:
                     new_df['Buy price'] = buy_price
                     new_df['Position date'] = next_element
 
-                    signals_list_buy_updated.append(new_df)
+                    signals_list_buy.append(new_df)
 
-                final_df = pd.DataFrame()
-                for df2 in signals_list_buy:
-                    new_df2 = pd.DataFrame()
-                    new_df2["Ticker"] = [ticker]
-                    new_df2['Position'] = None
-                    new_df2['Latest price'] = None
-                    new_df2['Position date'] = None
-                    first_iteration = True
+            final_df = pd.DataFrame()
+            for df2 in signals_list_buy:
+                new_df2 = pd.DataFrame()
+                new_df2["Ticker"] = [ticker]
+                new_df2['Position'] = None
+                new_df2['Latest price'] = None
+                new_df2['Position date'] = None
+                first_iteration = True
 
-                    while True:
-                        prices_actual = self.db_instance.get_price_data(start=self.start_date,
-                                                                        end=self.end_date,
-                                                                        ticker=ticker)['Adj Close']
+                while True:
+                    prices_actual = self.db_instance.get_price_data(start=self.start_date,
+                                                                    end=self.end_date,
+                                                                    ticker=ticker)['Adj Close']
+
+                    if first_iteration:
+                        last_date2 = df2['Position date'].iloc[0]
+                        index_of_closest_date2 = np.abs(prices_actual.index
+                                                        - last_date2).argmin()
+                    else:
+                        last_date2 = new_df2['Position date'].iloc[-1]
+                        index_of_closest_date2 = np.abs(
+                            prices_actual.index - last_date2).argmin()
+
+                    if index_of_closest_date2 + 1 < len(prices_actual):
+                        next_element2 = prices_actual.index[index_of_closest_date2 + 1]
+                        returns_actual = prices_actual.loc[:next_element2].pct_change().dropna()
+                        order = (2, 1, 2)
+                        model = ARIMA(returns_actual, order=order)
+                        results = model.fit()
+                        forecasts_array = results.forecasts
+                        last_row = forecasts_array[-1]
+                        forecasts = last_row[-1]
+                        target = (df2['Buy price'].iloc[0]
+                                  + df2['Buy price'].iloc[0] * forecasts).item()
+
+                        latest_price = prices_actual.loc[next_element2]
 
                         if first_iteration:
-                            last_date2 = df2['Position date'].iloc[0]
-                            index_of_closest_date2 = np.abs(prices_actual.index
-                                                            - last_date2).argmin()
-                        else:
-                            last_date2 = new_df2['Position date'].iloc[-1]
-                            index_of_closest_date2 = np.abs(
-                                prices_actual.index - last_date2).argmin()
-
-                        if index_of_closest_date2 + 1 < len(prices_actual):
-                            next_element2 = prices_actual.index[index_of_closest_date2 + 1]
-                            returns_actual = prices_actual.loc[:next_element2].pct_change().dropna()
-                            order = (2, 1, 2)
-                            model = ARIMA(returns_actual, order=order)
-                            results = model.fit()
-                            forecasts_array = results.forecasts
-                            last_row = forecasts_array[-1]
-                            forecasts = last_row[-1]
-                            target = (df2['Buy price'].iloc[0]
-                                      + df2['Buy price'].iloc[0] * forecasts).item()
-
-                            latest_price = prices_actual.loc[next_element2]
-
-                            if first_iteration:
-                                if self.monte_carlo_monitor(
-                                        latest_price,
-                                        reference_price=df2['Buy price'].iloc[0],
-                                        returns_series=returns_actual,
-                                        forecast_target=target) == 1:
-                                    new_df2['Position'] = 1
-                                else:
-                                    new_df2['Position'] = -1
-                                    break
-                                new_df2['Latest price'] = latest_price
-                                new_df2['Position date'] = next_element2
-                                first_iteration = False
+                            if self.monte_carlo_monitor(
+                                    latest_price,
+                                    reference_price=df2['Buy price'].iloc[0],
+                                    returns_series=returns_actual,
+                                    forecast_target=target) == 1:
+                                new_df2['Position'] = 1
                             else:
-                                if self.monte_carlo_monitor(
-                                        latest_price,
-                                        reference_price=df2['Buy price'].iloc[0]) == 1:
-                                    new_df2['Position'] = 1
-                                else:
-                                    new_df2['Position'] = -1
-                                    break
-                                new_df2['Latest price'] = latest_price
-                                new_df2['Position date'] = next_element2
+                                new_df2['Position'] = -1
+                                break
+                            new_df2['Latest price'] = latest_price
+                            new_df2['Position date'] = next_element2
+                            first_iteration = False
                         else:
-                            break
+                            if self.monte_carlo_monitor(
+                                    latest_price,
+                                    reference_price=df2['Buy price'].iloc[0]) == 1:
+                                new_df2['Position'] = 1
+                            else:
+                                new_df2['Position'] = -1
+                                break
+                            new_df2['Latest price'] = latest_price
+                            new_df2['Position date'] = next_element2
+                    else:
+                        break
 
-                    final_df = pd.concat([df2, new_df2], axis=0, ignore_index=True)
+                final_df = pd.concat([df2, new_df2], axis=0, ignore_index=True)
 
-                signals_list_buy_updated.append(final_df)
+            signals_list_buy_updated.append(final_df)
 
         return signals_list_buy_updated
+
+
+if __name__ == "__main__":
+    k = Algo2(tickers_list=['TSLA','FLS.CO','AAPL'],start_date="2020-01-01",
+              end_date='2024-01-01',days_back=70)
+    f1 = k.run_algo1()
+    f = k.random_forest()
+    print("f")
