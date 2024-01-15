@@ -251,9 +251,10 @@ def danish_backtest(request):
 
     # Pass arguments to obtain the backtested returns:
     backtested_returns = algo1_backtest.Algo1Backtest(start_date,
-                                                      end_date,consecutive_days,
-                                                      consecutive_days_sell,
-                                                      run_scraper1)
+                                                      end_date,
+                                                      run_scraper1,consecutive_days,
+                                                      consecutive_days_sell
+                                                      )
     backtested_returns_final = backtested_returns.backtest_returns()
     context = {
         'backtested_returns': backtested_returns_final,
