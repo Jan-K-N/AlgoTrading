@@ -204,6 +204,37 @@ def sweden_signals(request):
 
     return render(request, 'myapp/sweden_signals.html', context)
 
+def danish_navigation(request):
+    """
+    Renders the danish_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the danish_navigation page.
+    """
+
+    return render(request, 'myapp/danish_navigation.html')
+
+def danish_backtest(request):
+    """
+    Renders the danish_backtest page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the danish_backtest page.
+    """
+
+    return render(request, 'myapp/danish_backtest.html')
+
+
 def about(request):
     """
     Renders the about page.
