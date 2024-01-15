@@ -5,9 +5,7 @@ Main script for algo1 backtest.
 import sys
 import pandas as pd
 import numpy as np
-sys.path.insert(0,'..´')
-# sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
-# sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+sys.path.append('..')
 from algos.algo1 import Algo1
 # pylint: disable=duplicate-code.
 from data.finance_database import Database
@@ -261,11 +259,11 @@ class Algo1Backtest:
                                     log_returns = np.log1p(returns)
                                     returns_df = pd.concat([returns_df, pd.DataFrame(
                                         {'Ticker': [ticker1],
-                                         'Buy Date': [timestamp1],
-                                         'Sell Date': [sell_date],
+                                         'Buy_Date': [timestamp1],
+                                         'Sell_Date': [sell_date],
                                          'Returns': [returns],
                                          'Position': [position],
-                                         'Log returns': [log_returns]
+                                         'Log_returns': [log_returns]
                                          })])
             returns_df = returns_df.drop(columns=['Position'])
             returns_list.append(returns_df)
@@ -416,6 +414,7 @@ class Algo1Backtest:
 
 if __name__ == "__main__":
     k = Algo1Backtest(tickers_list=['TSLA','FLS.CO'],start_date="2021-01-01",
-                      end_date="2024-01-01")
+                      end_date="2024-01-01",consecutive_days=2,consecutive_days_sell=2)
+    k0 = k.backtest_prices()
     k1 = k.backtest_returns()
     print("k")

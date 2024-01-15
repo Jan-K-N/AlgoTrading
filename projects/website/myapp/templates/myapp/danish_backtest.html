@@ -3,7 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <title>Danish backtest</title>
-        <p>This page will contain backtest for different algos. Only for Danish tickers.</p>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            background-color: #222;
+            color: #fff;
+            margin: 0;
+        }
+
+        #backtested_returns {
+            margin: 20px;
+        }
+
+        #date-form {
+            margin-top: 20px;
+            color: white;
+        }
+
+        #date-form label {
+            margin-right: 10px;
+        }
+
+        #date-form input {
+            width: 150px; /* Adjust the width as needed */
+            margin-right: 10px;
+        }
+
+        #date-form button {
+            margin-top: 10px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,td {
+            border: 1px solid #fff;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333;
+        }
+
+    </style>
+        <div id="backtested_returns">
+            <h3>Returns</h3>
+                <form id = "date-form" method="GET" action="">
+                    <label for="start-date">Start Date:</label>
+                    <input type="date" name="start_date" value="{{ start_date|default:'' }}">
+
+                    <label for="end-date">End Date:</label>
+                    <input type="date" name="end_date" value="{{ end_date|default:'' }}">
+
+                    <label for="consecutive-days">Consecutive Days:</label>
+                    <input type="number" name="consecutive_days" value="{{ consecutive_days }}">
+
+                    <label for="consecutive-days-sell">Consecutive Days Sell:</label>
+                    <input type="number" name="consecutive_days_sell" value="{{ consecutive_days_sell }}">
+
+                    <button type="submit">Apply Filter</button>
+                </form>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Buy Date</th>
+                        <th>Sell Date</th>
+                        <th>Returns</th>
+                        <th>Log Returns</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticker1 in backtested_returns %}
+                    <tr>
+                        <td>{{ ticker.Ticker }}</td>
+                        <td>{{ ticker.Buy_Date }}</td>
+                        <td>{{ ticker.Sell_Date }}</td>
+                        <td>{{ ticker.Returns }}</td>
+                        <td>{{ ticker.Log_Returns }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 </head>
 <body>
 
