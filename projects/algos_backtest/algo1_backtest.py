@@ -5,13 +5,13 @@ Main script for algo1 backtest.
 import sys
 import pandas as pd
 import numpy as np
-sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
-sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-# pylint: disable=import-error.
-from algo1 import Algo1
+sys.path.insert(0,'..´')
+# sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
+# sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
+from algos.algo1 import Algo1
 # pylint: disable=duplicate-code.
-from finance_database import Database
-from danish_tickers import TickerCodeProvider
+from data.finance_database import Database
+from data.danish_tickers import TickerCodeProvider
 
 class Algo1Backtest:
     """
@@ -413,3 +413,9 @@ class Algo1Backtest:
             correlation_list.append(correlation_dataframe)
 
         return correlation_list
+
+if __name__ == "__main__":
+    k = Algo1Backtest(tickers_list=['TSLA','FLS.CO'],start_date="2021-01-01",
+                      end_date="2024-01-01")
+    k1 = k.backtest_returns()
+    print("k")
