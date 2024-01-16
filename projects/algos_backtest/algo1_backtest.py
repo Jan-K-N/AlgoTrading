@@ -122,7 +122,7 @@ class Algo1Backtest:
         df_sell_signals = pd.DataFrame(columns=['Ticker', 'Sell Signal'])
 
         for df_algo1 in algo1_data:
-            ticker = df_algo1['Ticker'][0]
+            ticker = df_algo1.at[df_algo1.index[0], 'Ticker']
             df_buy = df_algo1.loc[df_algo1['Buy'] == 1]
             df_sell = df_algo1.loc[df_algo1['Sell'] == -1]
 
@@ -136,6 +136,8 @@ class Algo1Backtest:
         # We will now make the buy/sell prices:
         buy_prices_list = []
         sell_prices_list = []
+
+        filtered_df_sell = pd.DataFrame(columns=['Ticker', 'Sell Signal', 'Sell date', 'Sell price'])
 
         for ticker1 in self.tickers_list:
             filtered_df = df_buy_signals[df_buy_signals['Ticker'] == ticker1].copy()
@@ -152,7 +154,8 @@ class Algo1Backtest:
                             break
                     mask += pd.DateOffset(days=1)
                 filtered_df['Buy date'].iloc[j] = mask
-                filtered_df.loc[filtered_df['Buy date'] == mask, 'Buy price'] = value
+                # filtered_df.loc[filtered_df['Buy date'] == mask, 'Buy price'] = value
+                filtered_df_sell.loc[filtered_df_sell['Sell date'] == mask, 'Sell price'] = value
 
             # Append to the list:
             buy_prices_list.append(filtered_df)
@@ -412,9 +415,9 @@ class Algo1Backtest:
 
         return correlation_list
 
-if __name__ == "__main__":
-    k = Algo1Backtest(tickers_list=['TSLA','FLS.CO'],start_date="2021-01-01",
-                      end_date="2024-01-01",consecutive_days=2,consecutive_days_sell=2)
-    k0 = k.backtest_prices()
-    k1 = k.backtest_returns()
-    print("k")
+# if __name__ == "__main__":
+#     k = Algo1Backtest(tickers_list=['TSLA','FLS.CO'],start_date="2021-01-01",
+#                       end_date="2024-01-01",consecutive_days=2,consecutive_days_sell=2)
+#     k0 = k.backtest_prices()
+#     k1 = k.backtest_returns()
+#     print("k")

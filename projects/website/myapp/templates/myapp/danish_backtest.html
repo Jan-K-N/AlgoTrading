@@ -12,7 +12,7 @@
             margin: 0;
         }
 
-        #backtested_returns {
+        #backtested-results {
             margin: 20px;
         }
 
@@ -51,7 +51,10 @@
         }
 
     </style>
-        <div id="backtested_returns">
+
+</head>
+<body>
+       <div id="backtest-results">
             <h3>Returns</h3>
                 <form id = "date-form" method="GET" action="">
                     <label for="start-date">Start Date:</label>
@@ -79,20 +82,18 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for ticker1 in backtested_returns %}
+                    {% for result in backtested_returns %}
                     <tr>
-                        <td>{{ ticker.Ticker }}</td>
-                        <td>{{ ticker.Buy_Date }}</td>
-                        <td>{{ ticker.Sell_Date }}</td>
-                        <td>{{ ticker.Returns }}</td>
-                        <td>{{ ticker.Log_Returns }}</td>
+                        <td>{{ result.Ticker }}</td>
+                        <td>{{ result.Buy_Date }}</td>
+                        <td>{{ result.Sell_Date }}</td>
+                        <td>{{ result.Returns }}</td>
+                        <td>{{ result.Log_returns }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-</head>
-<body>
 
 </body>
 </html>

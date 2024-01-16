@@ -41,6 +41,7 @@ from django.shortcuts import render
 from algos.algo1 import Algo1
 from algos_backtest import algo1_backtest
 
+
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
     """
@@ -220,6 +221,7 @@ def danish_navigation(request):
 
     return render(request, 'myapp/danish_navigation.html')
 
+
 def danish_backtest(request):
     """
     Renders the danish_backtest page.
@@ -252,10 +254,12 @@ def danish_backtest(request):
     # Pass arguments to obtain the backtested returns:
     backtested_returns = algo1_backtest.Algo1Backtest(start_date,
                                                       end_date,
-                                                      run_scraper1,consecutive_days,
+                                                      run_scraper1,
+                                                      consecutive_days,
                                                       consecutive_days_sell
                                                       )
     backtested_returns_final = backtested_returns.backtest_returns()
+
     context = {
         'backtested_returns': backtested_returns_final,
         'start_date': start_date,
@@ -264,8 +268,7 @@ def danish_backtest(request):
         'consecutive_days_sell': consecutive_days_sell,
     }
 
-    return render(request, 'myapp/danish_backtest.html',context)
-
+    return render(request, 'myapp/danish_backtest.html', context)
 
 def about(request):
     """
