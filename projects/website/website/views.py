@@ -34,7 +34,6 @@ import pandas as pd
 
 import sys
 sys.path.insert(0,'..')
-
 from algo_scrapers.danish_ticker_scraper import OMXC25scraper
 from algo_scrapers.omxs30_scraper import OMXS30scraper
 from django.shortcuts import render

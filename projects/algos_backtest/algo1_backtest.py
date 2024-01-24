@@ -114,12 +114,16 @@ class Algo1Backtest:
             data = Database.get_price_data(self, start=self.start_date,
                                            end=self.end_date,
                                            ticker=ticker)
-            price_data[ticker] = data["Open"]
+            if data is not None:
+                price_data[ticker] = data["Open"]
 
         algo1_data = Algo1Backtest.run_algo1(self)
 
         df_buy_signals = pd.DataFrame(columns=['Ticker', 'Buy Signal'])
         df_sell_signals = pd.DataFrame(columns=['Ticker', 'Sell Signal'])
+
+        df_buy_signals_list = []
+        df_sell_signals_list = []
 
         for df_algo1 in algo1_data:
             ticker = df_algo1.at[df_algo1.index[0], 'Ticker']
@@ -131,14 +135,19 @@ class Algo1Backtest:
 
             if not df_buy.empty:
 
-                df_buy_signals = pd.concat([df_buy_signals, buy_df_to_concat],
-                                           ignore_index=True, sort=False)
+                # df_buy_signals = pd.concat([df_buy_signals, buy_df_to_concat],
+                #                            ignore_index=True, sort=False)
+                df_buy_signals_list.append(buy_df_to_concat)
 
             sell_df_to_concat = pd.DataFrame({'Ticker': [ticker] * len(df_sell),
                                               'Sell Signal': df_sell.index})
             if not sell_df_to_concat.empty:
-                df_sell_signals = pd.concat([df_sell_signals, sell_df_to_concat],
-                                            ignore_index=True, sort=False)
+                # df_sell_signals = pd.concat([df_sell_signals, sell_df_to_concat],
+                #                             ignore_index=True, sort=False)
+                df_sell_signals_list.append(sell_df_to_concat)
+
+        df_buy_signals = pd.concat(df_buy_signals_list, ignore_index=True, sort=False)
+        df_sell_signals = pd.concat(df_sell_signals_list, ignore_index=True, sort=False)
 
         # We will now make the buy/sell prices:
         buy_prices_list = []
@@ -162,11 +171,18 @@ class Algo1Backtest:
                     mask += pd.DateOffset(days=1)
                 filtered_df.loc[filtered_df.index[j], 'Buy date'] = mask
                 filtered_df.loc[filtered_df['Buy date'] == mask, 'Buy price'] = value
-                filtered_df_sell = filtered_df_sell.reset_index(drop=True)
-                filtered_df_sell.loc[filtered_df_sell['Sell date'] == mask, 'Sell price'] = value
+                filtered_df_sell = filtered_df_sell.reset_index(
+                    drop=True) if not filtered_df_sell.empty else pd.DataFrame(
+                    columns=['Ticker', 'Sell Signal', 'Sell date', 'Sell price'])
+
+                # if filtered_df_sell is not None:
+                #     filtered_df_sell.loc[filtered_df_sell['Sell date'] == mask, 'Sell price'] = value
+                if not filtered_df_sell.empty:
+                    filtered_df_sell.loc[filtered_df_sell['Sell date'] == mask, 'Sell price'] = value
 
             # Append to the list:
-            buy_prices_list.append(filtered_df)
+            if not filtered_df.empty:
+                buy_prices_list.append(filtered_df)
 
             filtered_df_sell = df_sell_signals[
                 df_sell_signals['Ticker'] == ticker1].copy()
@@ -187,7 +203,8 @@ class Algo1Backtest:
                 filtered_df_sell.loc[filtered_df_sell['Sell date'] == mask, 'Sell price'] = value
 
             # Append to list:
-            sell_prices_list.append(filtered_df_sell)
+            if not filtered_df_sell.empty:
+                sell_prices_list.append(filtered_df_sell)
 
         return [buy_prices_list, sell_prices_list]
 
@@ -267,7 +284,12 @@ class Algo1Backtest:
                                          'Log returns': [log_returns]
                                          })])
 
-            returns_dict[ticker1] = returns_df
+            if not returns_df.empty:
+                returns_dict[ticker1] = returns_df.dropna()
+
+        # Filter out empty dataframes before returning the final dictionary
+        returns_dict = {k: v for k, v in returns_dict.items() if not v.empty}
+
 
         return returns_dict
 
