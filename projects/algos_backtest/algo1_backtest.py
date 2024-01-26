@@ -114,7 +114,9 @@ class Algo1Backtest:
             data = Database.get_price_data(self, start=self.start_date,
                                            end=self.end_date,
                                            ticker=ticker)
-            if data is not None:
+            if data is None:
+                return pd.DataFrame()
+            else:
                 price_data[ticker] = data["Open"]
 
         algo1_data = Algo1Backtest.run_algo1(self)
@@ -146,9 +148,14 @@ class Algo1Backtest:
                 #                             ignore_index=True, sort=False)
                 df_sell_signals_list.append(sell_df_to_concat)
 
-        df_buy_signals = pd.concat(df_buy_signals_list, ignore_index=True, sort=False)
-        df_sell_signals = pd.concat(df_sell_signals_list, ignore_index=True, sort=False)
-
+        if df_buy_signals_list:
+            df_buy_signals = pd.concat(df_buy_signals_list, ignore_index=True, sort=False)
+        else:
+            df_buy_signals = pd.DataFrame(columns=['Ticker', 'Buy Signal'])
+        if df_sell_signals_list:
+            df_sell_signals = pd.concat(df_sell_signals_list, ignore_index=True, sort=False)
+        else:
+            df_sell_signals = pd.DataFrame(columns=['Ticker', 'Sell Signal'])
         # We will now make the buy/sell prices:
         buy_prices_list = []
         sell_prices_list = []

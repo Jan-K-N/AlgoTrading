@@ -269,6 +269,8 @@ def danish_backtest(request):
 
     return render(request, 'myapp/danish_backtest.html', context)
 
+
+
 def about(request):
     """
     Renders the about page.
