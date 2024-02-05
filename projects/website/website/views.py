@@ -221,55 +221,57 @@ def danish_navigation(request):
     return render(request, 'myapp/danish_navigation.html')
 
 
+# def danish_backtest(request):
+#     """
+#     Renders the danish_backtest page.
+#
+#     Parameters:
+#     _________
+#         request: The HTTP request object.
+#
+#     Returns:
+#     _________
+#         HttpResponse: The rendered HTML response for the danish_backtest page.
+#     """
+#     default_end_date = datetime.now().strftime('%Y-%m-%d')
+#     default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+#
+#     if request.method == 'GET':
+#         start_date = request.GET.get('start_date', default_start_date)
+#         end_date = request.GET.get('end_date', default_end_date)
+#         consecutive_days = int(request.GET.get('consecutive_days', 1))
+#         consecutive_days_sell = int(request.GET.get('consecutive_days_sell', 1))
+#     else:
+#         start_date = default_start_date
+#         end_date = default_end_date
+#         consecutive_days = 1
+#         consecutive_days_sell = 1
+#
+#     omxc25_scraper = OMXC25scraper()
+#     run_scraper1 = omxc25_scraper.run_scraper()
+#
+#     # Pass arguments to obtain the backtested returns:
+#     backtested_returns = algo1_backtest.Algo1Backtest(start_date,
+#                                                       end_date,
+#                                                       run_scraper1,
+#                                                       consecutive_days,
+#                                                       consecutive_days_sell
+#                                                       )
+#     backtested_returns_final = backtested_returns.backtest_returns()
+#
+#     context = {
+#         'backtested_returns': backtested_returns_final,
+#         'start_date': start_date,
+#         'end_date': end_date,
+#         'consecutive_days': consecutive_days,
+#         'consecutive_days_sell': consecutive_days_sell,
+#     }
+#
+#     return render(request, 'myapp/danish_backtest.html', context)
+
 def danish_backtest(request):
-    """
-    Renders the danish_backtest page.
 
-    Parameters:
-    _________
-        request: The HTTP request object.
-
-    Returns:
-    _________
-        HttpResponse: The rendered HTML response for the danish_backtest page.
-    """
-    default_end_date = datetime.now().strftime('%Y-%m-%d')
-    default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
-
-    if request.method == 'GET':
-        start_date = request.GET.get('start_date', default_start_date)
-        end_date = request.GET.get('end_date', default_end_date)
-        consecutive_days = int(request.GET.get('consecutive_days', 1))
-        consecutive_days_sell = int(request.GET.get('consecutive_days_sell', 1))
-    else:
-        start_date = default_start_date
-        end_date = default_end_date
-        consecutive_days = 1
-        consecutive_days_sell = 1
-
-    omxc25_scraper = OMXC25scraper()
-    run_scraper1 = omxc25_scraper.run_scraper()
-
-    # Pass arguments to obtain the backtested returns:
-    backtested_returns = algo1_backtest.Algo1Backtest(start_date,
-                                                      end_date,
-                                                      run_scraper1,
-                                                      consecutive_days,
-                                                      consecutive_days_sell
-                                                      )
-    backtested_returns_final = backtested_returns.backtest_returns()
-
-    context = {
-        'backtested_returns': backtested_returns_final,
-        'start_date': start_date,
-        'end_date': end_date,
-        'consecutive_days': consecutive_days,
-        'consecutive_days_sell': consecutive_days_sell,
-    }
-
-    return render(request, 'myapp/danish_backtest.html', context)
-
-
+    return render(request,'myapp/danish_backtest.html')
 
 def about(request):
     """

@@ -44,7 +44,9 @@ class Database():
         if end is not None:
             self.end = end
         try:
-            ticker_data = yf.download(tickers=self.ticker, start=self.start, end=self.end, threads=True)
+            ticker_data = yf.download(tickers=self.ticker,
+                                      start=self.start,
+                                      end=self.end, threads=True)
         except KeyError as e:
             print(f"KeyError: Ticker {self.ticker} not found or data not available. Skipping...")
             return None
