@@ -47,7 +47,7 @@ class Database():
             ticker_data = yf.download(tickers=self.ticker,
                                       start=self.start,
                                       end=self.end, threads=True)
-        except KeyError as e:
+        except KeyError:
             print(f"KeyError: Ticker {self.ticker} not found or data not available. Skipping...")
             return None
 
