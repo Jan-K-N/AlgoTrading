@@ -218,6 +218,22 @@ def danish_navigation(request):
     """
 
     return render(request, 'myapp/danish_navigation.html')
+
+def american_navigation(request):
+    """
+    Renders the american_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the american_navigation page.
+    """
+
+    return render(request, 'myapp/american_navigation.html')
+
 def danish_backtest(request):
     """
     Renders the Danish backtest page.
