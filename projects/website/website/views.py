@@ -34,11 +34,12 @@ import pandas as pd
 
 import sys
 sys.path.insert(0,'..')
-
 from algo_scrapers.danish_ticker_scraper import OMXC25scraper
 from algo_scrapers.omxs30_scraper import OMXS30scraper
+from algo_scrapers.s_and_p_scraper import SAndPScraper
 from django.shortcuts import render
 from algos.algo1 import Algo1
+
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
@@ -129,7 +130,7 @@ def danish_signals(request):
 
      Returns:
      _________
-         HttpResponse: The rendered HTML response for the home page.
+         HttpResponse: The rendered HTML response for the Danish page.
      """
 
     default_end_date = datetime.now().strftime('%Y-%m-%d')
@@ -203,6 +204,94 @@ def sweden_signals(request):
     }
 
     return render(request, 'myapp/sweden_signals.html', context)
+
+def danish_navigation(request):
+    """
+    Renders the danish_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the danish_navigation page.
+    """
+
+    return render(request, 'myapp/danish_navigation.html')
+
+def american_navigation(request):
+    """
+    Renders the american_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the american_navigation page.
+    """
+
+    return render(request, 'myapp/american_navigation.html')
+
+def american_signals(request):
+    """
+     Renders the American page with trading signals data for American stocks.
+
+     Parameters:
+     _________
+         request: The HTTP request object.
+
+     Returns:
+     _________
+         HttpResponse: The rendered HTML response for the American page.
+     """
+
+    default_end_date = datetime.now().strftime('%Y-%m-%d')
+    default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+
+    if request.method == 'GET':
+        start_date = request.GET.get('start_date', default_start_date)
+        end_date = request.GET.get('end_date', default_end_date)
+        consecutive_days = int(request.GET.get('consecutive_days', 1))
+        consecutive_days_sell = int(request.GET.get('consecutive_days_sell', 1))
+    else:
+        start_date = default_start_date
+        end_date = default_end_date
+        consecutive_days = 1
+        consecutive_days_sell = 1
+
+    sandp_scraper = SAndPScraper()
+
+    # Pass consecutive_days and consecutive_days_sell to get_signals_data function
+    sandp_signals_data = get_signals_data(sandp_scraper, start_date, end_date,
+                                           consecutive_days, consecutive_days_sell)
+    context = {
+        'sandp_signals_data': sandp_signals_data,
+        'start_date': start_date,
+        'end_date': end_date,
+        'consecutive_days': consecutive_days,
+        'consecutive_days_sell': consecutive_days_sell,
+    }
+
+    return render(request, 'myapp/american_signals.html', context)
+
+
+def danish_backtest(request):
+    """
+    Renders the Danish backtest page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the backtest page.
+    """
+
+    return render(request,'myapp/danish_backtest.html')
 
 def about(request):
     """
