@@ -2,16 +2,18 @@
 Main script for algo1 backtest.
 """
 # pylint: disable=wrong-import-position.
+# pylint: disable=too-many-locals.
+# pylint: disable=too-many-branches.
+# pylint: disable=too-many-statements.
+# pylint: disable=too-many-nested-blocks.
+# pylint: disable=duplicate-code.
 import sys
 import pandas as pd
 import numpy as np
-sys.path.insert(0,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/algos')
-sys.path.insert(1,'/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
-# pylint: disable=import-error.
-from algo1 import Algo1
-# pylint: disable=duplicate-code.
-from finance_database import Database
-from danish_tickers import TickerCodeProvider
+sys.path.append('..')
+from algos.algo1 import Algo1
+from data.finance_database import Database
+from data.danish_tickers import TickerCodeProvider
 
 class Algo1Backtest:
     """
@@ -97,7 +99,6 @@ class Algo1Backtest:
         return algo1_output
 
     def backtest_prices(self):
-        # pylint: disable=too-many-locals.
         """
         This method computes and retrieves the prices
         given the buy/sell signals from Algo1.
@@ -116,6 +117,8 @@ class Algo1Backtest:
             data = Database.get_price_data(self, start=self.start_date,
                                            end=self.end_date,
                                            ticker=ticker)
+            if data is None:
+                return pd.DataFrame()
             price_data[ticker] = data["Open"]
 
         algo1_data = Algo1Backtest.run_algo1(self)
@@ -123,21 +126,46 @@ class Algo1Backtest:
         df_buy_signals = pd.DataFrame(columns=['Ticker', 'Buy Signal'])
         df_sell_signals = pd.DataFrame(columns=['Ticker', 'Sell Signal'])
 
+        df_buy_signals_list = []
+        df_sell_signals_list = []
+
         for df_algo1 in algo1_data:
-            ticker = df_algo1['Ticker'][0]
+            ticker = df_algo1.at[df_algo1.index[0], 'Ticker']
             df_buy = df_algo1.loc[df_algo1['Buy'] == 1]
             df_sell = df_algo1.loc[df_algo1['Sell'] == -1]
 
-            df_buy_signals = pd.concat(
-                [df_buy_signals, pd.DataFrame({'Ticker': [ticker] * len(df_buy),
-                                               'Buy Signal': df_buy.index})])
-            df_sell_signals = pd.concat(
-                [df_sell_signals, pd.DataFrame({'Ticker': [ticker] * len(df_sell),
-                                                'Sell Signal': df_sell.index})])
+            buy_df_to_concat = pd.DataFrame({'Ticker': [ticker] * len(df_buy),
+                                             'Buy Signal': df_buy.index})
 
+            if not df_buy.empty:
+
+                # df_buy_signals = pd.concat([df_buy_signals, buy_df_to_concat],
+                #                            ignore_index=True, sort=False)
+                df_buy_signals_list.append(buy_df_to_concat)
+
+            sell_df_to_concat = pd.DataFrame({'Ticker': [ticker] * len(df_sell),
+                                              'Sell Signal': df_sell.index})
+            if not sell_df_to_concat.empty:
+                # df_sell_signals = pd.concat([df_sell_signals, sell_df_to_concat],
+                #                             ignore_index=True, sort=False)
+                df_sell_signals_list.append(sell_df_to_concat)
+
+        if df_buy_signals_list:
+            df_buy_signals = pd.concat(df_buy_signals_list, ignore_index=True, sort=False)
+        else:
+            df_buy_signals = pd.DataFrame(columns=['Ticker', 'Buy Signal'])
+        if df_sell_signals_list:
+            df_sell_signals = pd.concat(df_sell_signals_list, ignore_index=True, sort=False)
+        else:
+            df_sell_signals = pd.DataFrame(columns=['Ticker', 'Sell Signal'])
         # We will now make the buy/sell prices:
         buy_prices_list = []
         sell_prices_list = []
+
+        filtered_df_sell = pd.DataFrame(columns=['Ticker',
+                                                 'Sell Signal',
+                                                 'Sell date',
+                                                 'Sell price'])
 
         for ticker1 in self.tickers_list:
             filtered_df = df_buy_signals[df_buy_signals['Ticker'] == ticker1].copy()
@@ -153,11 +181,20 @@ class Algo1Backtest:
                             value = price_data[ticker1][mask]
                             break
                     mask += pd.DateOffset(days=1)
-                filtered_df['Buy date'].iloc[j] = mask
+                filtered_df.loc[filtered_df.index[j], 'Buy date'] = mask
                 filtered_df.loc[filtered_df['Buy date'] == mask, 'Buy price'] = value
+                filtered_df_sell = filtered_df_sell.reset_index(
+                    drop=True) if not filtered_df_sell.empty else pd.DataFrame(
+                    columns=['Ticker', 'Sell Signal',
+                             'Sell date', 'Sell price'])
+
+                if not filtered_df_sell.empty:
+                    filtered_df_sell.loc[filtered_df_sell['Sell date'] == mask,
+                    'Sell price'] = value
 
             # Append to the list:
-            buy_prices_list.append(filtered_df)
+            if not filtered_df.empty:
+                buy_prices_list.append(filtered_df)
 
             filtered_df_sell = df_sell_signals[
                 df_sell_signals['Ticker'] == ticker1].copy()
@@ -174,59 +211,69 @@ class Algo1Backtest:
                             value = price_data[ticker1][mask]
                             break
                     mask += pd.DateOffset(days=1)
-                filtered_df_sell['Sell date'].iloc[j] = mask
+                filtered_df_sell.loc[filtered_df_sell.index[j], 'Sell date'] = mask
                 filtered_df_sell.loc[filtered_df_sell['Sell date'] == mask, 'Sell price'] = value
 
             # Append to list:
-            sell_prices_list.append(filtered_df_sell)
+            if not filtered_df_sell.empty:
+                sell_prices_list.append(filtered_df_sell)
 
         return [buy_prices_list, sell_prices_list]
 
-    # pylint: disable=too-many-locals.
     def backtest_returns(self):
-        # pylint: disable=too-many-branches.
         """
-        Computes and retrieves the returns for each ticker based
-        on the buy/sell signals obtained from Algo1.
+        Backtests the returns for each ticker based on the provided price data.
+
+        Returns a dictionary containing DataFrames with backtested returns for each ticker.
 
         Returns:
-            List[pd.DataFrame]: A list of pandas DataFrames containing
-                the returns data for each ticker. Each DataFrame
-                contains the following columns:
-                                    - Ticker: Ticker symbol
-                                    - Buy Date: Date of buy signal, i.e. one day after the signal.
-                                    - Sell Date: Date of sell signal
-                                    - Returns: Computed returns for the trade
-                                    - Log returns: Log returns. The formula log(1 + x) is used
-                                      to deal with negative return values.
+            dict: A dictionary where keys are tickers and values are DataFrames
+            containing backtested returns.
+                Each DataFrame has the following columns:
+                    - 'Ticker': The ticker symbol.
+                    - 'Buy Date': The date of the buy transaction.
+                    - 'Sell Date': The date of the sell transaction.
+                    - 'Returns': The calculated returns.
+                    - 'Log returns': The logarithm of the returns.
+                Empty DataFrames are filtered out before returning the final dictionary.
         """
+        prices = self.backtest_prices()
 
-        prices = Algo1Backtest.backtest_prices(self)
+        returns_dict = {}
 
-        returns_list = []  # List to store the returns dataframes for each ticker
-
-        # pylint: disable=too-many-nested-blocks
         for ticker1 in self.tickers_list:
-            returns_df = pd.DataFrame(columns=['Ticker',
-                                               'Buy Date',
-                                               'Sell Date',
-                                               'Returns',
-                                               'Position',
+            returns_df = pd.DataFrame(columns=['Ticker', 'Buy Date',
+                                               'Sell Date', 'Returns',
                                                'Log returns'])
             position = 0  # Initialize position as 0 (no position)
             latest_sell_date = None  # Initialize latest sell date as None
 
             for df_buy in prices[0]:
                 for df_sell in prices[1]:
-                    if not df_buy.empty\
-                            and not df_sell.empty\
-                            and df_buy['Ticker'].iloc[0] == ticker1 and \
-                            df_sell['Ticker'].iloc[0] == ticker1:
+                    if not df_buy.empty and not df_sell.empty \
+                            and df_buy['Ticker'].iloc[0] == ticker1 \
+                            and df_sell['Ticker'].iloc[0] == ticker1:
                         df_buy = pd.DataFrame(df_buy)
                         df_sell = pd.DataFrame(df_sell)
 
-                        # pylint: disable=unused-variable.
-                        for j, row in df_buy.iterrows():
+                        # Initialize variables here
+                        timestamp1 = None
+                        sell_date = None
+                        returns = None
+                        log_returns = None
+
+                        new_data = {'Ticker': [ticker1],
+                                    'Buy Date': [timestamp1],
+                                    'Sell Date': [sell_date],
+                                    'Returns': [returns],
+                                    'Log returns': [log_returns]}
+
+                        if returns_df.empty:
+                            returns_df = pd.DataFrame(new_data)
+                        else:
+                            returns_df = returns_df.append(new_data, ignore_index=True)
+
+                        for _, row in df_buy.iterrows():
                             if pd.notnull(row['Buy price']):
                                 timestamp1 = row['Buy date']
                                 buy_price = row['Buy price']
@@ -264,13 +311,16 @@ class Algo1Backtest:
                                          'Buy Date': [timestamp1],
                                          'Sell Date': [sell_date],
                                          'Returns': [returns],
-                                         'Position': [position],
                                          'Log returns': [log_returns]
                                          })])
-            returns_df = returns_df.drop(columns=['Position'])
-            returns_list.append(returns_df)
 
-        return returns_list
+            if not returns_df.empty:
+                returns_dict[ticker1] = returns_df.dropna()
+
+        # Filter out empty dataframes before returning the final dictionary
+        returns_dict = {k: v for k, v in returns_dict.items() if not v.empty}
+
+        return returns_dict
 
     def backtest_cumulative_returns(self):
         """

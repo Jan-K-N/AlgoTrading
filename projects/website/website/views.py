@@ -34,11 +34,11 @@ import pandas as pd
 
 import sys
 sys.path.insert(0,'..')
-
 from algo_scrapers.danish_ticker_scraper import OMXC25scraper
 from algo_scrapers.omxs30_scraper import OMXS30scraper
 from django.shortcuts import render
 from algos.algo1 import Algo1
+
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
@@ -203,6 +203,35 @@ def sweden_signals(request):
     }
 
     return render(request, 'myapp/sweden_signals.html', context)
+
+def danish_navigation(request):
+    """
+    Renders the danish_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the danish_navigation page.
+    """
+
+    return render(request, 'myapp/danish_navigation.html')
+def danish_backtest(request):
+    """
+    Renders the Danish backtest page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the backtest page.
+    """
+
+    return render(request,'myapp/danish_backtest.html')
 
 def about(request):
     """

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trading Danish tickers</title>
+    <style>
+    body {
+        display: flex;
+        flex-direction: column;
+        background-color: #222; /* Dark background color */
+        color: #fff; /* Text color, change as needed */
+        margin: 0;
+    }
+
+    #title {
+        text-align: center;
+        padding: 20px;
+        background-color: #333;
+    }
+
+    #navigation {
+        text-align: left;
+        padding: 20px;
+        background-color: #222;
+    }
+
+    .nav-link {
+        display: inline-block;
+        margin: 0 10px;
+    }
+
+    #nav-intro {
+        margin-bottom: 10px;
+        font-size: 16px;
+        color: #ccc;
+    }
+    #navigation a {
+        display: block;
+        padding: 10px;
+        border: 1px solid #fff;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #fff;
+    }
+
+    #content {
+        padding: 20px;
+    }
+
+    </style>
+
+</head>
+<body>
+    <div id="title">
+        <h1>Danish trading</h1>
+    </div>
+
+    <div id="navigation">
+        <div id="nav-intro">
+            <p>Different options below:</p>
+        </div>
+        <div class="nav-link"><a href="{% url 'danish_signals' %}">Danish Signals</a></div>
+        <div class="nav-link"><a href="{% url 'danish_backtest' %}">Danish Backtest</a></div>
+    </div>
+
+</body>
+</html>

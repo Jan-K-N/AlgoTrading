@@ -22,5 +22,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('danish/', views.danish_signals,name='danish_signals'),
     path('sweden/', views.sweden_signals, name='sweden_signals'),
+    path('danish_navigation/',views.danish_navigation,name='danish_navigation'),
+    path('danish_backtest/',views.danish_backtest,name='danish_backtest'),
     path('about/', views.about, name='about'),
 ]
