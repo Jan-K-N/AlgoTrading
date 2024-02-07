@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Trading Danish tickers</title>
+    <title>Trading American tickers</title>
     <style>
-    body {
-        display: flex;
-        flex-direction: column;
-        background-color: #222; /* Dark background color */
-        color: #fff; /* Text color, change as needed */
-        margin: 0;
-    }
+        body {
+            display: flex;
+            flex-direction: column;
+            background-color: #222; /* Dark background color */
+            color: #fff; /* Text color, change as needed */
+            margin: 0;
+        }
 
     #title {
         text-align: center;
@@ -46,20 +46,17 @@
     #content {
         padding: 20px;
     }
+
     </style>
 </head>
 <body>
     <div id="title">
-        <h1>Danish trading</h1>
+        <h1>American trading</h1>
     </div>
-
-    <div id="navigation">
-        <div id="nav-intro">
-            <p>Different options below:</p>
-        </div>
-        <div class="nav-link"><a href="{% url 'danish_signals' %}">Danish signals</a></div>
-        <div class="nav-link"><a href="{% url 'danish_backtest' %}">Danish backtest</a></div>
+    <div id ="navigation">
+        <p>Different options below:</p>
     </div>
+            <div class="nav-link"><a href="{% url 'american_signals' %}">American signals</a></div>
 
 </body>
 </html>
