@@ -22,6 +22,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
 
 class sentinel:
 
@@ -133,28 +134,39 @@ class sentinel:
         # X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled))
         X = np.column_stack((x, seasonal_scaled))
 
-        model = Pipeline([
+        # Create a pipeline for Lasso regression
+        lasso_pipeline = Pipeline([
             ('scaler', StandardScaler()),
-            ('lasso', Lasso(alpha=0.01)),
-            ('gbm', GradientBoostingRegressor())
+            ('lasso', Lasso(alpha=0.1))
+        ])
+
+        # Fit Lasso regression
+        lasso_pipeline.fit(X, y)
+
+        # Transform the features using Lasso
+        X_lasso = lasso_pipeline['scaler'].transform(X)
+
+        # Create a pipeline for Gradient Boosting Regressor
+        gbr_pipeline = Pipeline([
+            ('gbr', GradientBoostingRegressor())
         ])
 
         # Define hyperparameters grid for GridSearchCV
         param_grid = {
-            'gbm__n_estimators': [50, 100, 200],  # Adjust number of boosting stages
-            'gbm__max_depth': [3, 4, 5],  # Adjust maximum depth of individual trees
-            'gbm__learning_rate': [0.01, 0.1, 0.2]  # Adjust learning rate
+            'gbr__n_estimators': [50, 100, 200],  # Adjust number of boosting stages
+            'gbr__max_depth': [3, 4, 5],  # Adjust maximum depth of individual trees
+            'gbr__learning_rate': [0.01, 0.1, 0.2]  # Adjust learning rate
         }
 
         # Perform grid search with cross-validation
-        grid_search = GridSearchCV(model, param_grid, cv=5, scoring='neg_mean_squared_error')
-        grid_search.fit(X, y)
+        grid_search = GridSearchCV(gbr_pipeline, param_grid, cv=5, scoring='neg_mean_squared_error')
+        grid_search.fit(X_lasso, y)
 
         # Get the best model from grid search
         best_model = grid_search.best_estimator_
 
         # Use the best model for prediction
-        signals['regression_line'] = best_model.predict(X)
+        signals['regression_line'] = best_model.predict(X_lasso)
 
         data, signals['regression_line'] = data.align(signals['regression_line'], join='inner', axis=0)
 
@@ -163,6 +175,7 @@ class sentinel:
 
         # Generate trading orders
         signals['positions'] = signals['signal'].diff()
+
 
 
         return signals
@@ -246,8 +259,8 @@ class sentinel:
 
 
 if __name__ == "__main__":
-    instance = sentinel(start_date="2023-01-01",end_date="2023-08-04",
-                        ticker="TSLA")
+    instance = sentinel(start_date="2023-01-01",end_date="2024-01-01",
+                        ticker="IP")
     k = instance.sentinel_data()
     f = instance.generate_signals()
 
