@@ -69,50 +69,6 @@ class sentinel:
         Returns:
 
         """
-        # data = self.sentinel_data()
-        # signals = pd.DataFrame(index=data.index)
-        # signals['signal'] = 0.0
-        #
-        # x = np.arange(len(data)).reshape(-1,1)
-        # y = data.values.reshape(-1,1)
-        # model = LinearRegression()
-        # model.fit(x,y)
-        # signals['regression_line'] = model.predict(x)
-        #
-        # data, signals['regression_line'] = data.align(signals['regression_line'], join='inner', axis=0)
-        #
-        # # Create signals
-        # signals['signal'] = np.where(data.values.flatten() > signals['regression_line'].values.flatten(), 1.0, -1.0)
-        #
-        # # Generate trading orders
-        # signals['positions'] = signals['signal'].diff()
-        #
-        # return signals
-            # data = self.sentinel_data()
-            # signals = pd.DataFrame(index=data.index)
-            # signals['signal'] = 0.0
-            #
-            # x = np.arange(len(data)).reshape(-1, 1)
-            # y = data.values.reshape(-1, 1)
-            #
-            # # Incorporate seasonal component into the feature matrix
-            # decomposition = seasonal_decompose(data[self.ticker], model='additive', period=7)
-            # seasonal = decomposition.seasonal
-            # X = np.column_stack((x, seasonal))
-            #
-            # model = LinearRegression()
-            # model.fit(X, y)
-            #
-            # # Add regression line for plotting
-            # signals['regression_line'] = model.predict(X)
-            #
-            # data, signals['regression_line'] = data.align(signals['regression_line'], join='inner', axis=0)
-            #
-            # # Create signals
-            # signals['signal'] = np.where(data.values.flatten() > signals['regression_line'].values.flatten(), 1.0, -1.0)
-            #
-            # # Generate trading orders
-            # signals['positions'] = signals['signal'].diff()
         data = self.sentinel_data()
         signals = pd.DataFrame(index=data.index)
         signals['signal'] = 0.0
@@ -131,8 +87,7 @@ class sentinel:
         seasonal_sin = np.sin(2 * np.pi * np.arange(len(data)) / 7)
         seasonal_cos = np.cos(2 * np.pi * np.arange(len(data)) / 7)
 
-        # X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled))
-        X = np.column_stack((x, seasonal_scaled))
+        X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled))
 
         # Create a pipeline for Lasso regression
         lasso_pipeline = Pipeline([
@@ -153,29 +108,30 @@ class sentinel:
 
         # Define hyperparameters grid for GridSearchCV
         param_grid = {
-            'gbr__n_estimators': [50, 100, 200],  # Adjust number of boosting stages
-            'gbr__max_depth': [3, 4, 5],  # Adjust maximum depth of individual trees
-            'gbr__learning_rate': [0.01, 0.1, 0.2]  # Adjust learning rate
+            'gbr__n_estimators': [50, 100, 200, 500],  # Adjust number of boosting stages
+            'gbr__max_depth': [3, 4, 5, 6],  # Adjust maximum depth of individual trees
+            'gbr__learning_rate': [0.01, 0.1, 0.2, 0.5]  # Adjust learning rate
         }
 
         # Perform grid search with cross-validation
-        grid_search = GridSearchCV(gbr_pipeline, param_grid, cv=5, scoring='neg_mean_squared_error')
+        grid_search = GridSearchCV(gbr_pipeline, param_grid, cv=10, scoring='neg_mean_squared_error')
         grid_search.fit(X_lasso, y)
 
         # Get the best model from grid search
         best_model = grid_search.best_estimator_
 
-        # Use the best model for prediction
-        signals['regression_line'] = best_model.predict(X_lasso)
+        for i in range(len(data)):
+            # Use the best model for 1-step ahead prediction
+            forecast = best_model.predict(X_lasso[i].reshape(1, -1))
 
-        data, signals['regression_line'] = data.align(signals['regression_line'], join='inner', axis=0)
-
-        # Create signals
-        signals['signal'] = np.where(data.values.flatten() > signals['regression_line'].values.flatten(), 1.0, -1.0)
+            # Determine the direction of the forecasted market movement
+            if forecast > data.iloc[i].values:  # If forecast is greater than the observed value
+                signals.loc[data.index[i], 'signal'] = 1.0  # Go long
+            else:
+                signals.loc[data.index[i], 'signal'] = -1.0  # Go short
 
         # Generate trading orders
-        signals['positions'] = signals['signal'].diff()
-
+        signals['positions'] = signals['signal'].diff().fillna(0)
 
 
         return signals
@@ -188,9 +144,9 @@ class sentinel:
 
         signals = self.generate_signals()
 
-        # Plotting fitted values, dropping the first observation
-        ax.plot(data.index[1:], signals['regression_line'].iloc[1:], label='Fitted Values', linestyle='--',
-                color='orange')
+        # # Plotting fitted values, dropping the first observation
+        # ax.plot(data.index[1:], signals['regression_line'].iloc[1:], label='Fitted Values', linestyle='--',
+        #         color='orange')
 
         # Plotting buy signals
         buy_indices = signals[signals['signal'] == 1.0].index
@@ -202,7 +158,7 @@ class sentinel:
         sell_values = data[self.ticker][signals['signal'] == -1.0]
         ax.plot(sell_indices, sell_values, 'v', markersize=10, color='r', label='Sell Signal')
 
-        ax.set_title('Linear Regression Trading Strategy')
+        # ax.set_title('Linear Regression Trading Strategy')
         ax.set_xlabel('Date')
         ax.set_ylabel('Price')
         ax.legend()
@@ -259,8 +215,8 @@ class sentinel:
 
 
 if __name__ == "__main__":
-    instance = sentinel(start_date="2023-01-01",end_date="2024-01-01",
-                        ticker="IP")
+    instance = sentinel(start_date="2022-01-01",end_date="2024-01-01",
+                        ticker="TSLA")
     k = instance.sentinel_data()
     f = instance.generate_signals()
 
