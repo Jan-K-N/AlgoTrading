@@ -48,6 +48,23 @@ class sentinel:
 
         return data
 
+    def sentinel_features_data(self,ticker="TSLA"):
+        """
+        This method should be used to create a dataframe containing the
+        variables which are most correlated with a given ticker/stock
+        Returns:
+
+        """
+
+        feature_set = ["RIVN","LCID","STLA"]
+
+        sentinel_features = pd.DataFrame()
+        for ticker in feature_set:
+
+            sentinel_features[ticker] = Database.get_price_data(self,ticker=ticker,start=self.start_date,
+                                                        end=self.end_date)['Adj Close']
+
+        return sentinel_features
     def generate_signals(self):
         """
         Method for generating signals based on a linear regression method.
@@ -87,7 +104,11 @@ class sentinel:
         seasonal_sin = np.sin(2 * np.pi * np.arange(len(data)) / 7)
         seasonal_cos = np.cos(2 * np.pi * np.arange(len(data)) / 7)
 
-        X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled))
+        data2 = self.sentinel_features_data()
+
+        x2 = np.arange(len(data2)).reshape(-1,1)
+
+        X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled,data2))
 
         # Create a pipeline for Lasso regression
         lasso_pipeline = Pipeline([
@@ -136,8 +157,10 @@ class sentinel:
 
         return signals
 
-    def plot_signals(self, data):
+    def plot_signals(self):
         fig, ax = plt.subplots(figsize=(12, 8))
+
+        data = self.sentinel_data()
 
         # Plotting historical price data, dropping the first observation
         ax.plot(data.index[1:], data[self.ticker].iloc[1:], label='Price', linewidth=2)
@@ -217,11 +240,12 @@ class sentinel:
 if __name__ == "__main__":
     instance = sentinel(start_date="2022-01-01",end_date="2024-01-01",
                         ticker="TSLA")
+    f4 = instance.sentinel_features_data()
     k = instance.sentinel_data()
     f = instance.generate_signals()
 
     # 3. Plot signals on the price chart
-    instance.plot_signals(k)
+    instance.plot_signals()
     f1=instance.backtest()
 
 
