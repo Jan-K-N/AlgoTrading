@@ -12,19 +12,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 sys.path.append("..")
-from sklearn.linear_model import LinearRegression
+from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from data.finance_database import Database
-from sklearn.preprocessing import PolynomialFeatures
-from statsmodels.tsa.arima.model import ARIMA
 from sklearn.model_selection import GridSearchCV
 from statsmodels.tsa.seasonal import seasonal_decompose
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Lasso
-from sklearn.linear_model import ElasticNet
 from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import StandardScaler
+from algo_scrapers.s_and_p_scraper import SAndPScraper
 
 class sentinel:
 
@@ -50,21 +48,24 @@ class sentinel:
 
         return data
 
-    def sentinel_features_data(self,ticker="TSLA"):
+    def sentinel_features_data(self, y_ticker="TSLA"):
         """
         This method should be used to create a dataframe containing the
         variables which are most correlated with a given ticker/stock
         Returns:
-
         """
 
-        feature_set = ["RIVN","LCID","STLA"]
+        scraper = SAndPScraper()
+        feature_set = scraper.run_scraper()
 
         sentinel_features = pd.DataFrame()
         for ticker in feature_set:
+            sentinel_features[ticker] = Database.get_price_data(self, ticker=ticker, start=self.start_date,
+                                                                end=self.end_date)['Adj Close']
 
-            sentinel_features[ticker] = Database.get_price_data(self,ticker=ticker,start=self.start_date,
-                                                        end=self.end_date)['Adj Close']
+        # Drop the column corresponding to self.ticker if it exists
+        if y_ticker in sentinel_features.columns:
+            sentinel_features.drop(columns=y_ticker, inplace=True)
 
         return sentinel_features
     def generate_signals(self):
@@ -88,76 +89,6 @@ class sentinel:
         Returns:
 
         """
-            # data = self.sentinel_data()
-            # signals = pd.DataFrame(index=data.index)
-            # signals['signal'] = 0.0
-            #
-            # x = np.arange(len(data)).reshape(-1, 1)
-            # y = data.values.reshape(-1, 1)
-            #
-            # # Incorporate seasonal component into the feature matrix
-            # decomposition = seasonal_decompose(data[self.ticker], model='additive', period=7)
-            # seasonal = decomposition.seasonal
-            #
-            # # Scale the seasonal component to increase its weight
-            # seasonal_scaled = seasonal  # Adjust the scaling factor as needed
-            #
-            # # Use sine and cosine functions to represent seasonal patterns
-            # seasonal_sin = np.sin(2 * np.pi * np.arange(len(data)) / 7)
-            # seasonal_cos = np.cos(2 * np.pi * np.arange(len(data)) / 7)
-            #
-            # data2 = self.sentinel_features_data()
-            #
-            # x2 = np.arange(len(data2)).reshape(-1,1)
-            #
-            # X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled,data2))
-            #
-            # # Create a pipeline for Lasso regression
-            # lasso_pipeline = Pipeline([
-            #     ('scaler', StandardScaler()),
-            #     ('lasso', Lasso(alpha=0.1))
-            # ])
-            #
-            # # Fit Lasso regression
-            # lasso_pipeline.fit(X, y)
-            #
-            # # Transform the features using Lasso
-            # X_lasso = lasso_pipeline['scaler'].transform(X)
-            #
-            # # Create a pipeline for Gradient Boosting Regressor
-            # gbr_pipeline = Pipeline([
-            #     ('gbr', GradientBoostingRegressor())
-            # ])
-            #
-            # # Define hyperparameters grid for GridSearchCV
-            # param_grid = {
-            #     'gbr__n_estimators': [50, 100, 200, 500],  # Adjust number of boosting stages
-            #     'gbr__max_depth': [3, 4, 5, 6],  # Adjust maximum depth of individual trees
-            #     'gbr__learning_rate': [0.01, 0.1, 0.2, 0.5]  # Adjust learning rate
-            # }
-            #
-            # # Perform grid search with cross-validation
-            # grid_search = GridSearchCV(gbr_pipeline, param_grid, cv=10, scoring='neg_mean_squared_error')
-            # grid_search.fit(X_lasso, y)
-            #
-            # # Get the best model from grid search
-            # best_model = grid_search.best_estimator_
-            #
-            # for i in range(len(data)):
-            #     # Use the best model for 1-step ahead prediction
-            #     forecast = best_model.predict(X_lasso[i].reshape(1, -1))
-            #
-            #     # Determine the direction of the forecasted market movement
-            #     if forecast > data.iloc[i].values:  # If forecast is greater than the observed value
-            #         signals.loc[data.index[i], 'signal'] = 1.0  # Go long
-            #     else:
-            #         signals.loc[data.index[i], 'signal'] = -1.0  # Go short
-            #
-            # # Generate trading orders
-            # signals['positions'] = signals['signal'].diff().fillna(0)
-            #
-            #
-            # return signals
         data = self.sentinel_data()
         signals = pd.DataFrame(index=data.index)
         signals['signal'] = 0.0
@@ -178,16 +109,15 @@ class sentinel:
 
         data2 = self.sentinel_features_data()
 
-        x2 = np.arange(len(data2)).reshape(-1, 1)
 
         X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled, data2))
-        # X = np.column_stack((x, seasonal_scaled, data2))
 
         # Split the data into training and test sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
         # Create a pipeline for Lasso regression
         lasso_pipeline = Pipeline([
+            ('imputer', SimpleImputer(strategy='mean')), # Impute missing values by mean.
             ('scaler', StandardScaler()),
             ('lasso', Lasso(alpha=0.1))
         ])
@@ -196,29 +126,35 @@ class sentinel:
         lasso_pipeline.fit(X_train, y_train)
 
         # Transform the features using Lasso
+        X_test_lasso = lasso_pipeline['imputer'].transform(X_test)
         X_test_lasso = lasso_pipeline['scaler'].transform(X_test)
+        X_train_lasso = lasso_pipeline.fit_transform(X_train, y_train)
 
         # Create a pipeline for Gradient Boosting Regressor
         gbr_pipeline = Pipeline([
+            ('scaler', StandardScaler()),
             ('gbr', GradientBoostingRegressor())
         ])
 
         # Define hyperparameters grid for GridSearchCV
         param_grid = {
-            'gbr__n_estimators': [50, 100, 200, 500],  # Adjust number of boosting stages
-            'gbr__max_depth': [3, 4, 5, 6],  # Adjust maximum depth of individual trees
-            'gbr__learning_rate': [0.01, 0.1, 0.2, 0.5]  # Adjust learning rate
+            'gbr__n_estimators': [50, 100, 300],  # Adjust number of boosting stages
+            'gbr__max_depth': [3, 4, 5],  # Adjust maximum depth of individual trees
+            'gbr__learning_rate': [0.01, 0.1, 0.2]  # Adjust learning rate
         }
 
         # Perform grid search with cross-validation
         grid_search = GridSearchCV(gbr_pipeline, param_grid, cv=10, scoring='neg_mean_squared_error')
-        grid_search.fit(X_train, y_train)
+        grid_search.fit(X_train_lasso, y_train)
+
+        # Transform the test data using the same scaler
+        X_test_lasso_scaled = lasso_pipeline['scaler'].transform(X_test_lasso)
 
         # Get the best model from grid search
         best_model = grid_search.best_estimator_
 
         # Make predictions on the test set
-        y_pred = best_model.predict(X_test_lasso)
+        y_pred = best_model.predict(X_test_lasso_scaled)
 
         # Compute RMSE
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
