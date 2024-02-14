@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append("..")
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 from data.finance_database import Database
 from sklearn.preprocessing import PolynomialFeatures
 from statsmodels.tsa.arima.model import ARIMA
@@ -23,6 +24,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Lasso
 from sklearn.linear_model import ElasticNet
+from sklearn.metrics import mean_squared_error
 
 class sentinel:
 
@@ -86,6 +88,76 @@ class sentinel:
         Returns:
 
         """
+            # data = self.sentinel_data()
+            # signals = pd.DataFrame(index=data.index)
+            # signals['signal'] = 0.0
+            #
+            # x = np.arange(len(data)).reshape(-1, 1)
+            # y = data.values.reshape(-1, 1)
+            #
+            # # Incorporate seasonal component into the feature matrix
+            # decomposition = seasonal_decompose(data[self.ticker], model='additive', period=7)
+            # seasonal = decomposition.seasonal
+            #
+            # # Scale the seasonal component to increase its weight
+            # seasonal_scaled = seasonal  # Adjust the scaling factor as needed
+            #
+            # # Use sine and cosine functions to represent seasonal patterns
+            # seasonal_sin = np.sin(2 * np.pi * np.arange(len(data)) / 7)
+            # seasonal_cos = np.cos(2 * np.pi * np.arange(len(data)) / 7)
+            #
+            # data2 = self.sentinel_features_data()
+            #
+            # x2 = np.arange(len(data2)).reshape(-1,1)
+            #
+            # X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled,data2))
+            #
+            # # Create a pipeline for Lasso regression
+            # lasso_pipeline = Pipeline([
+            #     ('scaler', StandardScaler()),
+            #     ('lasso', Lasso(alpha=0.1))
+            # ])
+            #
+            # # Fit Lasso regression
+            # lasso_pipeline.fit(X, y)
+            #
+            # # Transform the features using Lasso
+            # X_lasso = lasso_pipeline['scaler'].transform(X)
+            #
+            # # Create a pipeline for Gradient Boosting Regressor
+            # gbr_pipeline = Pipeline([
+            #     ('gbr', GradientBoostingRegressor())
+            # ])
+            #
+            # # Define hyperparameters grid for GridSearchCV
+            # param_grid = {
+            #     'gbr__n_estimators': [50, 100, 200, 500],  # Adjust number of boosting stages
+            #     'gbr__max_depth': [3, 4, 5, 6],  # Adjust maximum depth of individual trees
+            #     'gbr__learning_rate': [0.01, 0.1, 0.2, 0.5]  # Adjust learning rate
+            # }
+            #
+            # # Perform grid search with cross-validation
+            # grid_search = GridSearchCV(gbr_pipeline, param_grid, cv=10, scoring='neg_mean_squared_error')
+            # grid_search.fit(X_lasso, y)
+            #
+            # # Get the best model from grid search
+            # best_model = grid_search.best_estimator_
+            #
+            # for i in range(len(data)):
+            #     # Use the best model for 1-step ahead prediction
+            #     forecast = best_model.predict(X_lasso[i].reshape(1, -1))
+            #
+            #     # Determine the direction of the forecasted market movement
+            #     if forecast > data.iloc[i].values:  # If forecast is greater than the observed value
+            #         signals.loc[data.index[i], 'signal'] = 1.0  # Go long
+            #     else:
+            #         signals.loc[data.index[i], 'signal'] = -1.0  # Go short
+            #
+            # # Generate trading orders
+            # signals['positions'] = signals['signal'].diff().fillna(0)
+            #
+            #
+            # return signals
         data = self.sentinel_data()
         signals = pd.DataFrame(index=data.index)
         signals['signal'] = 0.0
@@ -106,9 +178,13 @@ class sentinel:
 
         data2 = self.sentinel_features_data()
 
-        x2 = np.arange(len(data2)).reshape(-1,1)
+        x2 = np.arange(len(data2)).reshape(-1, 1)
 
-        X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled,data2))
+        X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled, data2))
+        # X = np.column_stack((x, seasonal_scaled, data2))
+
+        # Split the data into training and test sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
         # Create a pipeline for Lasso regression
         lasso_pipeline = Pipeline([
@@ -117,10 +193,10 @@ class sentinel:
         ])
 
         # Fit Lasso regression
-        lasso_pipeline.fit(X, y)
+        lasso_pipeline.fit(X_train, y_train)
 
         # Transform the features using Lasso
-        X_lasso = lasso_pipeline['scaler'].transform(X)
+        X_test_lasso = lasso_pipeline['scaler'].transform(X_test)
 
         # Create a pipeline for Gradient Boosting Regressor
         gbr_pipeline = Pipeline([
@@ -136,24 +212,41 @@ class sentinel:
 
         # Perform grid search with cross-validation
         grid_search = GridSearchCV(gbr_pipeline, param_grid, cv=10, scoring='neg_mean_squared_error')
-        grid_search.fit(X_lasso, y)
+        grid_search.fit(X_train, y_train)
 
         # Get the best model from grid search
         best_model = grid_search.best_estimator_
 
-        for i in range(len(data)):
-            # Use the best model for 1-step ahead prediction
-            forecast = best_model.predict(X_lasso[i].reshape(1, -1))
+        # Make predictions on the test set
+        y_pred = best_model.predict(X_test_lasso)
 
-            # Determine the direction of the forecasted market movement
-            if forecast > data.iloc[i].values:  # If forecast is greater than the observed value
-                signals.loc[data.index[i], 'signal'] = 1.0  # Go long
-            else:
-                signals.loc[data.index[i], 'signal'] = -1.0  # Go short
+        # Compute RMSE
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
-        # Generate trading orders
-        signals['positions'] = signals['signal'].diff().fillna(0)
+        # Set threshold
+        threshold = 5  # Define your threshold value
 
+        # Use the forecast if RMSE is below the threshold
+        if rmse <= threshold:
+            print("Forecast RMSE is below the threshold. Using the forecast.")
+
+            # Iterate over the data and generate signals
+            for i in range(len(data)):
+                # Use the best model for 1-step ahead prediction
+                forecast = best_model.predict(X[i].reshape(1, -1))
+
+                # Determine the direction of the forecasted market movement
+                if forecast > data.iloc[i].values:  # If forecast is greater than the observed value
+                    signals.loc[data.index[i], 'signal'] = 1.0  # Go long
+                else:
+                    signals.loc[data.index[i], 'signal'] = -1.0  # Go short
+
+            # Generate trading orders
+            signals['positions'] = signals['signal'].diff().fillna(0)
+
+        else:
+            print("Forecast RMSE is above the threshold. Discarding the forecast.")
+            # Handle the case where the forecast does not meet the threshold
 
         return signals
 
@@ -238,7 +331,7 @@ class sentinel:
 
 
 if __name__ == "__main__":
-    instance = sentinel(start_date="2022-01-01",end_date="2024-01-01",
+    instance = sentinel(start_date="2023-06-01",end_date="2024-01-01",
                         ticker="TSLA")
     f4 = instance.sentinel_features_data()
     k = instance.sentinel_data()
