@@ -5,6 +5,9 @@ from datetime import date, timedelta
 import yfinance as yf
 import pandas as pd
 import sqlite3
+import sys
+sys.path.insert(0,'..')
+from algo_scrapers.s_and_p_scraper import SAndPScraper
 
 class Database():
     """
@@ -44,6 +47,34 @@ class Database():
         """
         if self.conn:
             self.conn.close()
+
+    def insert_price_data_to_sqlite(self, db_path, table_name):
+        """
+        Fetches price data using the get_price_data method and inserts it into a SQLite database table.
+
+        Args:
+            db_path (str): The path to the SQLite database file.
+            table_name (str): The name of the table in the database.
+
+        Returns:
+            None
+        """
+        # Establish connection to the SQLite database
+        self.connect_to_database(db_path)
+
+        # Get price data using get_price_data method
+        tickers_list0 = SAndPScraper()
+        tickers_list = tickers_list0.run_scraper()
+        for ticker in tickers_list:
+
+            price_data = self.get_price_data(ticker=ticker)
+
+            # Insert data into the SQLite database table
+            price_data.to_sql(table_name, self.conn, if_exists='replace', index_label='Date')
+
+            # Commit changes and close connection
+            self.conn.commit()
+            self.close_connection()
 
     def get_price_data(self, start=None, end=None, ticker=None):
         """Fetches the historical price data of a stock.
