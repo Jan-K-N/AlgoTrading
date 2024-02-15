@@ -4,6 +4,7 @@ Main Finance Database script.
 from datetime import date, timedelta
 import yfinance as yf
 import pandas as pd
+import sqlite3
 
 class Database():
     """
@@ -18,6 +19,32 @@ class Database():
         self.start = start
         self.end = end
         self.ticker = ticker
+        self.conn = None
+        self.cursor = None
+
+    def connect_to_database(self,db_path):
+        """
+        Establishes connection to the SQLite database.
+
+        Args:
+            db_path (str): The path to the SQLite database file.
+
+        Returns:
+            None
+        """
+        self.conn = sqlite3.connect(db_path)
+        self.cursor = self.conn.cursor()
+
+    def close_connection(self):
+        """
+        Closes the connection to the SQLite database.
+
+        Returns:
+            None
+        """
+        if self.conn:
+            self.conn.close()
+
     def get_price_data(self, start=None, end=None, ticker=None):
         """Fetches the historical price data of a stock.
 
