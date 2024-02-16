@@ -264,18 +264,3 @@ if __name__ == "__main__":
 
     # Schedule the insertion of price data every minute
     db_scheduler.schedule_insert_price_data()
-
-
-# if __name__ == "__main__":
-#     tickers_list0 = SAndPScraper()
-#     tickers_list = tickers_list0.run_scraper()
-#
-#     data_frames = []
-#     for ticker in tickers_list:
-#         instance_database = Database()
-#         data = instance_database.retrieve_data_from_database(start_date="2020-04-01", end_date="2021-10-01",
-#                                                              ticker_symbol=ticker,
-#                                                              db_path="/Users/jankindtnielsen/Documents/SandP.db")
-#         data_frames.append(data)
-
-print("k")
