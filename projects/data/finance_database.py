@@ -8,13 +8,13 @@ import sqlite3
 import sys
 sys.path.insert(0,'..')
 from algo_scrapers.s_and_p_scraper import SAndPScraper
-
+from datetime import datetime
 class Database():
     """
     This is the main class for the AlgoTrading database. The database consists of various
     functions, which download different types of data.
     """
-    def __init__(self, start=None, end=None, ticker=None):
+    def __init__(self, start=None, end=None, ticker=None,scraper=None):
         if end is None:
             end = date.today().strftime("%Y-%m-%d")
         if start is None:
@@ -24,6 +24,7 @@ class Database():
         self.ticker = ticker
         self.conn = None
         self.cursor = None
+        self.scraper = scraper
 
     def connect_to_database(self,db_path):
         """
@@ -48,28 +49,33 @@ class Database():
         if self.conn:
             self.conn.close()
 
-    def insert_price_data_to_sqlite(self, db_path, table_name):
+    def insert_price_data_to_sqlite(self, db_path):
         """
-        Fetches price data using the get_price_data method and inserts it into a SQLite database table.
+        Fetches price data for all tickers for a given date and inserts it into a SQLite database table.
 
         Args:
             db_path (str): The path to the SQLite database file.
             table_name (str): The name of the table in the database.
+            date (str): The date for which data needs to be inserted in the format 'YYYY-MM-DD'.
 
         Returns:
             None
         """
+
+        # Get list of tickers
+        instance  = self.scraper
+        tickers_list = instance.run_scraper()
+
         # Establish connection to the SQLite database
         self.connect_to_database(db_path)
 
-        # Get price data using get_price_data method
-        tickers_list0 = SAndPScraper()
-        tickers_list = tickers_list0.run_scraper()
+        # Iterate over each ticker and fetch data for the given date
         for ticker in tickers_list:
-            price_data = self.get_price_data(ticker=ticker)
+            price_data = self.get_price_data(start=self.start, end=self.end, ticker=ticker)
 
             # Insert data into the SQLite database table
-            price_data.to_sql(table_name, self.conn, if_exists='replace', index_label='Date')
+            if not price_data.empty:
+                price_data.to_sql(ticker, self.conn, if_exists='append', index_label='Date')
 
         # Commit changes and close connection
         self.conn.commit()
@@ -172,8 +178,47 @@ class Database():
         daily_returns = daily_returns.dropna()
         return daily_returns
 
+    def retrieve_data_from_database(self, start_date, end_date, ticker_symbol, db_path):
+        """
+        Retrieves data from the database for a given time period and ticker symbol.
+
+        Args:
+            start_date (str): The start date in the format 'YYYY-MM-DD'.
+            end_date (str): The end date in the format 'YYYY-MM-DD'.
+            ticker_symbol (str): The ticker symbol indicating the table name in the database.
+            db_path (str): The path to the SQLite database file.
+
+        Returns:
+            pandas.DataFrame: A DataFrame containing the retrieved data.
+        """
+        # Establish connection to the SQLite database
+        self.connect_to_database(db_path)
+
+        # Construct query to retrieve data from the specified table for the given time period
+        query = f"SELECT * FROM {ticker_symbol} WHERE Date BETWEEN '{start_date}' AND '{end_date}'"
+
+        # Execute query and fetch data
+        self.cursor.execute(query)
+        data = self.cursor.fetchall()
+
+        # Convert fetched data into DataFrame
+        columns = [description[0] for description in self.cursor.description]
+        df = pd.DataFrame(data, columns=columns)
+
+        # Close connection to the database
+        self.close_connection()
+
+        return df
+
 if __name__ == "__main__":
-    k = Database(start="2020-01-01",end="2021-01-01")
-    k1 = k.insert_price_data_to_sqlite(db_path="/Users/jankindtnielsen/Documents/test.db"
-                                              ,table_name="test")
-    print("k")
+    tickers_list = ['TSLA','AAPL']
+
+    data_frames = []
+    for ticker in tickers_list:
+        instance_database = Database()
+        data = instance_database.retrieve_data_from_database(start_date="2020-04-01", end_date="2021-10-01",
+                                                             ticker_symbol=ticker,
+                                                             db_path="/Users/jankindtnielsen/Documents/SandP.db")
+        data_frames.append(data)
+
+print("k")
