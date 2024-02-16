@@ -66,15 +66,14 @@ class Database():
         tickers_list0 = SAndPScraper()
         tickers_list = tickers_list0.run_scraper()
         for ticker in tickers_list:
-
             price_data = self.get_price_data(ticker=ticker)
 
             # Insert data into the SQLite database table
             price_data.to_sql(table_name, self.conn, if_exists='replace', index_label='Date')
 
-            # Commit changes and close connection
-            self.conn.commit()
-            self.close_connection()
+        # Commit changes and close connection
+        self.conn.commit()
+        self.close_connection()
 
     def get_price_data(self, start=None, end=None, ticker=None):
         """Fetches the historical price data of a stock.
@@ -172,3 +171,9 @@ class Database():
         # Drop 'NaN' values
         daily_returns = daily_returns.dropna()
         return daily_returns
+
+if __name__ == "__main__":
+    k = Database(start="2020-01-01",end="2021-01-01")
+    k1 = k.insert_price_data_to_sqlite(db_path="/Users/jankindtnielsen/Documents/test.db"
+                                              ,table_name="test")
+    print("k")
