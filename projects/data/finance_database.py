@@ -8,6 +8,8 @@ import sqlite3
 import sys
 sys.path.insert(0,'..')
 from algo_scrapers.s_and_p_scraper import SAndPScraper
+import schedule
+import time
 from datetime import datetime
 class Database():
     """
@@ -192,33 +194,88 @@ class Database():
             pandas.DataFrame: A DataFrame containing the retrieved data.
         """
         # Establish connection to the SQLite database
-        self.connect_to_database(db_path)
+        try:
+            self.connect_to_database(db_path)
 
-        # Construct query to retrieve data from the specified table for the given time period
-        query = f"SELECT * FROM {ticker_symbol} WHERE Date BETWEEN '{start_date}' AND '{end_date}'"
+            # Construct query to retrieve data from the specified table for the given time period
+            query = f"SELECT * FROM {ticker_symbol} WHERE Date BETWEEN '{start_date}' AND '{end_date}'"
 
-        # Execute query and fetch data
-        self.cursor.execute(query)
-        data = self.cursor.fetchall()
+            # Execute query and fetch data
+            self.cursor.execute(query)
+            data = self.cursor.fetchall()
 
-        # Convert fetched data into DataFrame
-        columns = [description[0] for description in self.cursor.description]
-        df = pd.DataFrame(data, columns=columns)
+            # Convert fetched data into DataFrame
+            columns = [description[0] for description in self.cursor.description]
+            df = pd.DataFrame(data, columns=columns)
 
-        # Close connection to the database
-        self.close_connection()
+            # Close connection to the database
+            self.close_connection()
 
-        return df
+            return df
+        except Exception as e:
+            print(f"Error retrieving data for ticker symbol {ticker_symbol}")
+
+class DatabaseScheduler:
+    """
+    This is the class to run the Database on a schedule.
+    """
+    def __init__(self,instance_database,db_path):
+        self.instance_database = instance_database
+        self.db_path = db_path
+
+    def run_insert_price_data(self):
+        """
+        Method to run and insert the data to the database.
+        Returns:
+
+        """
+        print("Inserting price data to database...")
+        self.instance_database.insert_price_data_to_sqlite(db_path=self.db_path)
+        print("Price data insertion complete.")
+
+    def schedule_insert_price_data(self): #, interval_hours
+        """
+        Method to do the actual scheduling.
+        Args:
+            interval_hours: Argument to determining how many hours
+                we want between each run.
+
+        Returns:
+
+        """
+        # schedule.every(interval_hours).hours.do(self.run_insert_price_data)
+        schedule.every().minute.do(self.run_insert_price_data)
+
+        while True:
+            schedule.run_pending()
+            time.sleep(1)  # Sleep for 1 second to avoid high CPU usage
+
+
+        while True:
+            schedule.run_pending()
+            time.sleep(60)  # Sleep for 60 seconds to avoid high CPU usage
 
 if __name__ == "__main__":
-    tickers_list = ['TSLA','AAPL']
+    tickers_list0 = SAndPScraper()
+    tickers_list = tickers_list0.run_scraper()
 
-    data_frames = []
-    for ticker in tickers_list:
-        instance_database = Database()
-        data = instance_database.retrieve_data_from_database(start_date="2020-04-01", end_date="2021-10-01",
-                                                             ticker_symbol=ticker,
-                                                             db_path="/Users/jankindtnielsen/Documents/SandP.db")
-        data_frames.append(data)
+    instance_database = Database(start="2020-04-01", end=datetime.today().strftime("%Y-%m-%d"), scraper=tickers_list0)
+    db_scheduler = DatabaseScheduler(instance_database, db_path="/Users/jankindtnielsen/Documents/SandP.db")
+
+    # Schedule the insertion of price data every minute
+    db_scheduler.schedule_insert_price_data()
+
+
+# if __name__ == "__main__":
+#     tickers_list0 = SAndPScraper()
+#     tickers_list = tickers_list0.run_scraper()
+#
+#     data_frames = []
+#     for ticker in tickers_list:
+#         instance_database = Database()
+#         data = instance_database.retrieve_data_from_database(start_date="2020-04-01", end_date="2021-10-01",
+#                                                              ticker_symbol=ticker,
+#                                                              db_path="/Users/jankindtnielsen/Documents/SandP.db")
+#         data_frames.append(data)
 
 print("k")
