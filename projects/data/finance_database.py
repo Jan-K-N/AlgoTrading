@@ -1,16 +1,22 @@
 """
-Main Finance Database script.
+Main Finance Database script. The script will create a
+database folder on the users desktop in which the data
+files are stored.
 """
+import os
 from datetime import date, timedelta
 import yfinance as yf
 import pandas as pd
 import sqlite3
 import sys
+from pathlib import Path
 sys.path.insert(0,'..')
 from algo_scrapers.s_and_p_scraper import SAndPScraper
 import schedule
 import time
 from datetime import datetime
+
+
 class Database():
     """
     This is the main class for the AlgoTrading database. The database consists of various
@@ -233,7 +239,7 @@ class DatabaseScheduler:
         self.instance_database.insert_price_data_to_sqlite(db_path=self.db_path)
         print("Price data insertion complete.")
 
-    def schedule_insert_price_data(self): #, interval_hours
+    def schedule_insert_price_data(self, interval_hours): #
         """
         Method to do the actual scheduling.
         Args:
@@ -243,13 +249,12 @@ class DatabaseScheduler:
         Returns:
 
         """
-        # schedule.every(interval_hours).hours.do(self.run_insert_price_data)
-        schedule.every().minute.do(self.run_insert_price_data)
+        schedule.every(interval_hours).hours.do(self.run_insert_price_data)
+        #schedule.every().minute.do(self.run_insert_price_data)
 
         while True:
             schedule.run_pending()
-            time.sleep(1)  # Sleep for 1 second to avoid high CPU usage
-
+            time.sleep(60)  # Sleep for 1 second to avoid high CPU usage
 
         while True:
             schedule.run_pending()
@@ -259,8 +264,17 @@ if __name__ == "__main__":
     tickers_list0 = SAndPScraper()
     tickers_list = tickers_list0.run_scraper()
 
-    instance_database = Database(start="2020-04-01", end=datetime.today().strftime("%Y-%m-%d"), scraper=tickers_list0)
-    db_scheduler = DatabaseScheduler(instance_database, db_path="/Users/jankindtnielsen/Documents/SandP.db")
+    instance_database = Database(start="2019-01-01", end=datetime.today().strftime("%Y-%m-%d"), scraper=tickers_list0)
+
+    # Create the 'Database' folder on the user's desktop if it doesn't exist
+    desktop_path = Path.home() / "Desktop"
+    database_folder_path = desktop_path / "Database"
+    if not database_folder_path.exists():
+        os.makedirs(database_folder_path)
+
+    db_path = database_folder_path / "SandP.db"
+
+    db_scheduler = DatabaseScheduler(instance_database, db_path=db_path)
 
     # Schedule the insertion of price data every minute
-    db_scheduler.schedule_insert_price_data()
+    db_scheduler.schedule_insert_price_data(interval_hours=0.01)
