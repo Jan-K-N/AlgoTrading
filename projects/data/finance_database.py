@@ -9,6 +9,9 @@ from datetime import date, timedelta, datetime
 import sqlite3
 import sys
 from pathlib import Path
+
+import pandas.errors
+
 sys.path.insert(0,'..')
 from algo_scrapers.s_and_p_scraper import SAndPScraper
 import os
@@ -232,8 +235,12 @@ class Database():
             self.close_connection()
 
             return df
-        except Exception:
-            print(f"Error retrieving data for ticker symbol {ticker_symbol}")
+        except sqlite3.Error as e:
+            print(f"SQLite error : {e}")
+            return pd.DataFrame()
+        except pandas.errors.EmptyDataError:
+            print(f"No data available for ticker symbol {ticker_symbol}")
+            return pd.DataFrame()
 
 class DatabaseScheduler:
     """
