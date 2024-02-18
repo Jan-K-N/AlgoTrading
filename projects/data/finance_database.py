@@ -3,26 +3,39 @@ Main Finance Database script. The script will create a
 database folder on the users desktop in which the data
 files are stored.
 """
-import os
-from datetime import date, timedelta
-import yfinance as yf
-import pandas as pd
+# pylint: disable=wrong-import-position.
+# pylint: disable=wrong-import-order.
+from datetime import date, timedelta, datetime
 import sqlite3
 import sys
 from pathlib import Path
 sys.path.insert(0,'..')
 from algo_scrapers.s_and_p_scraper import SAndPScraper
+import os
 import schedule
 import time
-from datetime import datetime
-
+from typing import Optional, Union
+import yfinance as yf
+import pandas as pd
 
 class Database():
     """
     This is the main class for the AlgoTrading database. The database consists of various
     functions, which download different types of data.
     """
-    def __init__(self, start=None, end=None, ticker=None,scraper=None):
+
+    def __init__(self, start: Optional[str] = None, end: Optional[str] = None,
+                 ticker: Optional[str] = None,
+                 scraper: Optional[SAndPScraper] = None):
+        """
+        Initialize the Database object.
+
+        Args:
+            start (str, optional): The start date in the format 'YYYY-MM-DD'. Defaults to None.
+            end (str, optional): The end date in the format 'YYYY-MM-DD'. Defaults to None.
+            ticker (str, optional): The stock ticker symbol. Defaults to None.
+            scraper (SAndPScraper, optional): Instance of the SAndPScraper class. Defaults to None.
+        """
         if end is None:
             end = date.today().strftime("%Y-%m-%d")
         if start is None:
@@ -34,15 +47,12 @@ class Database():
         self.cursor = None
         self.scraper = scraper
 
-    def connect_to_database(self,db_path):
+    def connect_to_database(self, db_path: str):
         """
-        Establishes connection to the SQLite database.
+        Establish connection to the SQLite database.
 
         Args:
             db_path (str): The path to the SQLite database file.
-
-        Returns:
-            None
         """
         self.conn = sqlite3.connect(db_path)
         self.cursor = self.conn.cursor()
@@ -57,17 +67,13 @@ class Database():
         if self.conn:
             self.conn.close()
 
-    def insert_price_data_to_sqlite(self, db_path):
+    def insert_price_data_to_sqlite(self, db_path: str):
         """
-        Fetches price data for all tickers for a given date and inserts it into a SQLite database table.
+        Fetches price data for all tickers for a given date and
+            inserts it into a SQLite database table.
 
         Args:
             db_path (str): The path to the SQLite database file.
-            table_name (str): The name of the table in the database.
-            date (str): The date for which data needs to be inserted in the format 'YYYY-MM-DD'.
-
-        Returns:
-            None
         """
 
         # Get list of tickers
@@ -89,21 +95,22 @@ class Database():
         self.conn.commit()
         self.close_connection()
 
-    def get_price_data(self, start=None, end=None, ticker=None):
-        """Fetches the historical price data of a stock.
+    def get_price_data(self, start: Optional[str] = None, end: Optional[str] = None,
+                       ticker: Optional[str] = None) -> Union[pd.DataFrame, None]:
+        """
+        Fetches the historical price data of a stock.
 
         Args:
-            start (str): A string representing the start date in the format 'YYYY-MM-DD'.
-            end (str): A string representing the end date in the format 'YYYY-MM-DD'.
-            ticker (str): A string representing the stock ticker symbol.
+            start (str, optional): A string representing the start date in the format
+                'YYYY-MM-DD'. Defaults to None.
+            end (str, optional): A string representing the end date in
+                the format 'YYYY-MM-DD'. Defaults to None.
+            ticker (str, optional): A string representing the
+                stock ticker symbol. Defaults to None.
 
         Returns:
-            pandas.DataFrame: A DataFrame containing the historical price data of the
-            specified stock.
-
-        Note:
-            If `ticker`, `start`, and `end` are not specified, the function will use the
-            previously set values.
+            pandas.DataFrame: A DataFrame containing the
+                historical price data of the specified stock.
 
         Raises:
             ValueError: If `ticker` is not specified.
@@ -124,27 +131,29 @@ class Database():
 
         return ticker_data
 
-    def get_dividend_data(self, start:str=None, end:str=None, ticker:str=None):
-        """Fetches dividend data for a given stock ticker between specified start and end dates.
+    def get_dividend_data(self, start: Optional[str] = None, end: Optional[str] = None,
+                          ticker: Optional[str] = None) -> pd.Series:
+        """
+        Fetches dividend data for a given stock ticker between specified start and end dates.
 
-            Args:
-                start (str): Optional. Start date in 'YYYY-MM-DD' format. Defaults to None.
-                end (str): Optional. End date in 'YYYY-MM-DD' format. Defaults to None.
-                ticker (str): Optional. Stock ticker symbol. Defaults to None.
+        Args:
+            start (str, optional): Start date in 'YYYY-MM-DD' format. Defaults to None.
+            end (str, optional): End date in 'YYYY-MM-DD' format. Defaults to None.
+            ticker (str, optional): Stock ticker symbol. Defaults to None.
 
-            Returns:
-                pandas.core.series.Series: Dividend data for the specified ticker and date range.
+        Returns:
+            pandas.core.series.Series: Dividend data for the specified ticker and date range.
 
-            Raises:
-                ValueError: If the ticker symbol is not provided.
+        Raises:
+            ValueError: If the ticker symbol is not provided.
 
-            Example:
-                To fetch dividend data for AAPL between 2020-01-01 and 2021-12-31:
+        Example:
+            To fetch dividend data for AAPL between 2020-01-01 and 2021-12-31:
 
-                >>> db = Database()
-                >>> dividends = db.get_dividend_data(start='2020-01-01',
-                >>> end='2021-12-31', ticker='AAPL')
-            """
+            >>> db = Database()
+            >>> dividends = db.get_dividend_data(start='2020-01-01',
+            >>> end='2021-12-31', ticker='AAPL')
+        """
         if ticker is not None:
             self.ticker = ticker
         if start is not None:
@@ -155,21 +164,21 @@ class Database():
         ticker_div = ticker_info.dividends
         return ticker_div
 
-    def compute_stock_return(self, start=None, end=None, ticker=None):
+    def compute_stock_return(self, start: Optional[str] = None, end: Optional[str] = None,
+                             ticker: Optional[str] = None) -> pd.Series:
         """
         Computes the daily return of a stock based on its price data.
 
         Args:
-            start (str): A string representing the start date in the format 'YYYY-MM-DD'.
-            end (str): A string representing the end date in the format 'YYYY-MM-DD'.
-            ticker (str): A string representing the stock ticker symbol.
+            start (str, optional): A string representing the
+                start date in the format 'YYYY-MM-DD'. Defaults to None.
+            end (str, optional): A string representing the
+                end date in the format 'YYYY-MM-DD'. Defaults to None.
+            ticker (str, optional): A string representing the
+                stock ticker symbol. Defaults to None.
 
         Returns:
             pandas.Series: The computed daily return of the stock.
-
-        Note:
-            If `ticker`, `start`, and `end` are not specified, the function will use the
-            previously set values.
 
         Raises:
             ValueError: If `ticker` is not specified.
@@ -184,9 +193,13 @@ class Database():
 
         # Drop 'NaN' values
         daily_returns = daily_returns.dropna()
+
         return daily_returns
 
-    def retrieve_data_from_database(self, start_date, end_date, ticker_symbol, db_path):
+    def retrieve_data_from_database(self, start_date: str,
+                                    end_date: str,
+                                    ticker_symbol: str,
+                                    db_path: str) -> pd.DataFrame:
         """
         Retrieves data from the database for a given time period and ticker symbol.
 
@@ -204,7 +217,8 @@ class Database():
             self.connect_to_database(db_path)
 
             # Construct query to retrieve data from the specified table for the given time period
-            query = f"SELECT * FROM {ticker_symbol} WHERE Date BETWEEN '{start_date}' AND '{end_date}'"
+            query = (f"SELECT * FROM {ticker_symbol}"
+                     f" WHERE Date BETWEEN '{start_date}' AND '{end_date}'")
 
             # Execute query and fetch data
             self.cursor.execute(query)
@@ -218,39 +232,38 @@ class Database():
             self.close_connection()
 
             return df
-        except Exception as e:
+        except Exception:
             print(f"Error retrieving data for ticker symbol {ticker_symbol}")
 
 class DatabaseScheduler:
     """
     This is the class to run the Database on a schedule.
     """
-    def __init__(self,instance_database,db_path):
+    def __init__(self, instance_database: Database, db_path: str):
+        """
+        Initialize the DatabaseScheduler object.
+
+        Args:
+            instance_database (Database): An instance of the Database class.
+            db_path (str): The path to the SQLite database file.
+        """
         self.instance_database = instance_database
         self.db_path = db_path
 
     def run_insert_price_data(self):
-        """
-        Method to run and insert the data to the database.
-        Returns:
-
-        """
+        """Method to run and insert the data to the database."""
         print("Inserting price data to database...")
         self.instance_database.insert_price_data_to_sqlite(db_path=self.db_path)
         print("Price data insertion complete.")
 
-    def schedule_insert_price_data(self, interval_hours): #
+    def schedule_insert_price_data(self, interval_hours: float):
         """
         Method to do the actual scheduling.
+
         Args:
-            interval_hours: Argument to determining how many hours
-                we want between each run.
-
-        Returns:
-
+            interval_hours (float): The number of hours between each run.
         """
         schedule.every(interval_hours).hours.do(self.run_insert_price_data)
-        #schedule.every().minute.do(self.run_insert_price_data)
 
         while True:
             schedule.run_pending()
@@ -264,7 +277,9 @@ if __name__ == "__main__":
     tickers_list0 = SAndPScraper()
     tickers_list = tickers_list0.run_scraper()
 
-    instance_database = Database(start="2019-01-01", end=datetime.today().strftime("%Y-%m-%d"), scraper=tickers_list0)
+    instance_database = Database(start="2019-01-01",
+                                 end=datetime.today().strftime("%Y-%m-%d"),
+                                 scraper=tickers_list0)
 
     # Create the 'Database' folder on the user's desktop if it doesn't exist
     desktop_path = Path.home() / "Desktop"
