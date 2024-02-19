@@ -422,7 +422,7 @@ class Algo1Backtest:
         correlation_list = []
 
         for ticker in self.tickers_list:
-            target_series = data_downloader.compute_stock_return(start=self.start_date,
+            target_series_data = data_downloader.compute_stock_return(start=self.start_date,
                                                      end=self.end_date,
                                                      ticker=ticker)
 
@@ -430,21 +430,21 @@ class Algo1Backtest:
 
             for df_return in danish_returns:
                 # Find the common start date/index
-                common_start_date = max(target_series.index.min(), df_return.index.min())
-                common_end_date = min(target_series.index.max(), df_return.index.max())
+                common_start_date = max(target_series_data.index.min(), df_return.index.min())
+                common_end_date = min(target_series_data.index.max(), df_return.index.max())
 
                 # Adjust y to start from the common start date and end at the common end date
-                target_series = target_series[(target_series.index >= common_start_date)
-                                              & (target_series.index <= common_end_date)]
+                target_series_data = target_series_data[(target_series_data.index >= common_start_date)
+                                              & (target_series_data.index <= common_end_date)]
 
                 # If the dataframe in Danish_tickers is shorter, drop extra rows in y
-                if len(df_return) < len(target_series):
-                    target_series = target_series.iloc[:len(df_return)]
-                elif len(target_series) < len(df_return):
-                    df_return = df_return.iloc[:len(target_series)]
+                if len(df_return) < len(target_series_data):
+                    target_series_data = target_series_data.iloc[:len(df_return)]
+                elif len(target_series_data) < len(df_return):
+                    df_return = df_return.iloc[:len(target_series_data)]
 
                 # Extract Series from DataFrames
-                target_series_squeezed = target_series.squeeze()
+                target_series_squeezed = target_series_data.squeeze()
                 df_series = df_return.squeeze()
 
                 # Calculate the correlation between the two Series
