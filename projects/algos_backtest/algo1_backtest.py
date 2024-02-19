@@ -422,45 +422,49 @@ class Algo1Backtest:
         correlation_list = []
 
         for ticker in self.tickers_list:
-            target_series_data = data_downloader.compute_stock_return(start=self.start_date,
-                                                                      end=self.end_date,
-                                                                      ticker=ticker)
+            try:
+                target_series_data = data_downloader.compute_stock_return(start=self.start_date,
+                                                                          end=self.end_date,
+                                                                          ticker=ticker)
 
-            ticker_correlations = []  # Initialize a list to store correlations for this ticker
+                ticker_correlations = []  # Initialize a list to store correlations for this ticker
 
-            for df_return in danish_returns:
-                # Find the common start date/index
-                common_start_date = max(target_series_data.index.min(), df_return.index.min())
-                common_end_date = min(target_series_data.index.max(), df_return.index.max())
+                for df_return in danish_returns:
+                    # Find the common start date/index
+                    common_start_date = max(target_series_data.index.min(), df_return.index.min())
+                    common_end_date = min(target_series_data.index.max(), df_return.index.max())
 
-                # Adjust target_series_data to start from the common start date and end at the common end date
-                adjusted_target_series_data = target_series_data[(target_series_data.index >= common_start_date)
-                                                                 & (target_series_data.index <= common_end_date)]
+                    # Adjust target_series_data to start from the common start date and end at the common end date
+                    adjusted_target_series_data = target_series_data[(target_series_data.index >= common_start_date)
+                                                                     & (target_series_data.index <= common_end_date)]
 
-                # If the dataframe in danish_returns is shorter, drop extra rows in adjusted_target_series_data
-                if len(df_return) < len(adjusted_target_series_data):
-                    adjusted_target_series_data = adjusted_target_series_data.iloc[:len(df_return)]
-                elif len(adjusted_target_series_data) < len(df_return):
-                    df_return = df_return.iloc[:len(adjusted_target_series_data)]
+                    # If the dataframe in danish_returns is shorter, drop extra rows in adjusted_target_series_data
+                    if len(df_return) < len(adjusted_target_series_data):
+                        adjusted_target_series_data = adjusted_target_series_data.iloc[:len(df_return)]
+                    elif len(adjusted_target_series_data) < len(df_return):
+                        df_return = df_return.iloc[:len(adjusted_target_series_data)]
 
-                # Extract Series from DataFrames
-                target_series_squeezed = adjusted_target_series_data.squeeze()
-                df_series = df_return.squeeze()
+                    # Extract Series from DataFrames
+                    target_series_squeezed = adjusted_target_series_data.squeeze()
+                    df_series = df_return.squeeze()
 
-                # Calculate the correlation between the two Series
-                correlation = np.corrcoef(target_series_squeezed, df_series)[0, 1]
+                    # Calculate the correlation between the two Series
+                    correlation = np.corrcoef(target_series_squeezed, df_series)[0, 1]
 
-                # Append correlation information to the list
-                ticker_correlations.append(
-                    {'Signal ticker': ticker, 'Correlation': correlation, 'Ticker': df_series.name})
+                    # Append correlation information to the list
+                    ticker_correlations.append(
+                        {'Signal ticker': ticker, 'Correlation': correlation, 'Ticker': df_series.name})
 
-            # Create a DataFrame for this ticker's correlations
-            correlation_dataframe = pd.DataFrame(ticker_correlations)
+                # Create a DataFrame for this ticker's correlations
+                correlation_dataframe = pd.DataFrame(ticker_correlations)
 
-            # Sort the DataFrame by correlation in descending order
-            correlation_dataframe = correlation_dataframe.sort_values(by='Correlation',
-                                                                      ascending=False)
-            correlation_list.append(correlation_dataframe)
+                # Sort the DataFrame by correlation in descending order
+                correlation_dataframe = correlation_dataframe.sort_values(by='Correlation',
+                                                                          ascending=False)
+                correlation_list.append(correlation_dataframe)
+            except ValueError as error:
+                print(f"Error for {ticker}: {str(error)}")
+                continue  # Continue to the next iteration
 
         return correlation_list
 
