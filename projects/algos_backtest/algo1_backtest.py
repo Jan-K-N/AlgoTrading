@@ -462,7 +462,7 @@ class Algo1Backtest:
                 correlation_dataframe = correlation_dataframe.sort_values(by='Correlation',
                                                                           ascending=False)
                 correlation_list.append(correlation_dataframe)
-            except ValueError as error:
+            except Exception as error:
                 print(f"Error for {ticker}: {str(error)}")
                 continue  # Continue to the next iteration
 
