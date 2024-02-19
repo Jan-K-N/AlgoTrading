@@ -230,14 +230,14 @@ class Database():
 
             # Convert fetched data into DataFrame
             columns = [description[0] for description in self.cursor.description]
-            df = pd.DataFrame(data, columns=columns)
+            retrived_dataframe = pd.DataFrame(data, columns=columns)
 
             # Close connection to the database
             self.close_connection()
 
-            return df
-        except sqlite3.Error as e:
-            print(f"SQLite error : {e}")
+            return retrived_dataframe
+        except sqlite3.Error as error:
+            print(f"SQLite error : {error}")
             return pd.DataFrame()
         except pandas.errors.EmptyDataError:
             print(f"No data available for ticker symbol {ticker_symbol}")
