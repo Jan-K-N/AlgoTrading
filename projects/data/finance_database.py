@@ -5,6 +5,7 @@ files are stored.
 """
 # pylint: disable=wrong-import-position.
 # pylint: disable=wrong-import-order.
+# pylint: disable=ungrouped-imports.
 from datetime import date, timedelta, datetime
 import sqlite3
 import sys
@@ -50,14 +51,14 @@ class Database():
         self.cursor = None
         self.scraper = scraper
 
-    def connect_to_database(self, db_path: str):
+    def connect_to_database(self, database_path: str):
         """
         Establish connection to the SQLite database.
 
         Args:
-            db_path (str): The path to the SQLite database file.
+            database_path (str): The path to the SQLite database file.
         """
-        self.conn = sqlite3.connect(db_path)
+        self.conn = sqlite3.connect(database_path)
         self.cursor = self.conn.cursor()
 
     def close_connection(self):
@@ -70,13 +71,13 @@ class Database():
         if self.conn:
             self.conn.close()
 
-    def insert_price_data_to_sqlite(self, db_path: str):
+    def insert_price_data_to_sqlite(self, database_path: str):
         """
         Fetches price data for all tickers for a given date and
             inserts it into a SQLite database table.
 
         Args:
-            db_path (str): The path to the SQLite database file.
+            database_path (str): The path to the SQLite database file.
         """
 
         # Get list of tickers
@@ -84,7 +85,7 @@ class Database():
         tickers_list = instance.run_scraper()
 
         # Establish connection to the SQLite database
-        self.connect_to_database(db_path)
+        self.connect_to_database(database_path)
 
         # Iterate over each ticker and fetch data for the given date
         for ticker in tickers_list:
@@ -202,7 +203,7 @@ class Database():
     def retrieve_data_from_database(self, start_date: str,
                                     end_date: str,
                                     ticker_symbol: str,
-                                    db_path: str) -> pd.DataFrame:
+                                    database_path: str) -> pd.DataFrame:
         """
         Retrieves data from the database for a given time period and ticker symbol.
 
@@ -210,14 +211,14 @@ class Database():
             start_date (str): The start date in the format 'YYYY-MM-DD'.
             end_date (str): The end date in the format 'YYYY-MM-DD'.
             ticker_symbol (str): The ticker symbol indicating the table name in the database.
-            db_path (str): The path to the SQLite database file.
+            database_path (str): The path to the SQLite database file.
 
         Returns:
             pandas.DataFrame: A DataFrame containing the retrieved data.
         """
         # Establish connection to the SQLite database
         try:
-            self.connect_to_database(db_path)
+            self.connect_to_database(database_path)
 
             # Construct query to retrieve data from the specified table for the given time period
             query = (f"SELECT * FROM {ticker_symbol}"
@@ -246,21 +247,21 @@ class DatabaseScheduler:
     """
     This is the class to run the Database on a schedule.
     """
-    def __init__(self, instance_database: Database, db_path: str):
+    def __init__(self, instance_database: Database, database_path: str):
         """
         Initialize the DatabaseScheduler object.
 
         Args:
             instance_database (Database): An instance of the Database class.
-            db_path (str): The path to the SQLite database file.
+            database_path (str): The path to the SQLite database file.
         """
         self.instance_database = instance_database
-        self.db_path = db_path
+        self.database_path = database_path
 
     def run_insert_price_data(self):
         """Method to run and insert the data to the database."""
         print("Inserting price data to database...")
-        self.instance_database.insert_price_data_to_sqlite(db_path=self.db_path)
+        self.instance_database.insert_price_data_to_sqlite(database_path=self.database_path)
         print("Price data insertion complete.")
 
     def schedule_insert_price_data(self, interval_hours: float):
@@ -282,9 +283,8 @@ class DatabaseScheduler:
 
 if __name__ == "__main__":
     tickers_list0 = SAndPScraper()
-    tickers_list = tickers_list0.run_scraper()
 
-    instance_database = Database(start="2019-01-01",
+    instance_database0 = Database(start="2019-01-01",
                                  end=datetime.today().strftime("%Y-%m-%d"),
                                  scraper=tickers_list0)
 
@@ -296,7 +296,7 @@ if __name__ == "__main__":
 
     db_path = database_folder_path / "SandP.db"
 
-    db_scheduler = DatabaseScheduler(instance_database, db_path=db_path)
+    db_scheduler = DatabaseScheduler(instance_database0, database_path=db_path)
 
     # Schedule the insertion of price data every minute
     db_scheduler.schedule_insert_price_data(interval_hours=0.01)
