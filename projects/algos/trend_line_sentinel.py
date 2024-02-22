@@ -58,8 +58,9 @@ class sentinel:
 
         data = data_instance.retrieve_data_from_database(start_date=self.start_date,
                                                           end_date=self.end_date,
-                                                          ticker_symbol=self.ticker,
+                                                          ticker=self.ticker,
                                                           database_path=db_path)[['Date','Adj Close']]
+        data.set_index('Date',inplace=True)
 
         return data
 
