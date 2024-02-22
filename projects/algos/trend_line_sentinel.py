@@ -61,14 +61,13 @@ class sentinel:
                                                           ticker=self.ticker,
                                                           database_path=db_path)[['Date','Adj Close']]
         data.set_index('Date',inplace=True)
+        data.columns = [self.ticker]
 
         return data
 
     def sentinel_features_data(self, y_ticker="TSLA"):
         """
-        This method should be used to create a dataframe containing the
-        variables which are most correlated with a given ticker/stock
-        Returns:
+
         """
 
         scraper = SAndPScraper()
@@ -76,8 +75,7 @@ class sentinel:
 
         sentinel_features = pd.DataFrame()
         for ticker in feature_set:
-            sentinel_features[ticker] = Database.get_price_data(self, ticker=ticker, start=self.start_date,
-                                                                end=self.end_date)['Adj Close']
+            sentinel_features[ticker] = self.sentinel_data()
 
         # Drop the column corresponding to self.ticker if it exists
         if y_ticker in sentinel_features.columns:
@@ -221,12 +219,12 @@ class sentinel:
 if __name__ == "__main__":
     instance = sentinel(start_date="2023-06-01",end_date="2024-01-01",
                         ticker="TSLA")
-    # f4 = instance.sentinel_features_data()
+    f4 = instance.sentinel_features_data()
     k = instance.sentinel_data()
-    # f = instance.generate_signals()
+    f = instance.generate_signals()
 
     # # 3. Plot signals on the price chart
-    # instance.plot_signals()
+    instance.plot_signals()
     # f1=instance.backtest()
     print("k")
 
