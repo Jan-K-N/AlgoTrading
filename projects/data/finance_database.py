@@ -202,7 +202,7 @@ class Database():
 
     def retrieve_data_from_database(self, start_date: str,
                                     end_date: str,
-                                    ticker_symbol: str,
+                                    ticker: str,
                                     database_path: str) -> pd.DataFrame:
         """
         Retrieves data from the database for a given time period and ticker symbol.
@@ -210,7 +210,7 @@ class Database():
         Args:
             start_date (str): The start date in the format 'YYYY-MM-DD'.
             end_date (str): The end date in the format 'YYYY-MM-DD'.
-            ticker_symbol (str): The ticker symbol indicating the table name in the database.
+            ticker (str): The ticker symbol indicating the table name in the database.
             database_path (str): The path to the SQLite database file.
 
         Returns:
@@ -221,7 +221,7 @@ class Database():
             self.connect_to_database(database_path)
 
             # Construct query to retrieve data from the specified table for the given time period
-            query = (f"SELECT * FROM {ticker_symbol}"
+            query = (f"SELECT * FROM {ticker}"
                      f" WHERE Date BETWEEN '{start_date}' AND '{end_date}'")
 
             # Execute query and fetch data
@@ -240,7 +240,7 @@ class Database():
             print(f"SQLite error : {error}")
             return pd.DataFrame()
         except pandas.errors.EmptyDataError:
-            print(f"No data available for ticker symbol {ticker_symbol}")
+            print(f"No data available for ticker symbol {ticker}")
             return pd.DataFrame()
 
 class DatabaseScheduler:
