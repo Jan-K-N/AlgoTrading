@@ -9,6 +9,7 @@ to protect or optimize the trading strategy.
 
 import pandas as pd
 import numpy as np
+from pathlib import Path
 import matplotlib.pyplot as plt
 import sys
 sys.path.append("..")
@@ -48,9 +49,17 @@ class sentinel:
         Returns:
 
         """
-        data = Database.get_price_data(self,ticker=self.ticker,start=self.start_date,
-                                       end=self.end_date)['Adj Close']
-        data = pd.DataFrame(data.values, index=data.index, columns=[self.ticker])
+        # Construct path to database:
+        desktop_path = Path.home() / "Desktop"
+        database_folder_path = desktop_path / "Database"
+        db_path = database_folder_path / "SandP.db"
+
+        data_instance = Database(ticker=self.ticker,start=self.start_date,end=self.end_date)
+
+        data = data_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                          end_date=self.end_date,
+                                                          ticker_symbol=self.ticker,
+                                                          database_path=db_path)[['Date','Adj Close']]
 
         return data
 
@@ -211,13 +220,13 @@ class sentinel:
 if __name__ == "__main__":
     instance = sentinel(start_date="2023-06-01",end_date="2024-01-01",
                         ticker="TSLA")
-    f4 = instance.sentinel_features_data()
+    # f4 = instance.sentinel_features_data()
     k = instance.sentinel_data()
-    f = instance.generate_signals()
+    # f = instance.generate_signals()
 
     # # 3. Plot signals on the price chart
     # instance.plot_signals()
-    f1=instance.backtest()
+    # f1=instance.backtest()
     print("k")
 
 
