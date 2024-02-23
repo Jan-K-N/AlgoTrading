@@ -143,13 +143,18 @@ class sentinel:
 
         # Define hyperparameters grid for GridSearchCV
         param_grid = {
-            'mlp__hidden_layer_sizes': [(50,), (100,), (50, 50)],  # Adjust number of hidden layers and units
+            'mlp__hidden_layer_sizes': [(500,),
+                                        (50,50,50,50,50),
+                                        (1000,),
+                                        (300, 300),
+                                        (500, 500),
+                                        (200, 200,200)],  # Adjust number of hidden layers and units
             'mlp__activation': ['relu', 'tanh'],  # Activation function options
-            'mlp__alpha': [0.0001, 0.001, 0.01],  # Regularization parameter
+            'mlp__alpha': [0.0001, 0.01, 0.1],  # Regularization parameter
         }
 
         # Perform grid search with cross-validation
-        grid_search = GridSearchCV(nn_pipeline, param_grid, cv=10, scoring='neg_mean_squared_error')
+        grid_search = GridSearchCV(nn_pipeline, param_grid, cv=5, scoring='neg_mean_squared_error')
         grid_search.fit(X_train, y_train)
 
         # Get the best model from grid search
@@ -162,7 +167,7 @@ class sentinel:
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
         # Set threshold
-        threshold = 10  # Define your threshold value
+        threshold = 50  # Define your threshold value
 
         # Use the forecast if RMSE is below the threshold
         if rmse <= threshold:
@@ -217,7 +222,7 @@ class sentinel:
         return plot
 
 if __name__ == "__main__":
-    instance = sentinel(start_date="2023-06-01",end_date="2024-01-01",
+    instance = sentinel(start_date="2023-10-01",end_date="2024-01-01",
                         ticker="TSLA")
     f4 = instance.sentinel_features_data()
     k = instance.sentinel_data()
