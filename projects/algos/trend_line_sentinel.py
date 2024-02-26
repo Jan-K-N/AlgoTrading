@@ -30,7 +30,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from statsmodels.tsa.seasonal import seasonal_decompose
 from sklearn.feature_selection import SelectKBest, f_regression
-
+from scipy.stats import pearsonr
+from sklearn.preprocessing import MinMaxScaler
 
 class sentinel:
 
@@ -66,7 +67,7 @@ class sentinel:
 
         return data
 
-    def sentinel_features_data(self, y_ticker="AIG"):
+    def sentinel_features_data(self):
         """
 
         """
@@ -99,8 +100,8 @@ class sentinel:
                 continue
 
         # Drop the column corresponding to self.ticker if it exists
-        if y_ticker in data_final.columns:
-            data_final.drop(columns=y_ticker, inplace=True)
+        if self.ticker in data_final.columns:
+            data_final.drop(columns=self.ticker, inplace=True)
 
         return data_final
     def generate_signals(self):
@@ -150,13 +151,33 @@ class sentinel:
 
         data2 = self.sentinel_features_data()
 
-        X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled, data2))
+        # X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled, data2))
 
-            # # Calculate correlation matrix:
-            # X_df = pd.DataFrame(X)
-            # y_df = pd.DataFrame(y)
-            #
-            # correlation_matrix = X.corrwith(y, axis=0)
+        # Calculate correlation matrix:
+        X_df = pd.DataFrame(data2)
+        y_df = pd.DataFrame(y)
+
+        # # Convert DataFrames to NumPy arrays
+        y_array = y_df.to_numpy().flatten()
+        X_array = X_df.to_numpy()
+
+        # Create a MinMaxScaler object
+        scaler = MinMaxScaler()
+
+        # Normalize the variables in X_df
+        X_normalized = scaler.fit_transform(X_df)
+
+        # Convert the normalized array back to a DataFrame
+        X_normalized_df = pd.DataFrame(X_normalized, columns=X_df.columns)
+
+        # Compute the correlation between the normalized variables and y_df
+        correlation_matrix_normalized = np.corrcoef(X_normalized_df.T, y_array)
+        correlation_series_normalized = pd.Series(correlation_matrix_normalized[:-1, -1], index=X_normalized_df.columns)
+
+        # Sort the correlation series
+        sorted_correlation_series_normalized = correlation_series_normalized.sort_values(ascending=False)
+
+        print("k")
 
 
         # Split the data into training and test sets
