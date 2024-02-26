@@ -59,14 +59,14 @@ class sentinel:
 
         data = data_instance.retrieve_data_from_database(start_date=self.start_date,
                                                           end_date=self.end_date,
-                                                          ticker=ticker,
+                                                          ticker=self.ticker,
                                                           database_path=db_path)[['Date','Adj Close']]
         data.set_index('Date',inplace=True)
         data.columns = [self.ticker]
 
         return data
 
-    def sentinel_features_data(self, y_ticker="TSLA"):
+    def sentinel_features_data(self, y_ticker="AIG"):
         """
 
         """
@@ -83,22 +83,26 @@ class sentinel:
 
         data_final = pd.DataFrame()
         for ticker in feature_set:
-            data_instance = Database(ticker=ticker, start=self.start_date, end=self.end_date)
-            data = data_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                        end_date=self.end_date,
-                                                        ticker = ticker,
-                                                        database_path=db_path)#[['Date','Adj Close']]
-            data = data[['Date', 'Adj Close']]
-            data.set_index('Date', inplace=True)
-            data = data.rename(columns={'Adj Close':ticker})
-            data = data[~data.index.duplicated()]  # Remove duplicate indices
-            data_final = pd.concat([data_final, data], axis=1)
+            try:
+                data_instance = Database(ticker=ticker, start=self.start_date, end=self.end_date)
+                data = data_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                            end_date=self.end_date,
+                                                            ticker = ticker,
+                                                            database_path=db_path)#[['Date','Adj Close']]
+                data = data[['Date', 'Adj Close']]
+                data.set_index('Date', inplace=True)
+                data = data.rename(columns={'Adj Close':ticker})
+                data = data[~data.index.duplicated()]  # Remove duplicate indices
+                data_final = pd.concat([data_final, data], axis=1)
+            except:
+                print("Error")
+                continue
 
         # Drop the column corresponding to self.ticker if it exists
-        if y_ticker in data.columns:
-            data.drop(columns=y_ticker, inplace=True)
+        if y_ticker in data_final.columns:
+            data_final.drop(columns=y_ticker, inplace=True)
 
-        return data
+        return data_final
     def generate_signals(self):
         """
         Method for generating trading signals using a neural network model.
@@ -148,11 +152,11 @@ class sentinel:
 
         X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled, data2))
 
-        # Calculate correlation matrix:
-        X_df = pd.DataFrame(X)
-        y_df = pd.DataFrame(y)
-
-        correlation_matrix = X.corrwith(y, axis=0)
+            # # Calculate correlation matrix:
+            # X_df = pd.DataFrame(X)
+            # y_df = pd.DataFrame(y)
+            #
+            # correlation_matrix = X.corrwith(y, axis=0)
 
 
         # Split the data into training and test sets
@@ -248,7 +252,7 @@ class sentinel:
 
 if __name__ == "__main__":
     instance = sentinel(start_date="2023-10-01",end_date="2024-01-01",
-                        ticker="TSLA")
+                        ticker="AIG")
     f4 = instance.sentinel_features_data()
     k = instance.sentinel_data()
     f = instance.generate_signals()
