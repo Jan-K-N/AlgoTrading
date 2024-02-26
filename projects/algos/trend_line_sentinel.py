@@ -29,6 +29,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from statsmodels.tsa.seasonal import seasonal_decompose
+from sklearn.feature_selection import SelectKBest, f_regression
 
 
 class sentinel:
@@ -43,7 +44,7 @@ class sentinel:
         self.window = window
         self.signals = None
 
-    def sentinel_data(self):
+    def sentinel_data(self,ticker=None):
         """
         Method for pulling data from the finance database.
         Returns:
@@ -58,7 +59,7 @@ class sentinel:
 
         data = data_instance.retrieve_data_from_database(start_date=self.start_date,
                                                           end_date=self.end_date,
-                                                          ticker=self.ticker,
+                                                          ticker=ticker,
                                                           database_path=db_path)[['Date','Adj Close']]
         data.set_index('Date',inplace=True)
         data.columns = [self.ticker]
@@ -74,14 +75,30 @@ class sentinel:
         feature_set = scraper.run_scraper()
 
         sentinel_features = pd.DataFrame()
+
+        # Construct path to database:
+        desktop_path = Path.home() / "Desktop"
+        database_folder_path = desktop_path / "Database"
+        db_path = database_folder_path / "SandP.db"
+
+        data_final = pd.DataFrame()
         for ticker in feature_set:
-            sentinel_features[ticker] = self.sentinel_data()
+            data_instance = Database(ticker=ticker, start=self.start_date, end=self.end_date)
+            data = data_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                        end_date=self.end_date,
+                                                        ticker = ticker,
+                                                        database_path=db_path)#[['Date','Adj Close']]
+            data = data[['Date', 'Adj Close']]
+            data.set_index('Date', inplace=True)
+            data = data.rename(columns={'Adj Close':ticker})
+            data = data[~data.index.duplicated()]  # Remove duplicate indices
+            data_final = pd.concat([data_final, data], axis=1)
 
         # Drop the column corresponding to self.ticker if it exists
-        if y_ticker in sentinel_features.columns:
-            sentinel_features.drop(columns=y_ticker, inplace=True)
+        if y_ticker in data.columns:
+            data.drop(columns=y_ticker, inplace=True)
 
-        return sentinel_features
+        return data
     def generate_signals(self):
         """
         Method for generating trading signals using a neural network model.
@@ -131,6 +148,13 @@ class sentinel:
 
         X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled, data2))
 
+        # Calculate correlation matrix:
+        X_df = pd.DataFrame(X)
+        y_df = pd.DataFrame(y)
+
+        correlation_matrix = X.corrwith(y, axis=0)
+
+
         # Split the data into training and test sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -140,6 +164,7 @@ class sentinel:
             ('scaler', StandardScaler()),
             ('mlp', MLPRegressor())
         ])
+
 
         # Define hyperparameters grid for GridSearchCV
         param_grid = {
