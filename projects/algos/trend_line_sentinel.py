@@ -7,8 +7,6 @@ making decisions based on the information derived from linear regression lines
 to protect or optimize the trading strategy.
 """
 
-import pandas as pd
-import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 import sys
@@ -52,10 +50,11 @@ class sentinel:
 
         data_instance = Database(ticker=self.ticker,start=self.start_date,end=self.end_date)
 
-        data = data_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                          end_date=self.end_date,
-                                                          ticker=self.ticker,
-                                                          database_path=db_path)[['Date','Adj Close']]
+        data = data_instance.retrieve_data_from_database(
+            start_date=self.start_date,
+            end_date=self.end_date,
+            ticker=self.ticker,
+            database_path=db_path)[['Date','Adj Close']]
         data.set_index('Date',inplace=True)
         data.columns = [self.ticker]
 
@@ -114,12 +113,15 @@ class sentinel:
         This suggests that the stock may be overvalued or trending downwards.
 
         Trading Orders:
-        - Buy Order: Generated when transitioning from a sell signal to a buy signal, indicating a long position.
-        - Sell Order: Generated when transitioning from a buy signal to a sell signal, indicating a short position.
+        - Buy Order: Generated when transitioning from a sell signal
+            to a buy signal, indicating a long position.
+        - Sell Order: Generated when transitioning from a
+            buy signal to a sell signal, indicating a short position.
 
         Returns:
         DataFrame: A DataFrame containing the trading signals and corresponding positions.
-        The 'signal' column indicates the trading signal (+1 for buy, -1 for sell), and the 'positions' column
+        The 'signal' column indicates the trading signal
+            (+1 for buy, -1 for sell), and the 'positions' column
         specifies the position to take (1 for long, -1 for short).
         """
 
@@ -151,16 +153,24 @@ class sentinel:
 
         # Compute the correlation between the normalized variables and y_df
         correlation_matrix_normalized = np.corrcoef(X_normalized_df.T, y_array)
-        correlation_series_normalized = pd.Series(correlation_matrix_normalized[:-1, -1], index=X_normalized_df.columns)
+        correlation_series_normalized = pd.Series(
+            correlation_matrix_normalized[:-1, -1],
+            index=X_normalized_df.columns
+        )
 
         # Sort the correlation series
-        sorted_correlation_series_normalized = correlation_series_normalized.sort_values(ascending=False)
-        sorted_correlation_series_normalized = sorted_correlation_series_normalized.dropna()
+        sorted_correlation_series_normalized =\
+            correlation_series_normalized.sort_values(
+                ascending=False
+            )
+        sorted_correlation_series_normalized = (
+            sorted_correlation_series_normalized.dropna()
+        )
 
         # Extract the 20 most relevant variables:
         combined_df = pd.concat([
-            X_df.loc[:, sorted_correlation_series_normalized.tail(10).index],  # Extract columns with low correlation
-            X_df.loc[:, sorted_correlation_series_normalized.head(10).index]  # Extract columns with high correlation
+            X_df.loc[:, sorted_correlation_series_normalized.tail(10).index],
+            X_df.loc[:, sorted_correlation_series_normalized.head(10).index]
         ], axis=1)
 
         X = combined_df
