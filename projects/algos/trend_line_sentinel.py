@@ -176,6 +176,7 @@ class sentinel:
 
         # Sort the correlation series
         sorted_correlation_series_normalized = correlation_series_normalized.sort_values(ascending=False)
+        sorted_correlation_series_normalized = sorted_correlation_series_normalized.dropna()
 
         print("k")
 
