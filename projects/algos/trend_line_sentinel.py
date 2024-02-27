@@ -32,15 +32,14 @@ class sentinel:
 
     def __init__(self,start_date=None,
                  end_date=None,ticker=None,
-                 tickers_list=None,window=50):
+                 tickers_list=None):
         self.ticker = ticker
         self.start_date = start_date
         self.end_date = end_date
         self.tickers_list = tickers_list
-        self.window = window
         self.signals = None
 
-    def sentinel_data(self,ticker=None):
+    def sentinel_data(self):
         """
         Method for pulling data from the finance database.
         Returns:
@@ -176,7 +175,6 @@ class sentinel:
             ('mlp', MLPRegressor())
         ])
 
-
         # Define hyperparameters grid for GridSearchCV
         param_grid = {
             'mlp__hidden_layer_sizes': [(500,),
@@ -203,7 +201,7 @@ class sentinel:
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
         # Set threshold
-        threshold = 50  # Define your threshold value
+        threshold = 10  # Define threshold value
 
         # Use the forecast if RMSE is below the threshold
         if rmse <= threshold:
