@@ -15,9 +15,7 @@ import sys
 sys.path.append("..")
 
 from data.finance_database import Database
-
 from algo_scrapers.s_and_p_scraper import SAndPScraper
-
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -28,9 +26,6 @@ import numpy as np
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
-from statsmodels.tsa.seasonal import seasonal_decompose
-from sklearn.feature_selection import SelectKBest, f_regression
-from scipy.stats import pearsonr
 from sklearn.preprocessing import MinMaxScaler
 
 class sentinel:
@@ -75,8 +70,6 @@ class sentinel:
         scraper = SAndPScraper()
         feature_set = scraper.run_scraper()
 
-        sentinel_features = pd.DataFrame()
-
         # Construct path to database:
         desktop_path = Path.home() / "Desktop"
         database_folder_path = desktop_path / "Database"
@@ -89,7 +82,7 @@ class sentinel:
                 data = data_instance.retrieve_data_from_database(start_date=self.start_date,
                                                             end_date=self.end_date,
                                                             ticker = ticker,
-                                                            database_path=db_path)#[['Date','Adj Close']]
+                                                            database_path=db_path)
                 data = data[['Date', 'Adj Close']]
                 data.set_index('Date', inplace=True)
                 data = data.rename(columns={'Adj Close':ticker})
@@ -135,23 +128,10 @@ class sentinel:
         signals = pd.DataFrame(index=data.index)
         signals['signal'] = 0.0
 
-        x = np.arange(len(data)).reshape(-1, 1)
+        # x = np.arange(len(data)).reshape(-1, 1)
         y = data.values.reshape(-1, 1)
 
-        # Incorporate seasonal component into the feature matrix
-        decomposition = seasonal_decompose(data[self.ticker], model='additive', period=7)
-        seasonal = decomposition.seasonal
-
-        # Scale the seasonal component to increase its weight
-        seasonal_scaled = seasonal  # Adjust the scaling factor as needed
-
-        # Use sine and cosine functions to represent seasonal patterns
-        seasonal_sin = np.sin(2 * np.pi * np.arange(len(data)) / 7)
-        seasonal_cos = np.cos(2 * np.pi * np.arange(len(data)) / 7)
-
         data2 = self.sentinel_features_data()
-
-        # X = np.column_stack((x, seasonal_sin, seasonal_cos, seasonal_scaled, data2))
 
         # Calculate correlation matrix:
         X_df = pd.DataFrame(data2)
@@ -178,8 +158,13 @@ class sentinel:
         sorted_correlation_series_normalized = correlation_series_normalized.sort_values(ascending=False)
         sorted_correlation_series_normalized = sorted_correlation_series_normalized.dropna()
 
-        print("k")
+        # Extract the 20 most relevant variables:
+        combined_df = pd.concat([
+            X_df.loc[:, sorted_correlation_series_normalized.tail(10).index],  # Extract columns with low correlation
+            X_df.loc[:, sorted_correlation_series_normalized.head(10).index]  # Extract columns with high correlation
+        ], axis=1)
 
+        X = combined_df
 
         # Split the data into training and test sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -225,15 +210,15 @@ class sentinel:
             print("Forecast RMSE is below the threshold. Using the forecast.")
 
             # Iterate over the data and generate signals
-            for i in range(len(data)):
+            for index_label, row in data.iterrows():
                 # Use the best model for 1-step ahead prediction
-                forecast = best_model.predict(X[i].reshape(1, -1))
+                forecast = best_model.predict(X.loc[index_label].values.reshape(1, -1))
 
                 # Determine the direction of the forecasted market movement
-                if forecast > data.iloc[i].values:  # If forecast is greater than the observed value
-                    signals.loc[data.index[i], 'signal'] = 1.0  # Go long
+                if forecast > row[self.ticker]:  # If forecast is greater than the observed value
+                    signals.loc[index_label, 'signal'] = 1.0  # Go long
                 else:
-                    signals.loc[data.index[i], 'signal'] = -1.0  # Go short
+                    signals.loc[index_label, 'signal'] = -1.0  # Go short
 
             # Generate trading orders
             signals['positions'] = signals['signal'].diff().fillna(0)
@@ -274,15 +259,10 @@ class sentinel:
 
 if __name__ == "__main__":
     instance = sentinel(start_date="2023-10-01",end_date="2024-01-01",
-                        ticker="AIG")
+                        ticker="AMZN")
     f4 = instance.sentinel_features_data()
     k = instance.sentinel_data()
     f = instance.generate_signals()
 
     # # 3. Plot signals on the price chart
     instance.plot_signals()
-    # f1=instance.backtest()
-    print("k")
-
-
-
