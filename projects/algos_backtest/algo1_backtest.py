@@ -13,7 +13,6 @@ import numpy as np
 sys.path.append('..')
 from algos.algo1 import Algo1
 from data.finance_database import Database
-from data.danish_tickers import TickerCodeProvider
 
 class Algo1Backtest:
     """

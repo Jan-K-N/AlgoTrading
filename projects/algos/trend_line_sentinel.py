@@ -6,7 +6,7 @@ it implies that the algorithm acts as a vigilant observer or guardian of trends,
 making decisions based on the information derived from linear regression lines
 to protect or optimize the trading strategy.
 """
-
+# pylint: disable=wrong-import-position.
 from pathlib import Path
 import matplotlib.pyplot as plt
 import sys
@@ -35,13 +35,17 @@ class sentinel:
         self.start_date = start_date
         self.end_date = end_date
         self.tickers_list = tickers_list
-        self.signals = None
 
     def sentinel_data(self):
         """
         Method for pulling data from the finance database.
-        Returns:
 
+        Returns:
+        pandas.DataFrame: A DataFrame containing
+            the historical stock price data.
+            The DataFrame has the date as the index and
+            'Adj Close' prices for the
+            specified ticker as the only column.
         """
         # Construct path to database:
         desktop_path = Path.home() / "Desktop"
@@ -62,7 +66,16 @@ class sentinel:
 
     def sentinel_features_data(self):
         """
+        This method constructs the features data for the trading model/algorithm.
 
+        Returns:
+        pandas.DataFrame: A DataFrame containing the feature
+            data for the trading model.
+            Each column represents a different stock,
+            and rows correspond to dates.
+            The DataFrame contains historical 'Adj Close'
+            prices for the stocks in the
+            feature set obtained from the tickers_list.
         """
 
         scraper = SAndPScraper()
@@ -129,7 +142,6 @@ class sentinel:
         signals = pd.DataFrame(index=data.index)
         signals['signal'] = 0.0
 
-        # x = np.arange(len(data)).reshape(-1, 1)
         y = data.values.reshape(-1, 1)
 
         data2 = self.sentinel_features_data()
@@ -140,7 +152,6 @@ class sentinel:
 
         # # Convert DataFrames to NumPy arrays
         y_array = y_df.to_numpy().flatten()
-        X_array = X_df.to_numpy()
 
         # Create a MinMaxScaler object
         scaler = MinMaxScaler()
