@@ -26,8 +26,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler
 
-class sentinel:
-
+class Sentinel:
+    """
+    Main class for the sentinel trading algorithm.
+    """
     def __init__(self,start_date=None,
                  end_date=None,ticker=None,
                  tickers_list=None):
@@ -147,7 +149,7 @@ class sentinel:
         data2 = self.sentinel_features_data()
 
         # Calculate correlation matrix:
-        X_df = pd.DataFrame(data2)
+        x_df = pd.DataFrame(data2)
         y_df = pd.DataFrame(y)
 
         # # Convert DataFrames to NumPy arrays
@@ -156,17 +158,17 @@ class sentinel:
         # Create a MinMaxScaler object
         scaler = MinMaxScaler()
 
-        # Normalize the variables in X_df
-        X_normalized = scaler.fit_transform(X_df)
+        # Normalize the variables in x_df
+        x_normalized = scaler.fit_transform(x_df)
 
         # Convert the normalized array back to a DataFrame
-        X_normalized_df = pd.DataFrame(X_normalized, columns=X_df.columns)
+        x_normalized_df = pd.DataFrame(x_normalized, columns=x_df.columns)
 
         # Compute the correlation between the normalized variables and y_df
-        correlation_matrix_normalized = np.corrcoef(X_normalized_df.T, y_array)
+        correlation_matrix_normalized = np.corrcoef(x_normalized_df.T, y_array)
         correlation_series_normalized = pd.Series(
             correlation_matrix_normalized[:-1, -1],
-            index=X_normalized_df.columns
+            index=x_normalized_df.columns
         )
 
         # Sort the correlation series
@@ -180,14 +182,14 @@ class sentinel:
 
         # Extract the 20 most relevant variables:
         combined_df = pd.concat([
-            X_df.loc[:, sorted_correlation_series_normalized.tail(10).index],
-            X_df.loc[:, sorted_correlation_series_normalized.head(10).index]
+            x_df.loc[:, sorted_correlation_series_normalized.tail(10).index],
+            x_df.loc[:, sorted_correlation_series_normalized.head(10).index]
         ], axis=1)
 
         X = combined_df
 
         # Split the data into training and test sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
         # Create a pipeline for neural network regression
         nn_pipeline = Pipeline([
@@ -210,13 +212,13 @@ class sentinel:
 
         # Perform grid search with cross-validation
         grid_search = GridSearchCV(nn_pipeline, param_grid, cv=5, scoring='neg_mean_squared_error')
-        grid_search.fit(X_train, y_train)
+        grid_search.fit(x_train, y_train)
 
         # Get the best model from grid search
         best_model = grid_search.best_estimator_
 
         # Make predictions on the test set
-        y_pred = best_model.predict(X_test)
+        y_pred = best_model.predict(x_test)
 
         # Compute RMSE
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
@@ -277,7 +279,7 @@ class sentinel:
         return plot
 
 if __name__ == "__main__":
-    instance = sentinel(start_date="2023-10-01",end_date="2024-01-01",
+    instance = Sentinel(start_date="2023-10-01", end_date="2024-01-01",
                         ticker="AMZN")
     f4 = instance.sentinel_features_data()
     k = instance.sentinel_data()
