@@ -386,3 +386,9 @@ class Algo1Backtest:
         volatility_df = pd.concat(volatility_data, ignore_index=True)
 
         return volatility_df
+
+if __name__ == "__main__":
+    instance = Algo1Backtest(start_date="2018-01-01",end_date="2024-01-01",tickers_list=['PODD'],consecutive_days=3,
+                             consecutive_days_sell=1)
+    returns = instance.backtest_returns()
+    print("k")
