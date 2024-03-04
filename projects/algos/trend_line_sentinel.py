@@ -7,6 +7,7 @@ making decisions based on the information derived from linear regression lines
 to protect or optimize the trading strategy.
 """
 # pylint: disable=wrong-import-position.
+# pylint: disable=wrong-import-order.
 from pathlib import Path
 import matplotlib.pyplot as plt
 import sys
@@ -101,8 +102,8 @@ class Sentinel:
                 data = data.rename(columns={'Adj Close':ticker})
                 data = data[~data.index.duplicated()]  # Remove duplicate indices
                 data_final = pd.concat([data_final, data], axis=1)
-            except:
-                print("Error")
+            except Exception as e:
+                print(f"Error occurred for ticker {ticker}: {e}")
                 continue
 
         # Drop the column corresponding to self.ticker if it exists
@@ -144,13 +145,13 @@ class Sentinel:
         signals = pd.DataFrame(index=data.index)
         signals['signal'] = 0.0
 
-        y = data.values.reshape(-1, 1)
+        y_input = data.values.reshape(-1, 1)
 
         data2 = self.sentinel_features_data()
 
         # Calculate correlation matrix:
         x_df = pd.DataFrame(data2)
-        y_df = pd.DataFrame(y)
+        y_df = pd.DataFrame(y_input)
 
         # # Convert DataFrames to NumPy arrays
         y_array = y_df.to_numpy().flatten()
@@ -186,10 +187,10 @@ class Sentinel:
             x_df.loc[:, sorted_correlation_series_normalized.head(10).index]
         ], axis=1)
 
-        X = combined_df
+        x_input = combined_df
 
         # Split the data into training and test sets
-        x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        x_train, x_test, y_train, y_test = train_test_split(x_input, y_input, test_size=0.2, random_state=42)
 
         # Create a pipeline for neural network regression
         nn_pipeline = Pipeline([
@@ -233,7 +234,7 @@ class Sentinel:
             # Iterate over the data and generate signals
             for index_label, row in data.iterrows():
                 # Use the best model for 1-step ahead prediction
-                forecast = best_model.predict(X.loc[index_label].values.reshape(1, -1))
+                forecast = best_model.predict(x_input.loc[index_label].values.reshape(1, -1))
 
                 # Determine the direction of the forecasted market movement
                 if forecast > row[self.ticker]:  # If forecast is greater than the observed value
@@ -250,29 +251,29 @@ class Sentinel:
         return signals
 
     def plot_signals(self):
-        fig, ax = plt.subplots(figsize=(12, 8))
+        fig, ax_plot = plt.subplots(figsize=(12, 8))
 
         data = self.sentinel_data()
 
         # Plotting historical price data, dropping the first observation
-        ax.plot(data.index[1:], data[self.ticker].iloc[1:], label='Price', linewidth=2)
+        ax_plot.plot(data.index[1:], data[self.ticker].iloc[1:], label='Price', linewidth=2)
 
         signals = self.generate_signals()
 
         # Plotting buy signals
         buy_indices = signals[signals['signal'] == 1.0].index
         buy_values = data[self.ticker][signals['signal'] == 1.0]
-        ax.plot(buy_indices, buy_values, '^', markersize=10, color='g', label='Buy Signal')
+        ax_plot.plot(buy_indices, buy_values, '^', markersize=10, color='g', label='Buy Signal')
 
         # Plotting sell signals
         sell_indices = signals[signals['signal'] == -1.0].index
         sell_values = data[self.ticker][signals['signal'] == -1.0]
-        ax.plot(sell_indices, sell_values, 'v', markersize=10, color='r', label='Sell Signal')
+        ax_plot.plot(sell_indices, sell_values, 'v', markersize=10, color='r', label='Sell Signal')
 
-        ax.set_title('NN Trading Strategy')
-        ax.set_xlabel('Date')
-        ax.set_ylabel('Price')
-        ax.legend()
+        ax_plot.set_title('NN Trading Strategy')
+        ax_plot.set_xlabel('Date')
+        ax_plot.set_ylabel('Price')
+        ax_plot.legend()
 
         plot = plt.show()
 
