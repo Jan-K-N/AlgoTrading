@@ -256,11 +256,3 @@ class Sentinel:
             print("Forecast RMSE is above the threshold. Discarding the forecast.")
 
         return signals
-
-if __name__ == "__main__":
-    instance = Sentinel(start_date="2023-10-01", end_date="2024-02-25",
-                        ticker="CZR")
-    f4 = instance.sentinel_features_data()
-    k = instance.sentinel_data()
-    f = instance.generate_signals()
-    print("k")
