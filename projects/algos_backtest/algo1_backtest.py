@@ -388,7 +388,10 @@ class Algo1Backtest:
         return volatility_df
 
 if __name__ == "__main__":
-    instance = Algo1Backtest(start_date="2018-01-01",end_date="2024-01-01",tickers_list=['PODD'],consecutive_days=3,
+    instance = Algo1Backtest(start_date="2018-01-01",
+                             end_date="2024-01-01",
+                             tickers_list=['PODD'],
+                             consecutive_days=3,
                              consecutive_days_sell=1)
-    returns = instance.backtest_returns()
+    returns_stock = instance.backtest_returns()
     print("k")

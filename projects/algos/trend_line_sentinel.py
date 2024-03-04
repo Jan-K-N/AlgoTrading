@@ -191,7 +191,13 @@ class Sentinel:
         x_input = combined_df
 
         # Split the data into training and test sets
-        x_train, x_test, y_train, y_test = train_test_split(x_input, y_input, test_size=0.2, random_state=42)
+        (x_train,
+         x_test,
+         y_train,
+         y_test) = train_test_split(x_input,
+                                            y_input,
+                                            test_size=0.2,
+                                            random_state=42)
 
         # Create a pipeline for neural network regression
         nn_pipeline = Pipeline([
