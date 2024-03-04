@@ -8,6 +8,7 @@ to protect or optimize the trading strategy.
 """
 # pylint: disable=wrong-import-position.
 # pylint: disable=wrong-import-order.
+# pylint: disable=broad-exception-caught.
 from pathlib import Path
 import matplotlib.pyplot as plt
 import sys
@@ -20,12 +21,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from sklearn.neural_network import MLPRegressor
-import pandas as pd
-import numpy as np
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
+import numpy as np
 
 class Sentinel:
     """
@@ -249,35 +250,6 @@ class Sentinel:
             print("Forecast RMSE is above the threshold. Discarding the forecast.")
 
         return signals
-
-    def plot_signals(self):
-        fig, ax_plot = plt.subplots(figsize=(12, 8))
-
-        data = self.sentinel_data()
-
-        # Plotting historical price data, dropping the first observation
-        ax_plot.plot(data.index[1:], data[self.ticker].iloc[1:], label='Price', linewidth=2)
-
-        signals = self.generate_signals()
-
-        # Plotting buy signals
-        buy_indices = signals[signals['signal'] == 1.0].index
-        buy_values = data[self.ticker][signals['signal'] == 1.0]
-        ax_plot.plot(buy_indices, buy_values, '^', markersize=10, color='g', label='Buy Signal')
-
-        # Plotting sell signals
-        sell_indices = signals[signals['signal'] == -1.0].index
-        sell_values = data[self.ticker][signals['signal'] == -1.0]
-        ax_plot.plot(sell_indices, sell_values, 'v', markersize=10, color='r', label='Sell Signal')
-
-        ax_plot.set_title('NN Trading Strategy')
-        ax_plot.set_xlabel('Date')
-        ax_plot.set_ylabel('Price')
-        ax_plot.legend()
-
-        plot = plt.show()
-
-        return plot
 
 if __name__ == "__main__":
     instance = Sentinel(start_date="2023-10-01", end_date="2024-01-01",
