@@ -9,8 +9,8 @@ to protect or optimize the trading strategy.
 # pylint: disable=wrong-import-position.
 # pylint: disable=wrong-import-order.
 # pylint: disable=broad-exception-caught.
+# pylint: disable=too-many-locals.
 from pathlib import Path
-import matplotlib.pyplot as plt
 import sys
 sys.path.append("..")
 
@@ -103,8 +103,8 @@ class Sentinel:
                 data = data.rename(columns={'Adj Close':ticker})
                 data = data[~data.index.duplicated()]  # Remove duplicate indices
                 data_final = pd.concat([data_final, data], axis=1)
-            except Exception as e:
-                print(f"Error occurred for ticker {ticker}: {e}")
+            except Exception as error:
+                print(f"Error occurred for ticker {ticker}: {error}")
                 continue
 
         # Drop the column corresponding to self.ticker if it exists
@@ -258,11 +258,9 @@ class Sentinel:
         return signals
 
 if __name__ == "__main__":
-    instance = Sentinel(start_date="2023-10-01", end_date="2024-01-01",
-                        ticker="AMZN")
+    instance = Sentinel(start_date="2023-10-01", end_date="2024-02-25",
+                        ticker="CZR")
     f4 = instance.sentinel_features_data()
     k = instance.sentinel_data()
     f = instance.generate_signals()
-
-    # # 3. Plot signals on the price chart
-    instance.plot_signals()
+    print("k")
