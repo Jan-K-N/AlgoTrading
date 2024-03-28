@@ -1,6 +1,7 @@
 """
-Main script for scraping S&P500 ticker codes from Wikipedia.
+Main script for scraping American ticker codes.
 """
+# pylint: disable=wrong-import-position
 import logging
 import sys
 import requests
