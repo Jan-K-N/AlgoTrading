@@ -1,9 +1,14 @@
 """
-Main script for scraping S&P500 ticker codes from Wikipedia.
+Main script for scraping American ticker codes.
 """
+# pylint: disable=wrong-import-position
 import logging
+import sys
 import requests
 from bs4 import BeautifulSoup
+
+sys.path.insert(0, '..')
+from data.american_tickers import TickerCodeProvider
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -60,6 +65,8 @@ class SAndPScraper:
         Returns:
             list: A list of ticker codes obtained from the scraping process.
         """
-        print("Retrieving ticker codes from...:", self.ticker_url)
-        ticker_codes = self.scrape_ticker_codes()
+        print("Retrieving ticker codes...:")
+
+        ticker_codes = TickerCodeProvider.get_ticker_codes()
+
         return ticker_codes
