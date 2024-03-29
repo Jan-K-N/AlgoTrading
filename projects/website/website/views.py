@@ -37,6 +37,7 @@ sys.path.insert(0,'..')
 from algo_scrapers.danish_ticker_scraper import OMXC25scraper
 from algo_scrapers.omxs30_scraper import OMXS30scraper
 from algo_scrapers.s_and_p_scraper import SAndPScraper
+from algo_scrapers.obx_scraper import OBXscraper
 from django.shortcuts import render
 from algos.algo1 import Algo1
 
@@ -235,6 +236,21 @@ def american_navigation(request):
 
     return render(request, 'myapp/american_navigation.html')
 
+def norwegian_navigation(request):
+    """
+    Renders the norwegian_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the norwegian_navigation page.
+    """
+
+    return render(request, 'myapp/norwegian_navigation.html')
+
 def american_signals(request):
     """
      Renders the American page with trading signals data for American stocks.
@@ -277,6 +293,48 @@ def american_signals(request):
 
     return render(request, 'myapp/american_signals.html', context)
 
+
+def norwegian_signals(request):
+    """
+     Renders the Norwegian page with trading signals data for Norwegian stocks.
+
+     Parameters:
+     _________
+         request: The HTTP request object.
+
+     Returns:
+     _________
+         HttpResponse: The rendered HTML response for the Norwegian page.
+     """
+
+    default_end_date = datetime.now().strftime('%Y-%m-%d')
+    default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+
+    if request.method == 'GET':
+        start_date = request.GET.get('start_date', default_start_date)
+        end_date = request.GET.get('end_date', default_end_date)
+        consecutive_days = int(request.GET.get('consecutive_days', 1))
+        consecutive_days_sell = int(request.GET.get('consecutive_days_sell', 1))
+    else:
+        start_date = default_start_date
+        end_date = default_end_date
+        consecutive_days = 1
+        consecutive_days_sell = 1
+
+    obx_scraper = OBXscraper()
+
+    # Pass consecutive_days and consecutive_days_sell to get_signals_data function
+    obx_signals_data = get_signals_data(obx_scraper, start_date, end_date,
+                                           consecutive_days, consecutive_days_sell)
+    context = {
+        'obx_signals_data': obx_signals_data,
+        'start_date': start_date,
+        'end_date': end_date,
+        'consecutive_days': consecutive_days,
+        'consecutive_days_sell': consecutive_days_sell,
+    }
+
+    return render(request, 'myapp/norwegian_signals.html', context)
 
 def danish_backtest(request):
     """
