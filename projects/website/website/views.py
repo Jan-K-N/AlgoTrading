@@ -236,6 +236,52 @@ def american_navigation(request):
 
     return render(request, 'myapp/american_navigation.html')
 
+def algo1_navigation(request):
+    """
+    Renders the algo1_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the algo1_navigation page.
+    """
+
+    return render(request, 'myapp/algo1_navigation.html')
+
+def sentinel_navigation(request):
+    """
+    Renders the sentinel_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the sentinel_navigation page.
+    """
+
+    return render(request, 'myapp/sentinel_navigation.html')
+
+def sentinel_signals_american(request):
+    """
+    Renders the sentinel_signals_american page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the sentinel_signals_american page.
+    """
+
+    return render(request, 'myapp/sentinel_signals_american.html')
+
+
 def norwegian_navigation(request):
     """
     Renders the norwegian_navigation page.
