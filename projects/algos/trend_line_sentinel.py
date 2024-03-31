@@ -256,3 +256,9 @@ class Sentinel:
             print("Forecast RMSE is above the threshold. Discarding the forecast.")
 
         return signals
+
+if __name__ == "__main__":
+    k = Sentinel(start_date="2023-01-01",
+                 end_date="2024-02-01",
+                 ticker="TSLA")
+    k1 = k.generate_signals()
