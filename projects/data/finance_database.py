@@ -289,8 +289,6 @@ if __name__ == "__main__":
                                  end=datetime.today().strftime("%Y-%m-%d"),
                                  scraper=tickers_list0)
 
-
-
     # Create the 'Database' folder on the user's desktop if it doesn't exist
     desktop_path = Path.home() / "Desktop"
     database_folder_path = desktop_path / "Database"
@@ -298,11 +296,6 @@ if __name__ == "__main__":
         os.makedirs(database_folder_path)
 
     db_path = database_folder_path / "SandP.db"
-    #
-    # k = instance_database0.retrieve_data_from_database(start_date="2019-01-01",
-    #                                                    end_date="2021-01-01",
-    #                                                    ticker="TSLA",
-    #                                                    database_path=db_path)
 
     db_scheduler = DatabaseScheduler(instance_database0, database_path=db_path)
 
