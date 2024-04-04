@@ -91,6 +91,10 @@ class Database():
         for ticker in tickers_list:
             price_data = self.get_price_data(start=self.start, end=self.end, ticker=ticker)
 
+            # Skip insertion if price_data is None
+            if price_data is None:
+                continue
+
             # Insert data into the SQLite database table
             if not price_data.empty:
                 price_data.to_sql(ticker, self.conn, if_exists='append', index_label='Date')
