@@ -21,6 +21,7 @@ from . import views
 urlpatterns = [
     path('', views.home, name='home'),
     path('danish/', views.danish_signals,name='danish_signals'),
+    path('database/', views.database_status,name='database_status'),
     path('sweden/', views.sweden_signals, name='sweden_signals'),
     path('norwegian/', views.norwegian_signals, name='norwegian_signals'),
     path('american/', views.american_signals, name='american_signals'),

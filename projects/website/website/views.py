@@ -266,6 +266,25 @@ def sentinel_navigation(request):
 
     return render(request, 'myapp/sentinel_navigation.html')
 
+def database_status(request):
+    """
+    Renders the database_status page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the database_status page.
+    """
+
+    return render(request, 'myapp/database_status.html')
+
+
+
+
+
 def sentinel_signals_american(request):
     """
     Renders the sentinel_signals_american page.
