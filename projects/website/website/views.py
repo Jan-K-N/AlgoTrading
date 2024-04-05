@@ -31,7 +31,7 @@ Dependencies:
 # pylint: disable=too-many-locals.
 from datetime import timedelta, datetime
 import pandas as pd
-
+import os
 import sys
 sys.path.insert(0,'..')
 from algo_scrapers.danish_ticker_scraper import OMXC25scraper
@@ -40,7 +40,9 @@ from algo_scrapers.s_and_p_scraper import SAndPScraper
 from algo_scrapers.obx_scraper import OBXscraper
 from django.shortcuts import render
 from algos.algo1 import Algo1
-
+from django.http import JsonResponse
+from data.finance_database import DatabaseScheduler, Database
+from pathlib import Path
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
@@ -281,9 +283,32 @@ def database_status(request):
 
     return render(request, 'myapp/database_status.html')
 
+def run_database_script():
+    tickers_list0 = SAndPScraper()
 
+    instance_database0 = Database(start="2019-01-01",
+                                 end=datetime.today().strftime("%Y-%m-%d"),
+                                 scraper=tickers_list0)
 
+    # Create the 'Database' folder on the user's desktop if it doesn't exist
+    desktop_path = Path.home() / "Desktop"
+    database_folder_path = desktop_path / "Database"
+    if not database_folder_path.exists():
+        os.makedirs(database_folder_path)
 
+    db_path = database_folder_path / "SandP.db"
+
+    db_scheduler = DatabaseScheduler(instance_database0, database_path=db_path)
+
+    # Schedule the insertion of price data every minute
+    db_scheduler.run_insert_price_data()
+
+def run_script_view(request):
+    try:
+        run_database_script()  # Call the function that runs the script
+        return JsonResponse({'success': True, 'message': 'Database updated successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
 
 def sentinel_signals_american(request):
     """
