@@ -89,7 +89,9 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
         new_df["Ticker"] = [ticker] * len(extracted_rows)
         new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker + '_Buy']]
         new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker + '_Sell']]
-        new_df.index = extracted_rows['Date']
+        # new_df.index = extracted_rows['Date']
+        new_df.index = pd.to_datetime(extracted_rows['Date'])
+
 
         if not new_df.empty:
             output_list.append(new_df)

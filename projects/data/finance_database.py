@@ -289,7 +289,7 @@ class DatabaseScheduler:
 if __name__ == "__main__":
     tickers_list0 = SAndPScraper()
 
-    instance_database0 = Database(start="2019-01-01",
+    instance_database0 = Database(start="2021-01-01",
                                  end=datetime.today().strftime("%Y-%m-%d"),
                                  scraper=tickers_list0)
 
