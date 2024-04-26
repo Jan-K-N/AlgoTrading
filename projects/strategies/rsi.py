@@ -9,6 +9,7 @@ sys.path.append("..")
 from data.finance_database import Database
 import pandas as pd
 import pandas_ta as pta
+from pathlib import Path
 
 class RSIStrategy():
     """
@@ -18,9 +19,11 @@ class RSIStrategy():
         self.ticker = ticker
         self.start_date = start_date
         self.end_date = end_date
+        self.db_instance = Database()
+
     def get_data(self) -> pd.DataFrame:
         """
-        Downloads price data for a specified ticker and
+        Retrives price data for a specified ticker and
         date range from a database and calculates the 14-day
         Relative Strength Index (RSI) for each day.
 
@@ -29,9 +32,15 @@ class RSIStrategy():
         data: pd.DataFrame
             A DataFrame containing the RSI values for each day.
         """
-        data = Database.get_price_data(self,start = self.start_date,
-                                 end = self.end_date,
-                                 ticker = self.ticker)
+        db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+        # data = Database.get_price_data(self,start = self.start_date,
+        #                          end = self.end_date,
+        #                          ticker = self.ticker)
+        data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                    end_date=self.end_date,
+                                                    ticker=self.ticker,
+                                                    database_path=db_path)
+        data.set_index('Date',inplace=True)
         rsi = pta.rsi(data['Adj Close'],length=14)
         data['RSI'] = rsi
         return data.dropna()
