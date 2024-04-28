@@ -133,6 +133,10 @@ class BollingerBandsStrategy:
         # Call the method to backtest the strategy
         data = instance.backtest()
         """
+        # Retrieve data if not already available
+        if not hasattr(self, 'data'):
+            self.data = self.get_data()
+
         self.data['Position'] = np.nan
         self.data.loc[self.data['Adj Close'] < self.data['Lower'], 'Position'] = 1
         self.data.loc[self.data['Adj Close'] > self.data['Upper'], 'Position'] = -1

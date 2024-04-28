@@ -5,11 +5,12 @@ so that it can contain backtest and other features.
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
 import sys
+from pathlib import Path
 sys.path.append("..")
 from data.finance_database import Database
 import pandas as pd
 import pandas_ta as pta
-from pathlib import Path
+
 
 class RSIStrategy():
     """
