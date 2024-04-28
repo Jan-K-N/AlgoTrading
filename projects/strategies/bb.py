@@ -3,15 +3,17 @@ Main class for the technical indicator (TI) BollingerBands.
 The script contains a backtest of a BB based trading
 strategy.
 """
-import sys
-import pandas as pd
-import numpy as np
 # pylint: disable=import-error.
 # pylint: disable=wrong-import-position.
+# pylint: disable=too-many-instance-attributes.
+# pylint: disable=duplicate-code.
+import sys
+from pathlib import Path
+import pandas as pd
+import numpy as np
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 sys.path.append("..")
 from data.finance_database import Database
-from pathlib import Path
 
 class BollingerBandsStrategy:
     """
@@ -76,6 +78,7 @@ class BollingerBandsStrategy:
         self.dev_factor = dev_factor
         self.transaction_cost = transaction_cost
         self.db_instance = Database()
+        self.data = None
 
     def get_data(self) -> pd.DataFrame:
         """
@@ -109,7 +112,8 @@ class BollingerBandsStrategy:
         data['MA'] = data['Adj Close'].rolling(self.window).mean()
         data['Upper'] = data['MA'] + self.dev_factor * data['Adj Close'].rolling(self.window).std()
         data['Lower'] = data['MA'] - self.dev_factor * data['Adj Close'].rolling(self.window).std()
-        return data.dropna()
+        self.data = data.dropna()
+        return self.data
 
     def backtest(self) -> pd.DataFrame:
         """
@@ -134,8 +138,9 @@ class BollingerBandsStrategy:
         data = instance.backtest()
         """
         # Retrieve data if not already available
-        if not hasattr(self, 'data'):
-            self.data = self.get_data()
+        if self.data is None:
+            self.get_data()  # Retrieve data if not already available
+
 
         self.data['Position'] = np.nan
         self.data.loc[self.data['Adj Close'] < self.data['Lower'], 'Position'] = 1

@@ -31,7 +31,8 @@ urlpatterns = [
     path('danish_backtest/',views.danish_backtest,name='danish_backtest'),
     path('algo1_navigation/',views.algo1_navigation,name='algo1_navigation'),
     path('sentinel_navigation/',views.sentinel_navigation,name='sentinel_navigation'),
-    path('sentinel_signals_american/', views.sentinel_signals_american, name='sentinel_signals_american'),
+    path('sentinel_signals_american/', views.sentinel_signals_american,
+         name='sentinel_signals_american'),
     path('about/', views.about, name='about'),
     path('run-script/', views.run_script_view, name='run_script')
 ]

@@ -29,6 +29,8 @@ Dependencies:
 # pylint: disable=wrong-import-position.
 # pylint: disable=unused-variable.
 # pylint: disable=too-many-locals.
+# pylint: disable=duplicate-code.
+
 from datetime import timedelta, datetime
 import pandas as pd
 import os
@@ -305,6 +307,7 @@ def run_database_script():
     # Schedule the insertion of price data every minute
     db_scheduler.run_insert_price_data()
 
+# pylint: disable=unused-argument
 def run_script_view(request):
     try:
         run_database_script()  # Call the function that runs the script
