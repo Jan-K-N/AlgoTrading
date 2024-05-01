@@ -3,14 +3,18 @@ Main class for the technical indicator (TI) BollingerBands.
 The script contains a backtest of a BB based trading
 strategy.
 """
-import sys
-import pandas as pd
-import numpy as np
 # pylint: disable=import-error.
 # pylint: disable=wrong-import-position.
+# pylint: disable=too-many-instance-attributes.
+# pylint: disable=duplicate-code.
+import sys
+from pathlib import Path
+import pandas as pd
+import numpy as np
 sys.path.insert(1, '/Users/Jan/Desktop/Programmering/StocksAlgo/AlgoTrading/projects/data')
 sys.path.append("..")
 from data.finance_database import Database
+
 class BollingerBandsStrategy:
     """
     Implements a trading strategy based on Bollinger Bands.
@@ -73,9 +77,10 @@ class BollingerBandsStrategy:
         self.window = window
         self.dev_factor = dev_factor
         self.transaction_cost = transaction_cost
-        self.data = self.get_data()
+        self.db_instance = Database()
+        self.data = None
 
-    def get_data(self)->pd.DataFrame:
+    def get_data(self) -> pd.DataFrame:
         """
         Retrieves price data from a database and calculates the moving average, upper
         and lower bands for a given ticker within a specific date range.
@@ -98,12 +103,17 @@ class BollingerBandsStrategy:
         # Call the method to retrieve the data
         data = instance.get_data()
         """
-        data = Database.get_price_data(self,start=self.start_date,
-                                       end=self.end_date,ticker=self.ticker)
+        db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+        data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                    end_date=self.end_date,
+                                                    ticker=self.ticker,
+                                                    database_path=db_path)
+        data.set_index('Date',inplace=True)
         data['MA'] = data['Adj Close'].rolling(self.window).mean()
         data['Upper'] = data['MA'] + self.dev_factor * data['Adj Close'].rolling(self.window).std()
         data['Lower'] = data['MA'] - self.dev_factor * data['Adj Close'].rolling(self.window).std()
-        return data.dropna()
+        self.data = data.dropna()
+        return self.data
 
     def backtest(self) -> pd.DataFrame:
         """
@@ -127,6 +137,11 @@ class BollingerBandsStrategy:
         # Call the method to backtest the strategy
         data = instance.backtest()
         """
+        # Retrieve data if not already available
+        if self.data is None:
+            self.get_data()  # Retrieve data if not already available
+
+
         self.data['Position'] = np.nan
         self.data.loc[self.data['Adj Close'] < self.data['Lower'], 'Position'] = 1
         self.data.loc[self.data['Adj Close'] > self.data['Upper'], 'Position'] = -1

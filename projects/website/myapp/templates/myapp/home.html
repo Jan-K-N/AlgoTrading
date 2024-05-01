@@ -38,13 +38,13 @@
             color: #ccc;
         }
 
-        #navigation a {
-            display: block;
+        #navigation select {
             padding: 10px;
             border: 1px solid #fff;
             border-radius: 5px;
-            text-decoration: none;
+            background-color: #333;
             color: #fff;
+            cursor: pointer;
         }
 
         #content {
@@ -62,10 +62,15 @@
         <div id="nav-intro">
             <p>Explore the different KN trading signals below.</p>
         </div>
-        <div class="nav-link"><a href="{% url 'about' %}">About page</a></div>
-        <div class="nav-link"><a href="{% url 'sweden_signals' %}">Sweden signals</a></div>
-        <div class="nav-link"><a href="{% url 'danish_navigation' %}">Danish navigation</a></div>
-        <div class="nav-link"><a href="{% url 'american_navigation' %}">American navigation</a></div>
+        <select onchange="window.location.href=this.value;">
+            <option disabled selected>Select an option</option>
+            <option value="{% url 'about' %}">About page</option>
+            <option value="{% url 'database_status' %}">Database status</option>
+            <option value="{% url 'sweden_signals' %}">Sweden signals</option>
+            <option value="{% url 'danish_navigation' %}">Danish navigation</option>
+            <option value="{% url 'norwegian_navigation' %}">Norwegian navigation</option>
+            <option value="{% url 'american_navigation' %}">American navigation</option>
+        </select>
     </div>
 </body>
 </html>

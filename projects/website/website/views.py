@@ -29,17 +29,23 @@ Dependencies:
 # pylint: disable=wrong-import-position.
 # pylint: disable=unused-variable.
 # pylint: disable=too-many-locals.
+# pylint: disable=duplicate-code.
+# pylint: disable=broad-exception-caught.
+
 from datetime import timedelta, datetime
 import pandas as pd
-
+import os
 import sys
 sys.path.insert(0,'..')
 from algo_scrapers.danish_ticker_scraper import OMXC25scraper
 from algo_scrapers.omxs30_scraper import OMXS30scraper
 from algo_scrapers.s_and_p_scraper import SAndPScraper
-from django.shortcuts import render
+from algo_scrapers.obx_scraper import OBXscraper
 from algos.algo1 import Algo1
-
+from django.shortcuts import render
+from django.http import JsonResponse
+from data.finance_database import DatabaseScheduler, Database
+from pathlib import Path
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
@@ -86,7 +92,8 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
         new_df["Ticker"] = [ticker] * len(extracted_rows)
         new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker + '_Buy']]
         new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker + '_Sell']]
-        new_df.index = extracted_rows['Date']
+        new_df.index = pd.to_datetime(extracted_rows['Date'])
+
 
         if not new_df.empty:
             output_list.append(new_df)
@@ -235,6 +242,137 @@ def american_navigation(request):
 
     return render(request, 'myapp/american_navigation.html')
 
+def algo1_navigation(request):
+    """
+    Renders the algo1_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the algo1_navigation page.
+    """
+
+    return render(request, 'myapp/algo1_navigation.html')
+
+def sentinel_navigation(request):
+    """
+    Renders the sentinel_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the sentinel_navigation page.
+    """
+
+    return render(request, 'myapp/sentinel_navigation.html')
+
+def database_status(request):
+    """
+    Renders the database_status page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the database_status page.
+    """
+
+    return render(request, 'myapp/database_status.html')
+
+def run_database_script():
+    """
+    Runs the database script to update the database with new data.
+
+    This function executes the database script to update the database with new data.
+    It retrieves data from various sources, processes it, and inserts it into the database.
+
+    Note: This function is designed to be called periodically to keep the database up to date.
+
+    Dependencies:
+    - SAndPScraper: Custom module for scraping S&P stock tickers.
+    - Database: Custom module for database operations.
+    - DatabaseScheduler: Custom module for scheduling database operations.
+    """
+    tickers_list0 = SAndPScraper()
+
+    instance_database0 = Database(start="2019-01-01",
+                                 end=datetime.today().strftime("%Y-%m-%d"),
+                                 scraper=tickers_list0)
+
+    # Create the 'Database' folder on the user's desktop if it doesn't exist
+    desktop_path = Path.home() / "Desktop"
+    database_folder_path = desktop_path / "Database"
+    if not database_folder_path.exists():
+        os.makedirs(database_folder_path)
+
+    db_path = database_folder_path / "SandP.db"
+
+    db_scheduler = DatabaseScheduler(instance_database0, database_path=db_path)
+
+    # Schedule the insertion of price data every minute
+    db_scheduler.run_insert_price_data()
+
+# pylint: disable=unused-argument
+def run_script_view(request):
+    """
+    Runs the database update script view.
+
+    This function is a view that handles requests to run the database update script.
+    It calls the `run_database_script()` function, which updates the database with new data.
+    If the script runs successfully, it returns a JSON response indicating success.
+    If an error occurs during script execution, it returns a JSON response with the error message.
+
+    Parameters:
+    - request: The HTTP request object.
+
+    Returns:
+    - JsonResponse: A JSON response indicating success or failure of the script execution.
+    """
+    try:
+        run_database_script()  # Call the function that runs the script
+        return JsonResponse({'success': True, 'message': 'Database updated successfully'})
+    except Exception as error:
+        return JsonResponse({'success': False, 'message': str(error)})
+
+def sentinel_signals_american(request):
+    """
+    Renders the sentinel_signals_american page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the sentinel_signals_american page.
+    """
+
+    return render(request, 'myapp/sentinel_signals_american.html')
+
+
+def norwegian_navigation(request):
+    """
+    Renders the norwegian_navigation page.
+
+    Parameters:
+    _________
+        request: The HTTP request object.
+
+    Returns:
+    _________
+        HttpResponse: The rendered HTML response for the norwegian_navigation page.
+    """
+
+    return render(request, 'myapp/norwegian_navigation.html')
+
 def american_signals(request):
     """
      Renders the American page with trading signals data for American stocks.
@@ -277,6 +415,48 @@ def american_signals(request):
 
     return render(request, 'myapp/american_signals.html', context)
 
+
+def norwegian_signals(request):
+    """
+     Renders the Norwegian page with trading signals data for Norwegian stocks.
+
+     Parameters:
+     _________
+         request: The HTTP request object.
+
+     Returns:
+     _________
+         HttpResponse: The rendered HTML response for the Norwegian page.
+     """
+
+    default_end_date = datetime.now().strftime('%Y-%m-%d')
+    default_start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+
+    if request.method == 'GET':
+        start_date = request.GET.get('start_date', default_start_date)
+        end_date = request.GET.get('end_date', default_end_date)
+        consecutive_days = int(request.GET.get('consecutive_days', 1))
+        consecutive_days_sell = int(request.GET.get('consecutive_days_sell', 1))
+    else:
+        start_date = default_start_date
+        end_date = default_end_date
+        consecutive_days = 1
+        consecutive_days_sell = 1
+
+    obx_scraper = OBXscraper()
+
+    # Pass consecutive_days and consecutive_days_sell to get_signals_data function
+    obx_signals_data = get_signals_data(obx_scraper, start_date, end_date,
+                                           consecutive_days, consecutive_days_sell)
+    context = {
+        'obx_signals_data': obx_signals_data,
+        'start_date': start_date,
+        'end_date': end_date,
+        'consecutive_days': consecutive_days,
+        'consecutive_days_sell': consecutive_days_sell,
+    }
+
+    return render(request, 'myapp/norwegian_signals.html', context)
 
 def danish_backtest(request):
     """

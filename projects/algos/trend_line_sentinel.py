@@ -154,7 +154,7 @@ class Sentinel:
         x_df = pd.DataFrame(data2)
         y_df = pd.DataFrame(y_input)
 
-        # # Convert DataFrames to NumPy arrays
+        # Convert DataFrames to NumPy arrays
         y_array = y_df.to_numpy().flatten()
 
         # Create a MinMaxScaler object

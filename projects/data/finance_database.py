@@ -91,6 +91,10 @@ class Database():
         for ticker in tickers_list:
             price_data = self.get_price_data(start=self.start, end=self.end, ticker=ticker)
 
+            # Skip insertion if price_data is None
+            if price_data is None:
+                continue
+
             # Insert data into the SQLite database table
             if not price_data.empty:
                 price_data.to_sql(ticker, self.conn, if_exists='append', index_label='Date')
@@ -285,11 +289,9 @@ class DatabaseScheduler:
 if __name__ == "__main__":
     tickers_list0 = SAndPScraper()
 
-    instance_database0 = Database(start="2019-01-01",
+    instance_database0 = Database(start="2021-01-01",
                                  end=datetime.today().strftime("%Y-%m-%d"),
                                  scraper=tickers_list0)
-
-
 
     # Create the 'Database' folder on the user's desktop if it doesn't exist
     desktop_path = Path.home() / "Desktop"
@@ -298,11 +300,6 @@ if __name__ == "__main__":
         os.makedirs(database_folder_path)
 
     db_path = database_folder_path / "SandP.db"
-
-    k = instance_database0.retrieve_data_from_database(start_date="2019-01-01",
-                                                       end_date="2021-01-01",
-                                                       ticker="TSLA",
-                                                       database_path=db_path)
 
     db_scheduler = DatabaseScheduler(instance_database0, database_path=db_path)
 

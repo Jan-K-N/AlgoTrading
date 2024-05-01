@@ -7,7 +7,9 @@ It provides methods for calculating RSI, Bollinger Bands, generating
 buy and sell signals, and executing the algorithm for multiple tickers.
 """
 # pylint: disable=wrong-import-position.
+# pylint: disable=too-many-locals.
 import sys
+from pathlib import Path
 import pandas as pd
 import numpy as np
 sys.path.append("..")
@@ -43,6 +45,8 @@ class Algo1:
         consecutive_days_sell (int or None):
             The number of consecutive days the sell conditions should be met
             to generate signals. If None, the default is None.
+        db_instance (Database):
+            An instance of the Database class for database operations.
 
     Methods:
     --------
@@ -91,6 +95,7 @@ class Algo1:
         self.tickers_list = tickers_list
         self.consecutive_days = consecutive_days
         self.consecutive_days_sell = consecutive_days_sell
+        self.db_instance = Database()
 
     def rsi(self) -> pd.Series:
         """
@@ -131,9 +136,14 @@ class Algo1:
             signals (pd.DataFrame):
                 DataFrame containing the buy and sell signals.
         """
-        data = Database.get_price_data(self, ticker=self.ticker,
-                                       start=self.start_date,
-                                       end=self.end_date)['Adj Close']
+        db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+
+        data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                    end_date=self.end_date,
+                                                    ticker=self.ticker,
+                                                    database_path=db_path)
+        data.set_index('Date', inplace=True)
+        data = data['Adj Close']
 
         lower_band = self.bollinger_bands()['Lower']
         upper_band = self.bollinger_bands()['Upper']

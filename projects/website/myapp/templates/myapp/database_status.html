@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Database Status</title>
+    <style>
+        body {
+            background-color: #222;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #fff;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #444;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+        }
+
+        .update-button {
+            cursor: pointer;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .update-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Status</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Database</th>
+                    <th>Database Description</th>
+                    <th>Database Status</th>
+                    <th>Update database</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>SandP.db</td>
+                    <td>Database containing ticker data for US tickers</td>
+                    <td id="status-cell"></td>
+                    <td><button class="update-button">Update here</button></td>
+                </tr>
+                <tr>
+                    <td>Database 2</td>
+                    <td>Description 2</td>
+                    <td>Status 2</td>
+                    <td><button class="update-button">Update here</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to format the date as YYYY-MM-DD:
+        function formatData(date) {
+            return date.getFullYear() + '-' + (date.getMonth() + 1).toString().padStart(2, '0') + '-' + date.getDate().toString().padStart(2, '0');
+        }
+
+        // Get the status cell
+        var statusCell = document.getElementById("status-cell");
+
+        // Get the current date
+        // var currentDate = new Date();
+
+        // Variable to store the last clicked date:
+        var lastClickedDate = new Date();
+
+        // Function to handle bottom click event
+        function handleButtonClick() {
+            lastClickedDate = new Date(); // Update last clicked date
+            var formattedDate = formatDate(lastClickedDate); // Format the date
+            formattedDate = statusCell.textContent = formattedDate; // Set status cell content and update formattedDate
+            formattedDate.style.backgroundColor = "green"; // Change background color
+            // Perform other actions if needed
+        }
+
+        // Add click event listeners to all update buttons
+        var updateButtons = document.querySelectorAll('.update-button');
+        updateButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                fetch('/run-script/')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message); // Success message
+                        } else {
+                            alert('Failed to run script: ' + data.message); // Error message
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to run script');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
