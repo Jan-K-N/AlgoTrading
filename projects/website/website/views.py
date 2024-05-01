@@ -30,6 +30,7 @@ Dependencies:
 # pylint: disable=unused-variable.
 # pylint: disable=too-many-locals.
 # pylint: disable=duplicate-code.
+# pylint: disable=invalid-name
 
 from datetime import timedelta, datetime
 import pandas as pd
@@ -338,8 +339,8 @@ def run_script_view(request):
     try:
         run_database_script()  # Call the function that runs the script
         return JsonResponse({'success': True, 'message': 'Database updated successfully'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)})
+    except Exception as error:
+        return JsonResponse({'success': False, 'message': str(error)})
 
 def sentinel_signals_american(request):
     """
