@@ -30,7 +30,7 @@ Dependencies:
 # pylint: disable=unused-variable.
 # pylint: disable=too-many-locals.
 # pylint: disable=duplicate-code.
-# pylint: disable=invalid-name
+# pylint: disable=broad-exception-caught.
 
 from datetime import timedelta, datetime
 import pandas as pd
