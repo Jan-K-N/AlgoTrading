@@ -4,6 +4,7 @@ so that it can contain backtest and other features.
 """
 # pylint: disable=import-error
 # pylint: disable=wrong-import-position
+# pylint: disable=duplicate-code
 import sys
 from pathlib import Path
 sys.path.append("..")

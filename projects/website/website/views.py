@@ -40,8 +40,8 @@ from algo_scrapers.danish_ticker_scraper import OMXC25scraper
 from algo_scrapers.omxs30_scraper import OMXS30scraper
 from algo_scrapers.s_and_p_scraper import SAndPScraper
 from algo_scrapers.obx_scraper import OBXscraper
-from django.shortcuts import render
 from algos.algo1 import Algo1
+from django.shortcuts import render
 from django.http import JsonResponse
 from data.finance_database import DatabaseScheduler, Database
 from pathlib import Path
@@ -91,7 +91,6 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
         new_df["Ticker"] = [ticker] * len(extracted_rows)
         new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker + '_Buy']]
         new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker + '_Sell']]
-        # new_df.index = extracted_rows['Date']
         new_df.index = pd.to_datetime(extracted_rows['Date'])
 
 
@@ -288,6 +287,19 @@ def database_status(request):
     return render(request, 'myapp/database_status.html')
 
 def run_database_script():
+    """
+    Runs the database script to update the database with new data.
+
+    This function executes the database script to update the database with new data.
+    It retrieves data from various sources, processes it, and inserts it into the database.
+
+    Note: This function is designed to be called periodically to keep the database up to date.
+
+    Dependencies:
+    - SAndPScraper: Custom module for scraping S&P stock tickers.
+    - Database: Custom module for database operations.
+    - DatabaseScheduler: Custom module for scheduling database operations.
+    """
     tickers_list0 = SAndPScraper()
 
     instance_database0 = Database(start="2019-01-01",
@@ -309,6 +321,20 @@ def run_database_script():
 
 # pylint: disable=unused-argument
 def run_script_view(request):
+    """
+    Runs the database update script view.
+
+    This function is a view that handles requests to run the database update script.
+    It calls the `run_database_script()` function, which updates the database with new data.
+    If the script runs successfully, it returns a JSON response indicating success.
+    If an error occurs during script execution, it returns a JSON response with the error message.
+
+    Parameters:
+    - request: The HTTP request object.
+
+    Returns:
+    - JsonResponse: A JSON response indicating success or failure of the script execution.
+    """
     try:
         run_database_script()  # Call the function that runs the script
         return JsonResponse({'success': True, 'message': 'Database updated successfully'})

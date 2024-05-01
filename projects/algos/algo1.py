@@ -7,14 +7,15 @@ It provides methods for calculating RSI, Bollinger Bands, generating
 buy and sell signals, and executing the algorithm for multiple tickers.
 """
 # pylint: disable=wrong-import-position.
+# pylint: disable=too-many-locals.
 import sys
+from pathlib import Path
 import pandas as pd
 import numpy as np
 sys.path.append("..")
 from strategies.bb import BollingerBandsStrategy
 from strategies.rsi import RSIStrategy
 from data.finance_database import Database
-from pathlib import Path
 
 # pylint: disable=too-many-arguments.
 class Algo1:
