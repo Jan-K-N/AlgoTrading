@@ -95,9 +95,9 @@ class Sentinel:
             try:
                 data_instance = Database(ticker=ticker, start=self.start_date, end=self.end_date)
                 data = data_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                            end_date=self.end_date,
-                                                            ticker = ticker,
-                                                            database_path=db_path)
+                                                                 end_date=self.end_date,
+                                                                 ticker = ticker,
+                                                                 database_path=db_path)
                 data = data[['Date', 'Adj Close']]
                 data.set_index('Date', inplace=True)
                 data = data.rename(columns={'Adj Close':ticker})
@@ -232,7 +232,7 @@ class Sentinel:
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
         # Set threshold
-        threshold = 10  # Define threshold value
+        threshold = 30  # Define threshold value
 
         # Use the forecast if RMSE is below the threshold
         if rmse <= threshold:
@@ -256,3 +256,11 @@ class Sentinel:
             print("Forecast RMSE is above the threshold. Discarding the forecast.")
 
         return signals
+
+if __name__ == "__main__":
+    instance = Sentinel(start_date="2022-01-01",
+                        end_date="2023-01-01",
+                        ticker='TSLA')
+    k1 = instance.sentinel_data()
+    k = instance.generate_signals()
+    print("k")
