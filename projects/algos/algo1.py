@@ -127,6 +127,68 @@ class Algo1:
         bollingerbands_data = bollingerbands_instance.get_data()
         return bollingerbands_data
 
+    # def generate_signals(self):
+    #     """
+    #     Generates buy and sell signals based on RSI and Bollinger Bands strategies.
+    # 
+    #     Returns:
+    #     -------
+    #         signals (pd.DataFrame):
+    #             DataFrame containing the buy and sell signals.
+    #     """
+    #     db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+    # 
+    #     data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+    #                                                 end_date=self.end_date,
+    #                                                 ticker=self.ticker,
+    #                                                 database_path=db_path)
+    #     data.set_index('Date', inplace=True)
+    #     data = data['Adj Close']
+    # 
+    #     lower_band = self.bollinger_bands()['Lower']
+    #     upper_band = self.bollinger_bands()['Upper']
+    #     rsi = self.rsi()
+    # 
+    #     current_price = data.values
+    # 
+    #     rsi_aligned = rsi.reindex(data.index).values
+    #     lower_band_aligned = lower_band.reindex(data.index).values
+    #     upper_band_aligned = upper_band.reindex(data.index).values
+    # 
+    #     consecutive_buy = 0
+    #     consecutive_sell = 0
+    #     buy_signal = [0] * len(data)
+    #     sell_signal = [0] * len(data)
+    # 
+    #     for i in range(len(data)):
+    #         if not np.isnan(rsi_aligned[i]) and not np.isnan(
+    #                 current_price[i]) and not np.isnan(lower_band_aligned[i]):
+    #             if (rsi_aligned[i] < 30) and (current_price[i] < lower_band_aligned[i]):
+    #                 consecutive_buy += 1
+    #                 consecutive_sell = 0
+    #             elif (rsi_aligned[i] > 70) and (current_price[i] > upper_band_aligned[i]):
+    #                 consecutive_sell += 1
+    #                 consecutive_buy = 0
+    #             else:
+    #                 consecutive_buy = 0
+    #                 consecutive_sell = 0
+    # 
+    #             buy_signal[i] = 1 if (
+    #                         self.consecutive_days is not None
+    #                         and consecutive_buy >= self.consecutive_days) else 0
+    #             sell_signal[i] = -1 if (
+    #                         self.consecutive_days_sell is not None and
+    #                         consecutive_sell >= self.consecutive_days_sell) else 0
+    #         else:
+    #             consecutive_buy = 0
+    #             consecutive_sell = 0
+    # 
+    #     signals = pd.DataFrame(data.index, columns=['Date'])
+    #     signals[self.ticker + '_Buy'] = buy_signal
+    #     signals[self.ticker + '_Sell'] = sell_signal
+    # 
+    #     return signals
+
     def generate_signals(self):
         """
         Generates buy and sell signals based on RSI and Bollinger Bands strategies.
@@ -139,9 +201,9 @@ class Algo1:
         db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
 
         data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                    end_date=self.end_date,
-                                                    ticker=self.ticker,
-                                                    database_path=db_path)
+                                                            end_date=self.end_date,
+                                                            ticker=self.ticker,
+                                                            database_path=db_path)
         data.set_index('Date', inplace=True)
         data = data['Adj Close']
 
@@ -149,11 +211,16 @@ class Algo1:
         upper_band = self.bollinger_bands()['Upper']
         rsi = self.rsi()
 
-        current_price = data.values
+        # Align data
+        data, lower_band = data.align(lower_band, join='inner')
+        data, upper_band = data.align(upper_band, join='inner')
+        data, rsi = data.align(rsi, join='inner')
 
-        rsi_aligned = rsi.reindex(data.index).values
-        lower_band_aligned = lower_band.reindex(data.index).values
-        upper_band_aligned = upper_band.reindex(data.index).values
+        # Convert aligned series to arrays
+        current_price = data.values
+        rsi_aligned = rsi.values
+        lower_band_aligned = lower_band.values
+        upper_band_aligned = upper_band.values
 
         consecutive_buy = 0
         consecutive_sell = 0
@@ -161,28 +228,29 @@ class Algo1:
         sell_signal = [0] * len(data)
 
         for i in range(len(data)):
-            if not np.isnan(rsi_aligned[i]) and not np.isnan(
-                    current_price[i]) and not np.isnan(lower_band_aligned[i]):
-                if (rsi_aligned[i] < 30) and (current_price[i] < lower_band_aligned[i]):
-                    consecutive_buy += 1
-                    consecutive_sell = 0
-                elif (rsi_aligned[i] > 70) and (current_price[i] > upper_band_aligned[i]):
-                    consecutive_sell += 1
-                    consecutive_buy = 0
+            # Check if index is within bounds
+            if i < len(rsi_aligned) and i < len(current_price) and i < len(lower_band_aligned):
+                if not np.isnan(rsi_aligned[i]) and not np.isnan(current_price[i]) and not np.isnan(
+                        lower_band_aligned[i]):
+                    if (rsi_aligned[i] < 30) and (current_price[i] < lower_band_aligned[i]):
+                        consecutive_buy += 1
+                        consecutive_sell = 0
+                    elif (rsi_aligned[i] > 70) and (current_price[i] > upper_band_aligned[i]):
+                        consecutive_sell += 1
+                        consecutive_buy = 0
+                    else:
+                        consecutive_buy = 0
+                        consecutive_sell = 0
+
+                    buy_signal[i] = 1 if (
+                                self.consecutive_days is not None and consecutive_buy >= self.consecutive_days) else 0
+                    sell_signal[i] = -1 if (
+                                self.consecutive_days_sell is not None and consecutive_sell >= self.consecutive_days_sell) else 0
                 else:
                     consecutive_buy = 0
                     consecutive_sell = 0
 
-                buy_signal[i] = 1 if (
-                            self.consecutive_days is not None
-                            and consecutive_buy >= self.consecutive_days) else 0
-                sell_signal[i] = -1 if (
-                            self.consecutive_days_sell is not None and
-                            consecutive_sell >= self.consecutive_days_sell) else 0
-            else:
-                consecutive_buy = 0
-                consecutive_sell = 0
-
+        # Create DataFrame with signals
         signals = pd.DataFrame(data.index, columns=['Date'])
         signals[self.ticker + '_Buy'] = buy_signal
         signals[self.ticker + '_Sell'] = sell_signal
