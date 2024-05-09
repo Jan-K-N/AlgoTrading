@@ -257,10 +257,22 @@ class Sentinel:
 
         return signals
 
+
 if __name__ == "__main__":
-    instance = Sentinel(start_date="2022-01-01",
-                        end_date="2023-01-01",
-                        ticker='TSLA')
-    k1 = instance.sentinel_data()
-    k = instance.generate_signals()
+    tickers_list = ['TSLA', 'AAPL', 'GOOGL']  # Example list of tickers
+
+    # Initialize an empty list to store dataframes
+    dataframes_list = []
+
+    # Loop over tickers
+    for ticker in tickers_list:
+        instance = Sentinel(start_date="2022-01-01",
+                            end_date="2023-01-01",
+                            ticker=ticker)
+        k1 = instance.sentinel_data()
+        k = instance.generate_signals()
+
+        # Append the dataframe to the list
+        dataframes_list.append(k)
+
     print("k")
