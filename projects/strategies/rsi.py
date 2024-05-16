@@ -35,9 +35,6 @@ class RSIStrategy():
             A DataFrame containing the RSI values for each day.
         """
         db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
-        # data = Database.get_price_data(self,start = self.start_date,
-        #                          end = self.end_date,
-        #                          ticker = self.ticker)
         data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
                                                     end_date=self.end_date,
                                                     ticker=self.ticker,
