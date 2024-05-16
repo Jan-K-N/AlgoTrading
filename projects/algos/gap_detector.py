@@ -8,35 +8,36 @@ import pandas_ta as ta
 from pathlib import Path
 sys.path.append("..")
 from data.finance_database import Database
+from algo_scrapers.s_and_p_scraper import SAndPScraper
 
 class GapDetector:
     """
-    Algo for gap dectector
+    Algo for gap detector
     """
-    def __init__(self,ticker=None,start_date=None,
-                 end_date=None,tickers_list=None):
+    def __init__(self, ticker=None, start_date=None, end_date=None, tickers_list=None, data=None):
         self.ticker = ticker
         self.start_date = start_date
         self.end_date = end_date
         self.tickers_list = tickers_list
         self.db_instance = Database()
+        self.data = data
 
-    def detect_gaps_with_macd(self,atr_window=14, gap_threshold=1):
-
-        db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
-
-        data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                    end_date=self.end_date,
-                                                    ticker=self.ticker,
-                                                    database_path=db_path)
-        data.set_index('Date', inplace=True)
+    def detect_gaps_with_macd(self, atr_window=14, gap_threshold=1):
+        data = self.data
+        if data is None:
+            db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+            data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                                end_date=self.end_date,
+                                                                ticker=self.ticker,
+                                                                database_path=db_path)
+            data.set_index('Date', inplace=True)
 
         data['ATR'] = ta.atr(data['High'], data['Low'], data['Close'], length=atr_window)
 
         # Calculate MACD
         macd_results = ta.macd(data['Close'])
         data['MACD'] = macd_results['MACD_12_26_9']
-        data['MACD_Signal'] = macd_results['MACDh_12_26_9']
+        data['MACD_Signal'] = macd_results['MACDs_12_26_9']
         trend_up = data['MACD'] > data['MACD_Signal']
         trend_down = data['MACD'] < data['MACD_Signal']
 
@@ -51,17 +52,17 @@ class GapDetector:
         gap_up &= trend_up
         gap_down &= trend_down
 
-        return gap_up, gap_down
+        return data, gap_up, gap_down
 
-    def backtest_gap_strategy(self,gap_up, gap_down):
-
-        db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
-
-        data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                    end_date=self.end_date,
-                                                    ticker=self.ticker,
-                                                    database_path=db_path)
-        data.set_index('Date', inplace=True)
+    def backtest_gap_strategy(self, gap_up, gap_down):
+        data = self.data
+        if data is None:
+            db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+            data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                                end_date=self.end_date,
+                                                                ticker=self.ticker,
+                                                                database_path=db_path)
+            data.set_index('Date', inplace=True)
 
         # Initialize position
         position = 0  # 0: no position, 1: long, -1: short
@@ -90,33 +91,81 @@ class GapDetector:
 
         return cumulative_returns
 
-    # Example usage
+    def get_signals_for_date(self, date, atr_window=14, gap_threshold=1):
+        data, gap_up, gap_down = self.detect_gaps_with_macd(atr_window, gap_threshold)
+
+        if date not in data.index:
+            raise ValueError(f"Date {date} not found in the data.")
+
+        signal_gap_up = gap_up.loc[date]
+        signal_gap_down = gap_down.loc[date]
+
+        return signal_gap_up, signal_gap_down
+
+# Example usage
 if __name__ == "__main__":
-    # Load sample data (replace this with your own data)
-    # Assuming a DataFrame with 'Date', 'Open', 'High', 'Low', 'Close' columns
-    # Here's some example data:
-    data = pd.DataFrame({
-        'Date': pd.date_range(start='2024-01-01', periods=100),
-        'Open': np.random.randn(100),
-        'High': np.random.randn(100),
-        'Low': np.random.randn(100),
-        'Close': np.random.randn(100)
-    })
+    tickers_list0 = SAndPScraper()
+    tickers_list = tickers_list0.run_scraper()
+    start_date = "2022-01-01"
+    end_date = "2024-01-01"
+    specific_date = "2022-03-31 00:00:00"
+
+    signals_list = []
+    all_data = {}
+
+    db_instance = Database()
+    db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+
+    # Fetch data for all tickers once
+    for ticker in tickers_list:
+        try:
+            data = db_instance.retrieve_data_from_database(start_date=start_date,
+                                                           end_date=end_date,
+                                                           ticker=ticker,
+                                                           database_path=db_path)
+            data.set_index('Date', inplace=True)
+            all_data[ticker] = data
+        except Exception as e:
+            print(f"Error fetching data for ticker {ticker}: {e}")
+            continue
+
+    for ticker in tickers_list:
+        if ticker not in all_data:
+            continue
+
+        instance = GapDetector(start_date=start_date, end_date=end_date, ticker=ticker, data=all_data[ticker])
+
+        try:
+            # Apply the combined strategy
+            data, gap_up, gap_down = instance.detect_gaps_with_macd()
+
+            # Create a DataFrame for signals
+            signals_df = pd.DataFrame({
+                'Date': data.index,
+                'Gap_Up': gap_up,
+                'Gap_Down': gap_down
+            })
+            signals_df['Ticker'] = ticker
+
+            # Append the DataFrame to the list
+            signals_list.append(signals_df)
+
+            # Get signals for a specific date
+            try:
+                signal_gap_up, signal_gap_down = instance.get_signals_for_date(specific_date)
+                print(f"Signals for {specific_date} - {ticker}: Gap Up: {signal_gap_up}, Gap Down: {signal_gap_down}")
+            except ValueError as e:
+                print(e)
+                continue
+
+        except Exception as e:
+            print(f"Error processing ticker {ticker}: {e}")
+            continue
+
+    # # Print signals list
+    # for signals_df in signals_list:
+    #     print(signals_df)
+    print("k")
 
 
-    instance = GapDetector(start_date="2022-01-01",
-                           end_date="2024-01-01",
-                           ticker='TWI')
-
-    # Apply the combined strategy
-    gap_up, gap_down = instance.detect_gaps_with_macd()
-
-    cumulative_returns = instance.backtest_gap_strategy(gap_up, gap_down)
-
-    # Print cumulative returns
-    print("Cumulative Returns:", cumulative_returns)
-
-    # Print detected gaps
-    print("Gap Up:", gap_up)
-    print("Gap Down:", gap_down)
 

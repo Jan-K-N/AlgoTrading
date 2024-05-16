@@ -234,13 +234,13 @@ class Database():
 
             # Convert fetched data into DataFrame
             columns = [description[0] for description in self.cursor.description]
-            retrived_dataframe = pd.DataFrame(data, columns=columns)
-            retrived_dataframe = retrived_dataframe.drop_duplicates()
+            retrieved_dataframe = pd.DataFrame(data, columns=columns)
+            retrieved_dataframe = retrieved_dataframe.drop_duplicates()
 
             # Close connection to the database
             self.close_connection()
 
-            return retrived_dataframe
+            return retrieved_dataframe
         except sqlite3.Error as error:
             print(f"SQLite error : {error}")
             return pd.DataFrame()
