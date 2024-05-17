@@ -22,7 +22,7 @@ class GapDetector:
         self.db_instance = Database()
         self.data = data
 
-    def detect_gaps_with_macd(self, atr_window=14, gap_threshold=1):
+    def detect_gaps_with_macd(self, atr_window=14, gap_threshold=20):
         data = self.data
         if data is None:
             db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
@@ -111,6 +111,7 @@ if __name__ == "__main__":
     specific_date = "2022-03-31 00:00:00"
 
     signals_list = []
+    specific_date_signals_list = []
     all_data = {}
 
     db_instance = Database()
@@ -137,7 +138,7 @@ if __name__ == "__main__":
 
         try:
             # Apply the combined strategy
-            data, gap_up, gap_down = instance.detect_gaps_with_macd()
+            data, gap_up, gap_down = instance.detect_gaps_with_macd(gap_threshold=20)
 
             # Create a DataFrame for signals
             signals_df = pd.DataFrame({
@@ -153,7 +154,16 @@ if __name__ == "__main__":
             # Get signals for a specific date
             try:
                 signal_gap_up, signal_gap_down = instance.get_signals_for_date(specific_date)
-                print(f"Signals for {specific_date} - {ticker}: Gap Up: {signal_gap_up}, Gap Down: {signal_gap_down}")
+                if signal_gap_up or signal_gap_down:  # Check if either Gap_Up or Gap_Down is True
+                    specific_date_df = pd.DataFrame({
+                        'Date': [specific_date],
+                        'Gap_Up': [signal_gap_up],
+                        'Gap_Down': [signal_gap_down],
+                        'Ticker': [ticker]
+                    })
+                    specific_date_signals_list.append(specific_date_df)
+                    # print(
+                    #     f"Signals for {specific_date} - {ticker}: Gap Up: {signal_gap_up}, Gap Down: {signal_gap_down}")
             except ValueError as e:
                 print(e)
                 continue
@@ -165,7 +175,8 @@ if __name__ == "__main__":
     # # Print signals list
     # for signals_df in signals_list:
     #     print(signals_df)
+    #
+    # # Print specific date signals list
+    # for specific_signals_df in specific_date_signals_list:
+    #     print(specific_signals_df)
     print("k")
-
-
-
