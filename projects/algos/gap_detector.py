@@ -210,7 +210,7 @@ class GapDetector:
         self.db_instance = Database()
         self.data = data
 
-    def detect_gaps_with_macd(self, atr_window=14, gap_threshold=20):
+    def detect_gaps_with_macd(self, atr_window=14, gap_threshold=1.5):
         data = self.data
         if data is None:
             db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
@@ -284,7 +284,7 @@ class GapDetector:
 
         return cumulative_returns
 
-    def get_signals_for_date(self, date, atr_window=14, gap_threshold=1):
+    def get_signals_for_date(self, date, atr_window=14, gap_threshold=1.5):
         data, gap_up, gap_down = self.detect_gaps_with_macd(atr_window, gap_threshold)
 
         if date not in data.index:
@@ -300,9 +300,9 @@ class GapDetector:
 if __name__ == "__main__":
     tickers_list0 = SAndPScraper()
     tickers_list = tickers_list0.run_scraper()
-    start_date = "2022-01-01"
-    end_date = "2024-01-01"
-    specific_date = "2023-03-31 00:00:00"
+    start_date = "2023-01-01"
+    end_date = "2024-05-17"
+    specific_date = "2024-05-13 00:00:00"
 
     signals_list = []
     specific_date_signals_list = []
@@ -333,7 +333,7 @@ if __name__ == "__main__":
 
         try:
             # Apply the combined strategy
-            data, gap_up, gap_down = instance.detect_gaps_with_macd(gap_threshold=20)
+            data, gap_up, gap_down = instance.detect_gaps_with_macd(gap_threshold=1.5)
 
             # Create a DataFrame for signals
             signals_df = pd.DataFrame({
