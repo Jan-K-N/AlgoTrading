@@ -242,7 +242,7 @@ class GapDetector:
 
         return data, gap_up, gap_down
 
-    def backtest_gap_strategy(self, gap_up, gap_down):
+    def backtest_gap_strategy(self, gap_up, gap_down, specific_date):
         data = self.data
         if data is None:
             db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
@@ -252,18 +252,23 @@ class GapDetector:
                                                                 database_path=db_path)
             data.set_index('Date', inplace=True)
 
+        # Filter data up to the specific date
+        data = data[:specific_date]
+        gap_up = gap_up[:specific_date]
+        gap_down = gap_down[:specific_date]
+
         # Initialize position
         position = 0  # 0: no position, 1: long, -1: short
 
         # Initialize returns
         returns = []
 
-        for i in range(len(data)):
-            if gap_up[i]:
+        for i in range(len(data) - 1):
+            if gap_up.iloc[i]:
                 # Enter long position
                 position = 1
                 entry_price = data['Open'].iloc[i + 1]  # Open price of the day after the gap up
-            elif gap_down[i]:
+            elif gap_down.iloc[i]:
                 # Exit long position
                 if position == 1:
                     exit_price = data['Open'].iloc[i + 1]  # Open price of the day after the gap down
@@ -297,7 +302,7 @@ if __name__ == "__main__":
     tickers_list = tickers_list0.run_scraper()
     start_date = "2022-01-01"
     end_date = "2024-01-01"
-    specific_date = "2022-03-31 00:00:00"
+    specific_date = "2023-03-31 00:00:00"
 
     signals_list = []
     specific_date_signals_list = []
@@ -352,10 +357,11 @@ if __name__ == "__main__":
                         'Ticker': [ticker]
                     })
                     specific_date_signals_list.append(specific_date_df)
-                    # Backtest the strategy for this ticker
-                    backtested_returns = instance.backtest_gap_strategy(gap_up, gap_down)
+
+                    # Backtest the strategy for this ticker up to the specific date
+                    backtested_returns = instance.backtest_gap_strategy(gap_up, gap_down, specific_date)
                     backtested_df = pd.DataFrame({
-                        'Date': data.index,
+                        'Date': data.index[:len(backtested_returns)],
                         'Cumulative_Returns': backtested_returns
                     })
                     backtested_df['Ticker'] = ticker
@@ -380,5 +386,7 @@ if __name__ == "__main__":
     # # Print backtested results list
     # for backtested_df in backtested_list:
     #     print(backtested_df)
+
     print("k")
+
 
