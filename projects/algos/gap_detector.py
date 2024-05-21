@@ -220,6 +220,9 @@ class GapDetector:
                                                                 database_path=db_path)
             data.set_index('Date', inplace=True)
 
+        # Remove duplicate dates
+        data = data[~data.index.duplicated(keep='first')]
+
         data['ATR'] = ta.atr(data['High'], data['Low'], data['Close'], length=atr_window)
 
         # Calculate MACD
@@ -251,6 +254,9 @@ class GapDetector:
                                                                 ticker=self.ticker,
                                                                 database_path=db_path)
             data.set_index('Date', inplace=True)
+
+        # Remove duplicate dates
+        data = data[~data.index.duplicated(keep='first')]
 
         # Filter data up to the specific date
         data = data[:specific_date]
@@ -300,8 +306,8 @@ class GapDetector:
 if __name__ == "__main__":
     tickers_list0 = SAndPScraper()
     tickers_list = tickers_list0.run_scraper()
-    start_date = "2023-01-01"
-    end_date = "2024-05-17"
+    start_date = "2024-01-01"
+    end_date = "2024-05-21"
     specific_date = "2024-05-13 00:00:00"
 
     signals_list = []
@@ -388,5 +394,6 @@ if __name__ == "__main__":
     #     print(backtested_df)
 
     print("k")
+
 
 
