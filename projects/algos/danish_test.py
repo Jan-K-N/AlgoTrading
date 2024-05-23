@@ -6,6 +6,7 @@ import yfinance as yf
 from pathlib import Path
 sys.path.append("..")
 from algo_scrapers.danish_ticker_scraper import OMXC25scraper
+from algo_scrapers.omxs30_scraper import OMXS30scraper
 
 
 
@@ -118,9 +119,11 @@ class GapDetector:
 if __name__ == "__main__":
     tickers_list0 = OMXC25scraper()
     tickers_list = tickers_list0.run_scraper()
+    # tickers_list0 = OMXS30scraper()
+    # tickers_list = tickers_list0.run_scraper()
     start_date = "2024-01-01"
-    end_date = "2024-05-21"
-    specific_date = "2024-05-17"
+    end_date = "2024-05-22"
+    specific_date = "2024-05-21"
 
     signals_list = []
     specific_date_signals_list = []
