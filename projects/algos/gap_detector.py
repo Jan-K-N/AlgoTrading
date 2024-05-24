@@ -3,24 +3,42 @@ import pandas as pd
 import numpy as np
 import pandas_ta as ta
 from pathlib import Path
-
 sys.path.append("..")
 from data.finance_database import Database
 from algo_scrapers.s_and_p_scraper import SAndPScraper
-
+import pandas_ta as ta
+from algo_scrapers.danish_ticker_scraper import OMXC25scraper
+from algo_scrapers.omxs30_scraper import OMXS30scraper
 
 class GapDetector:
     """
     Algo for gap detector
     """
 
-    def __init__(self, ticker=None, start_date=None, end_date=None, tickers_list=None, data=None):
+    def __init__(self, ticker=None, start_date=None, end_date=None, tickers_list=None, data=None,
+                 market = None):
         self.ticker = ticker
         self.start_date = start_date
         self.end_date = end_date
         self.tickers_list = tickers_list
         self.db_instance = Database()
         self.data = data
+        self.market = market
+
+    def fetch_data_from_yahoo(self):
+        """
+        Method to fetch data from the yahoo finance website.
+        This website is currently used for other markets than the American, where
+        we don't have a database.
+
+        Returns:
+        Data from the yahoo finance api.
+
+        """
+        if self.ticker:
+            data = yf.download(self.ticker, start=self.start_date, end=self.end_date)
+            data.index.name = 'Date'
+            return data
 
     def detect_gaps_with_macd(self, atr_window=14, gap_threshold=1.5):
         data = self.data
@@ -35,14 +53,24 @@ class GapDetector:
         # Remove duplicate dates
         data = data[~data.index.duplicated(keep='first')]
 
+        # ATR Calculation
         data['ATR'] = ta.atr(data['High'], data['Low'], data['Close'], length=atr_window)
 
-        # Calculate MACD
+        # MACD Calculation
         macd_results = ta.macd(data['Close'])
         data['MACD'] = macd_results['MACD_12_26_9']
         data['MACD_Signal'] = macd_results['MACDs_12_26_9']
-        trend_up = data['MACD'] > data['MACD_Signal']
-        trend_down = data['MACD'] < data['MACD_Signal']
+
+        # Additional Indicator: RSI
+        data['RSI'] = ta.rsi(data['Close'], length=14)
+
+        # Additional Indicator: Bollinger Bands
+        bollinger = ta.bbands(data['Close'], length=20, std=2)
+        data['BB_upper'] = bollinger['BBU_20_2.0']
+        data['BB_lower'] = bollinger['BBL_20_2.0']
+
+        trend_up = (data['MACD'] > data['MACD_Signal']) & (data['RSI'] < 70)
+        trend_down = (data['MACD'] < data['MACD_Signal']) & (data['RSI'] > 30)
 
         # Calculate expected gap size based on ATR
         expected_gap = data['ATR'] * gap_threshold
@@ -51,9 +79,9 @@ class GapDetector:
         gap_up = (data['Close'] - data['Open']) > expected_gap
         gap_down = (data['Open'] - data['Close']) > expected_gap
 
-        # Combine gap detection with trend direction
-        gap_up &= trend_up
-        gap_down &= trend_down
+        # Combine gap detection with trend direction and volume filter
+        gap_up &= trend_up & (data['Volume'] > data['Volume'].rolling(window=20).mean())
+        gap_down &= trend_down & (data['Volume'] > data['Volume'].rolling(window=20).mean())
 
         return data, gap_up, gap_down
 
@@ -78,29 +106,50 @@ class GapDetector:
         # Initialize position
         position = 0  # 0: no position, 1: long, -1: short
 
-        # Initialize returns
+        # Initialize returns and trades
         returns = []
+        trades = []
 
         for i in range(len(data) - 1):
             if gap_up.iloc[i]:
                 # Enter long position
                 position = 1
                 entry_price = data['Open'].iloc[i + 1]  # Open price of the day after the gap up
+                entry_date = data.index[i + 1]
             elif gap_down.iloc[i]:
                 # Exit long position
                 if position == 1:
                     exit_price = data['Open'].iloc[i + 1]  # Open price of the day after the gap down
-                    returns.append((exit_price - entry_price) / entry_price)
+                    exit_date = data.index[i + 1]
+                    trade_return = (exit_price - entry_price) / entry_price
+                    returns.append(trade_return)
+                    trades.append({
+                        'Entry_Date': entry_date,
+                        'Entry_Price': entry_price,
+                        'Exit_Date': exit_date,
+                        'Exit_Price': exit_price,
+                        'Return': trade_return
+                    })
                     position = 0
 
         if position == 1:
             # If still in position at the end of the data, exit position at the last day's close
             exit_price = data['Close'].iloc[-1]
-            returns.append((exit_price - entry_price) / entry_price)
+            exit_date = data.index[-1]
+            trade_return = (exit_price - entry_price) / entry_price
+            returns.append(trade_return)
+            trades.append({
+                'Entry_Date': entry_date,
+                'Entry_Price': entry_price,
+                'Exit_Date': exit_date,
+                'Exit_Price': exit_price,
+                'Return': trade_return
+            })
 
         cumulative_returns = (1 + np.array(returns)).cumprod()
 
-        return cumulative_returns
+        trades_df = pd.DataFrame(trades)
+        return cumulative_returns, trades_df
 
     def get_signals_for_date(self, date, atr_window=14, gap_threshold=1.5):
         data, gap_up, gap_down = self.detect_gaps_with_macd(atr_window, gap_threshold)
@@ -125,6 +174,7 @@ if __name__ == "__main__":
     signals_list = []
     specific_date_signals_list = []
     backtested_list = []
+    trade_returns_list = []
     all_data = {}
 
     db_instance = Database()
@@ -153,16 +203,18 @@ if __name__ == "__main__":
             # Apply the combined strategy
             data, gap_up, gap_down = instance.detect_gaps_with_macd(gap_threshold=1.5)
 
-            # Create a DataFrame for signals
-            signals_df = pd.DataFrame({
-                'Date': data.index,
-                'Gap_Up': gap_up,
-                'Gap_Down': gap_down
-            })
-            signals_df['Ticker'] = ticker
+            # Check if there are any signals before appending
+            if gap_up.any() or gap_down.any():
+                # Create a DataFrame for signals
+                signals_df = pd.DataFrame({
+                    'Date': data.index,
+                    'Gap_Up': gap_up,
+                    'Gap_Down': gap_down
+                })
+                signals_df['Ticker'] = ticker
 
-            # Append the DataFrame to the list
-            signals_list.append(signals_df)
+                # Append the DataFrame to the list
+                signals_list.append(signals_df)
 
             # Get signals for a specific date
             try:
@@ -177,13 +229,14 @@ if __name__ == "__main__":
                     specific_date_signals_list.append(specific_date_df)
 
                     # Backtest the strategy for this ticker up to the specific date
-                    backtested_returns = instance.backtest_gap_strategy(gap_up, gap_down, specific_date)
+                    backtested_returns, trades_df = instance.backtest_gap_strategy(gap_up, gap_down, specific_date)
                     backtested_df = pd.DataFrame({
                         'Date': data.index[:len(backtested_returns)],
                         'Cumulative_Returns': backtested_returns
                     })
                     backtested_df['Ticker'] = ticker
                     backtested_list.append(backtested_df)
+                    trade_returns_list.append(trades_df)
 
             except ValueError as e:
                 print(e)
@@ -204,8 +257,13 @@ if __name__ == "__main__":
     # # Print backtested results list
     # for backtested_df in backtested_list:
     #     print(backtested_df)
+    #
+    # # Print trade returns list
+    # for trades_df in trade_returns_list:
+    #     print(trades_df)
 
     print("k")
+
 
 
 
