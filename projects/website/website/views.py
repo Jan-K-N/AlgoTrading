@@ -42,6 +42,7 @@ from algo_scrapers.omxs30_scraper import OMXS30scraper
 from algo_scrapers.s_and_p_scraper import SAndPScraper
 from algo_scrapers.obx_scraper import OBXscraper
 from algos.algo1 import Algo1
+from algos.gap_detector import GapDetector
 from django.shortcuts import render
 from django.http import JsonResponse
 from data.finance_database import DatabaseScheduler, Database
@@ -111,6 +112,118 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
             signals_data.append(signal_entry)
 
     return signals_data
+
+def gap_detector_get_signals(start_date:str,end_date:str,specific_date:str,market:str):
+    """
+    Method for collecting relevant objects for the Gapdetector algo.
+    This objects should then be cast into the django app.
+
+    Parameters:
+    _________
+        start_date (str): Start date for the signal analysis in the format 'YYYY-MM-DD'.
+        end_date (str): End date for the signal analysis in the format 'YYYY-MM-DD'.
+        specific_date (str): String to control if a specific signal date is wanted.
+        market (str): Variable to control which market we want to run the algo for.
+
+    Returns:
+    _________
+
+    """
+    signals_list = []
+    specific_date_signals_list = []
+    backtested_list = []
+    trade_returns_list = []
+    all_data = {}
+
+    # Code section to control scraper:
+    if market == "USA":
+        tickers_list0 = SAndPScraper()
+        tickers_list = tickers_list0.run_scraper()
+
+    elif market == "Denmark":
+        tickers_list0 = OMXC25scraper()
+        tickers_list = tickers_list0.run_scraper()
+    elif market == "Sweden":
+        tickers_list0 = OMXS30scraper()
+        tickers_list = tickers_list0.run_scraper()
+
+    for ticker in tickers_list:
+        try:
+
+            if market == "USA":
+                db_instance = Database()
+                db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+
+                data = db_instance.retrieve_data_from_database(start_date=start_date,
+                                                               end_date=end_date,
+                                                               ticker=ticker,
+                                                               database_path=db_path)
+            else:
+                instance_database0 = Database(start=start_date,
+                                              end=end_date,
+                                              ticker=ticker)
+                data = instance_database0.get_price_data()
+
+            data.set_index('Date', inplace=True)
+            all_data[ticker] = data
+        except Exception as e:
+            print(f"Error fetching data for ticker {ticker}: {e}")
+            continue
+
+    for ticker in tickers_list:
+        if ticker not in all_data:
+            continue
+
+        instance = GapDetector(start_date=start_date, end_date=end_date, ticker=ticker, data=all_data[ticker])
+
+        try:
+            # Apply the combined strategy
+            data, gap_up, gap_down = instance.detect_gaps_with_macd(gap_threshold=1.5)
+
+            # Check if there are any signals before appending
+            if gap_up.any() or gap_down.any():
+                # Create a DataFrame for signals
+                signals_df = pd.DataFrame({
+                    'Date': data.index,
+                    'Gap_Up': gap_up,
+                    'Gap_Down': gap_down
+                })
+                signals_df['Ticker'] = ticker
+
+                # Append the DataFrame to the list
+                signals_list.append(signals_df)
+
+            # Get signals for a specific date
+            try:
+                signal_gap_up, signal_gap_down = instance.get_signals_for_date(specific_date)
+                if signal_gap_up or signal_gap_down:  # Check if either Gap_Up or Gap_Down is True
+                    specific_date_df = pd.DataFrame({
+                        'Date': [specific_date],
+                        'Gap_Up': [signal_gap_up],
+                        'Gap_Down': [signal_gap_down],
+                        'Ticker': [ticker]
+                    })
+                    specific_date_signals_list.append(specific_date_df)
+
+                    # Backtest the strategy for this ticker up to the specific date
+                    backtested_returns, trades_df = instance.backtest_gap_strategy(gap_up, gap_down, specific_date)
+                    backtested_df = pd.DataFrame({
+                        'Date': data.index[:len(backtested_returns)],
+                        'Cumulative_Returns': backtested_returns
+                    })
+                    backtested_df['Ticker'] = ticker
+                    backtested_list.append(backtested_df)
+                    trade_returns_list.append(trades_df)
+
+            except ValueError as e:
+                print(e)
+                continue
+
+        except Exception as e:
+            print(f"Error processing ticker {ticker}: {e}")
+            continue
+
+    return signals_list, specific_date_signals_list,backtested_list,trade_returns_list
 
 def home(request):
     """
@@ -486,3 +599,10 @@ def about(request):
         HttpResponse: The rendered HTML response for the about page.
     """
     return render(request, 'myapp/about.html')
+
+# if __name__ == "__main__":
+#     k = gap_detector_get_signals(start_date="2022-01-01",
+#                                  end_date="2024-01-01",
+#                                  specific_date="2023-01-01",
+#                                  market = "Denmark")
+#     print("k")

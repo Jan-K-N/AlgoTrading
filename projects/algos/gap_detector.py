@@ -41,6 +41,15 @@ class GapDetector:
             return data
 
     def detect_gaps_with_macd(self, atr_window=14, gap_threshold=1.5):
+        """
+        Method to detect trading signals/gaps to trade.
+        Args:
+            atr_window:
+            gap_threshold:
+
+        Returns:
+
+        """
         data = self.data
         if data is None:
             db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
@@ -245,22 +254,6 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Error processing ticker {ticker}: {e}")
             continue
-
-    # # Print signals list
-    # for signals_df in signals_list:
-    #     print(signals_df)
-    #
-    # # Print specific date signals list
-    # for specific_signals_df in specific_date_signals_list:
-    #     print(specific_signals_df)
-    #
-    # # Print backtested results list
-    # for backtested_df in backtested_list:
-    #     print(backtested_df)
-    #
-    # # Print trade returns list
-    # for trades_df in trade_returns_list:
-    #     print(trades_df)
 
     print("k")
 
