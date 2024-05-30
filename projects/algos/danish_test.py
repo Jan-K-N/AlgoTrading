@@ -39,15 +39,47 @@ class GapDetector:
         # Remove duplicate dates
         data = data[~data.index.duplicated(keep='first')]
 
-        # Calculate ATR
+        # # Calculate ATR
+        # data['ATR'] = ta.atr(data['High'], data['Low'], data['Close'], length=atr_window)
+        #
+        # # Calculate MACD
+        # macd_results = ta.macd(data['Close'])
+        # data['MACD'] = macd_results['MACD_12_26_9']
+        # data['MACD_Signal'] = macd_results['MACDs_12_26_9']
+        # trend_up = data['MACD'] > data['MACD_Signal']
+        # trend_down = data['MACD'] < data['MACD_Signal']
+        #
+        # # Calculate expected gap size based on ATR
+        # expected_gap = data['ATR'] * gap_threshold
+        #
+        # # Identify where gaps occur
+        # gap_up = (data['Close'] - data['Open']) > expected_gap
+        # gap_down = (data['Open'] - data['Close']) > expected_gap
+        #
+        # # Combine gap detection with trend direction
+        # gap_up &= trend_up
+        # gap_down &= trend_down
+        #
+        # return data, gap_up, gap_down
+
+        # ATR Calculation
         data['ATR'] = ta.atr(data['High'], data['Low'], data['Close'], length=atr_window)
 
-        # Calculate MACD
+        # MACD Calculation
         macd_results = ta.macd(data['Close'])
         data['MACD'] = macd_results['MACD_12_26_9']
         data['MACD_Signal'] = macd_results['MACDs_12_26_9']
-        trend_up = data['MACD'] > data['MACD_Signal']
-        trend_down = data['MACD'] < data['MACD_Signal']
+
+        # Additional Indicator: RSI
+        data['RSI'] = ta.rsi(data['Close'], length=14)
+
+        # Additional Indicator: Bollinger Bands
+        bollinger = ta.bbands(data['Close'], length=20, std=2)
+        data['BB_upper'] = bollinger['BBU_20_2.0']
+        data['BB_lower'] = bollinger['BBL_20_2.0']
+
+        trend_up = (data['MACD'] > data['MACD_Signal']) & (data['RSI'] < 70)
+        trend_down = (data['MACD'] < data['MACD_Signal']) & (data['RSI'] > 30)
 
         # Calculate expected gap size based on ATR
         expected_gap = data['ATR'] * gap_threshold
@@ -56,9 +88,9 @@ class GapDetector:
         gap_up = (data['Close'] - data['Open']) > expected_gap
         gap_down = (data['Open'] - data['Close']) > expected_gap
 
-        # Combine gap detection with trend direction
-        gap_up &= trend_up
-        gap_down &= trend_down
+        # Combine gap detection with trend direction and volume filter
+        gap_up &= trend_up & (data['Volume'] > data['Volume'].rolling(window=20).mean())
+        gap_down &= trend_down & (data['Volume'] > data['Volume'].rolling(window=20).mean())
 
         return data, gap_up, gap_down
 
@@ -122,8 +154,8 @@ if __name__ == "__main__":
     # tickers_list0 = OMXS30scraper()
     # tickers_list = tickers_list0.run_scraper()
     start_date = "2024-01-01"
-    end_date = "2024-05-22"
-    specific_date = "2024-05-21"
+    end_date = "2024-05-30"
+    specific_date = "2024-05-28"
 
     signals_list = []
     specific_date_signals_list = []

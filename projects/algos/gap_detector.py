@@ -177,8 +177,8 @@ if __name__ == "__main__":
     tickers_list0 = SAndPScraper()
     tickers_list = tickers_list0.run_scraper()
     start_date = "2024-01-01"
-    end_date = "2024-05-21"
-    specific_date = "2024-05-17 00:00:00"
+    end_date = "2024-05-30"
+    specific_date = "2024-05-28 00:00:00"
 
     signals_list = []
     specific_date_signals_list = []
