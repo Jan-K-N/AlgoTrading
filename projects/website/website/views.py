@@ -248,7 +248,7 @@ def gap_detector_signals(request):
             market = form.cleaned_data['market']
 
             # Retrieve the signals for the selected dates and market
-            signals_list, specific_date_signals_list, backtested_list, trade_returns_list = gap_detector_get_signals(
+            signals_list, backtested_list, trade_returns_list = gap_detector_get_signals(
                 start_date, end_date, specific_date, market)
 
             # Iterate over signals_list
@@ -258,7 +258,12 @@ def gap_detector_signals(request):
                 for _, row in rows.iterrows():
                     extracted_rows.append(row.to_dict())
 
-            # Similarly, process specific_date_signals_list, backtested_list, and trade_returns_list as needed
+            # Print extracted_rows to inspect its content
+            print("Extracted Rows:")
+            for row in extracted_rows:
+                print(row)
+
+            # Similarly, process backtested_list and trade_returns_list as needed
 
     else:
         form = DateForm()
@@ -646,9 +651,9 @@ def about(request):
     """
     return render(request, 'myapp/about.html')
 
-if __name__ == "__main__":
-    k = gap_detector_get_signals(start_date="2022-01-01",
-                                 end_date="2024-01-01",
-                                 specific_date="2023-01-01",
-                                 market = "Denmark")
-    print("k")
+# if __name__ == "__main__":
+#     k = gap_detector_get_signals(start_date="2022-01-01",
+#                                  end_date="2024-01-01",
+#                                  specific_date="2023-01-01",
+#                                  market = "Denmark")
+#     print("k")
