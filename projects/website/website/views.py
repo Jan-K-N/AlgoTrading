@@ -47,6 +47,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from data.finance_database import DatabaseScheduler, Database
 from pathlib import Path
+from django.shortcuts import redirect
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
@@ -225,6 +226,31 @@ def gap_detector_get_signals(start_date:str,end_date:str,specific_date:str,marke
 
     return signals_list, specific_date_signals_list,backtested_list,trade_returns_list
 
+
+def gap_detector_signals(request):
+    start_date = request.GET.get('start_date', (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'))
+    end_date = request.GET.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+    specific_date = request.GET.get('specific_date', '')
+    market = request.session.get('market', 'USA')
+
+    signals_list, specific_date_signals_list, backtested_list, trade_returns_list = gap_detector_get_signals(
+        start_date=start_date,
+        end_date=end_date,
+        specific_date=specific_date,
+        market=market
+    )
+
+    context = {
+        'signals_list': signals_list,
+        'specific_date_signals_list': specific_date_signals_list,
+        'backtested_list': backtested_list,
+        'trade_returns_list': trade_returns_list,
+    }
+
+    return render(request, 'myapp/gap_detector_signals.html', context)
+
+
+
 def home(request):
     """
     Renders the home page.
@@ -341,18 +367,7 @@ def danish_navigation(request):
     return render(request, 'myapp/danish_navigation.html')
 
 def american_navigation(request):
-    """
-    Renders the american_navigation page.
-
-    Parameters:
-    _________
-        request: The HTTP request object.
-
-    Returns:
-    _________
-        HttpResponse: The rendered HTML response for the american_navigation page.
-    """
-
+    request.session['market'] = 'USA'
     return render(request, 'myapp/american_navigation.html')
 
 def algo1_navigation(request):
@@ -600,9 +615,9 @@ def about(request):
     """
     return render(request, 'myapp/about.html')
 
-# if __name__ == "__main__":
-#     k = gap_detector_get_signals(start_date="2022-01-01",
-#                                  end_date="2024-01-01",
-#                                  specific_date="2023-01-01",
-#                                  market = "Denmark")
-#     print("k")
+if __name__ == "__main__":
+    k = gap_detector_get_signals(start_date="2022-01-01",
+                                 end_date="2024-01-01",
+                                 specific_date="2023-01-01",
+                                 market = "Denmark")
+    print("k")
