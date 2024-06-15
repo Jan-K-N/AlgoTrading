@@ -130,12 +130,10 @@ def gap_detector_get_signals(start_date, end_date, specific_date, market):
     Returns:
     _________
     signals_list (list): List of DataFrames containing gap signals for each ticker.
-    specific_date_signals_list (list): List of DataFrames containing signals for a specific date.
     backtested_list (list): List of backtested returns DataFrames for each ticker.
     trade_returns_list (list): List of DataFrames containing trade returns for each ticker.
     """
     signals_list = []
-    specific_date_signals_list = []
     backtested_list = []
     trade_returns_list = []
     all_data = {}
@@ -197,37 +195,22 @@ def gap_detector_get_signals(start_date, end_date, specific_date, market):
                 # Append the DataFrame to the list
                 signals_list.append(signals_df)
 
-            # Get signals for a specific date
-            try:
-                signal_gap_up, signal_gap_down = instance.get_signals_for_date(specific_date)
-                if signal_gap_up or signal_gap_down:  # Check if either Gap_Up or Gap_Down is True
-                    specific_date_df = pd.DataFrame({
-                        'Date': [specific_date],
-                        'Gap_Up': [signal_gap_up],
-                        'Gap_Down': [signal_gap_down],
-                        'Ticker': [ticker]
-                    })
-                    specific_date_signals_list.append(specific_date_df)
-
-                    # Backtest the strategy for this ticker up to the specific date
-                    backtested_returns, trades_df = instance.backtest_gap_strategy(gap_up, gap_down, specific_date)
-                    backtested_df = pd.DataFrame({
-                        'Date': data.index[:len(backtested_returns)],
-                        'Cumulative_Returns': backtested_returns
-                    })
-                    backtested_df['Ticker'] = ticker
-                    backtested_list.append(backtested_df)
-                    trade_returns_list.append(trades_df)
-
-            except ValueError as e:
-                print(e)
-                continue
+                # Backtest the strategy for this ticker
+                backtested_returns, trades_df = instance.backtest_gap_strategy(gap_up, gap_down, specific_date)
+                backtested_df = pd.DataFrame({
+                    'Date': data.index[:len(backtested_returns)],
+                    'Cumulative_Returns': backtested_returns
+                })
+                backtested_df['Ticker'] = ticker
+                backtested_list.append(backtested_df)
+                trade_returns_list.append(trades_df)
 
         except Exception as e:
             print(f"Error processing ticker {ticker}: {e}")
             continue
 
-    return signals_list, specific_date_signals_list, backtested_list, trade_returns_list
+    return signals_list, backtested_list, trade_returns_list
+
 
 
 
