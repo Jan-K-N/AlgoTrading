@@ -109,6 +109,7 @@ class BollingerBandsStrategy:
                                                     ticker=self.ticker,
                                                     database_path=db_path)
         data.set_index('Date',inplace=True)
+        data = data[~data.index.duplicated(keep='first')]
         data['MA'] = data['Adj Close'].rolling(self.window).mean()
         data['Upper'] = data['MA'] + self.dev_factor * data['Adj Close'].rolling(self.window).std()
         data['Lower'] = data['MA'] - self.dev_factor * data['Adj Close'].rolling(self.window).std()

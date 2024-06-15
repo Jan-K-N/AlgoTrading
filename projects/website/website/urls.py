@@ -33,6 +33,8 @@ urlpatterns = [
     path('sentinel_navigation/',views.sentinel_navigation,name='sentinel_navigation'),
     path('sentinel_signals_american/', views.sentinel_signals_american,
          name='sentinel_signals_american'),
+    path('gap_detector/',views.gap_detector_get_signals,name='gap_detector'),
+    path('gap_detector_signals/', views.gap_detector_signals, name='gap_detector_signals'),
     path('about/', views.about, name='about'),
     path('run-script/', views.run_script_view, name='run_script')
 ]

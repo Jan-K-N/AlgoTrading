@@ -43,6 +43,7 @@ class RSIStrategy():
                                                     ticker=self.ticker,
                                                     database_path=db_path)
         data.set_index('Date',inplace=True)
+        data = data[~data.index.duplicated(keep='first')]
         rsi = pta.rsi(data['Adj Close'],length=14)
         data['RSI'] = rsi
         return data.dropna()
