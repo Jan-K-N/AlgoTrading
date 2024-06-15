@@ -48,6 +48,7 @@ from django.http import JsonResponse
 from data.finance_database import DatabaseScheduler, Database
 from pathlib import Path
 from django.shortcuts import redirect
+from .forms import DateForm
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
@@ -114,7 +115,7 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
 
     return signals_data
 
-def gap_detector_get_signals(start_date:str,end_date:str,specific_date:str,market:str):
+def gap_detector_get_signals(start_date, end_date, specific_date, market):
     """
     Method for collecting relevant objects for the Gapdetector algo.
     This objects should then be cast into the django app.
@@ -128,7 +129,10 @@ def gap_detector_get_signals(start_date:str,end_date:str,specific_date:str,marke
 
     Returns:
     _________
-
+    signals_list (list): List of DataFrames containing gap signals for each ticker.
+    specific_date_signals_list (list): List of DataFrames containing signals for a specific date.
+    backtested_list (list): List of backtested returns DataFrames for each ticker.
+    trade_returns_list (list): List of DataFrames containing trade returns for each ticker.
     """
     signals_list = []
     specific_date_signals_list = []
@@ -150,7 +154,6 @@ def gap_detector_get_signals(start_date:str,end_date:str,specific_date:str,marke
 
     for ticker in tickers_list:
         try:
-
             if market == "USA":
                 db_instance = Database()
                 db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
@@ -224,31 +227,76 @@ def gap_detector_get_signals(start_date:str,end_date:str,specific_date:str,marke
             print(f"Error processing ticker {ticker}: {e}")
             continue
 
-    return signals_list, specific_date_signals_list,backtested_list,trade_returns_list
+    return signals_list, specific_date_signals_list, backtested_list, trade_returns_list
 
+
+
+# def gap_detector_signals(request):
+#     start_date = request.GET.get('start_date', (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'))
+#     end_date = request.GET.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+#     specific_date = request.GET.get('specific_date', '')
+#     market = request.session.get('market', 'USA')
+#
+#     signals_list, specific_date_signals_list, backtested_list, trade_returns_list = gap_detector_get_signals(
+#         start_date=start_date,
+#         end_date=end_date,
+#         specific_date=specific_date,
+#         market=market
+#     )
+#
+#     context = {
+#         'signals_list': signals_list,
+#         'specific_date_signals_list': specific_date_signals_list,
+#         'backtested_list': backtested_list,
+#         'trade_returns_list': trade_returns_list,
+#     }
+#
+#     return render(request, 'myapp/gap_detector_signals.html', context)
+# myapp/views.py
 
 def gap_detector_signals(request):
-    start_date = request.GET.get('start_date', (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'))
-    end_date = request.GET.get('end_date', datetime.now().strftime('%Y-%m-%d'))
-    specific_date = request.GET.get('specific_date', '')
-    market = request.session.get('market', 'USA')
+    extracted_rows = []
+    if request.method == 'POST':
+        form = DateForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            specific_date = form.cleaned_data['specific_date']
+            market = form.cleaned_data['market']
 
-    signals_list, specific_date_signals_list, backtested_list, trade_returns_list = gap_detector_get_signals(
-        start_date=start_date,
-        end_date=end_date,
-        specific_date=specific_date,
-        market=market
-    )
+            # Retrieve the signals for the selected dates and market
+            signals_list, specific_date_signals_list, backtested_list, trade_returns_list = gap_detector_get_signals(
+                start_date, end_date, specific_date, market)
+
+            # Iterate over signals_list
+            for df in signals_list:
+                # Extract rows where 'Date' equals specific_date
+                rows = df[df['Date'] == specific_date]
+                for _, row in rows.iterrows():
+                    extracted_rows.append(row.to_dict())
+
+            # Similarly, process specific_date_signals_list, backtested_list, and trade_returns_list as needed
+
+    else:
+        form = DateForm()
 
     context = {
-        'signals_list': signals_list,
-        'specific_date_signals_list': specific_date_signals_list,
-        'backtested_list': backtested_list,
-        'trade_returns_list': trade_returns_list,
+        'form': form,
+        'extracted_rows': extracted_rows
     }
-
     return render(request, 'myapp/gap_detector_signals.html', context)
 
+def get_signals_for_dates(start_date, end_date, specific_date):
+    # Placeholder function - replace with actual data retrieval logic
+    # Example DataFrame
+    data = {
+        'Date': [specific_date, start_date, end_date],
+        'Ticker': ['AAPL', 'GOOGL', 'MSFT'],
+        'Gap_Up': [True, False, True],
+        'Gap_Down': [False, True, False],
+    }
+    df = pd.DataFrame(data)
+    return [df]
 
 
 def home(request):
