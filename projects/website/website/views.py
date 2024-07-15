@@ -47,9 +47,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from data.finance_database import DatabaseScheduler, Database
 from pathlib import Path
-from django.shortcuts import redirect
 from .forms import DateForm
-# from .gap_detector import gap_detector_get_signals
 import logging
 
 # Set up the logger
@@ -267,17 +265,17 @@ def gap_detector_signals(request):
     }
     return render(request, 'myapp/gap_detector_signals.html', context)
 
-def get_signals_for_dates(start_date, end_date, specific_date):
-    # Placeholder function - replace with actual data retrieval logic
-    # Example DataFrame
-    data = {
-        'Date': [specific_date, start_date, end_date],
-        'Ticker': ['AAPL', 'GOOGL', 'MSFT'],
-        'Gap_Up': [True, False, True],
-        'Gap_Down': [False, True, False],
-    }
-    df = pd.DataFrame(data)
-    return [df]
+# def get_signals_for_dates(start_date, end_date, specific_date):
+#     # Placeholder function - replace with actual data retrieval logic
+#     # Example DataFrame
+#     data = {
+#         'Date': [specific_date, start_date, end_date],
+#         'Ticker': ['AAPL', 'GOOGL', 'MSFT'],
+#         'Gap_Up': [True, False, True],
+#         'Gap_Down': [False, True, False],
+#     }
+#     df = pd.DataFrame(data)
+#     return [df]
 
 def extract_rows_from_signals(signals_list, specific_date):
     extracted_rows = []
