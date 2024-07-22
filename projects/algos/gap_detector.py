@@ -10,9 +10,10 @@ Classes:
     GapDetector: Implements methods for gap detection and backtesting.
 
 Imports:
-    sys, pandas as pd, numpy as np, Path from pathlib, Database from finance_database, pandas_ta as ta
+    sys, pandas as pd, numpy as np, Path from pathlib,
+    Database from finance_database, pandas_ta as ta
 """
-
+# pylint: disable=wrong-import-position.
 import sys
 import pandas as pd
 import numpy as np
@@ -158,7 +159,8 @@ class GapDetector:
             elif gap_down.iloc[i]:
                 # Exit long position
                 if position == 1:
-                    exit_price = data['Open'].iloc[i + 1]  # Open price of the day after the gap down
+                    exit_price = data['Open'].iloc[
+                        i + 1]  # Open price of the day after the gap down
                     exit_date = data.index[i + 1]
                     trade_return = (exit_price - entry_price) / entry_price
                     returns.append(trade_return)
@@ -213,4 +215,3 @@ class GapDetector:
         signal_gap_down = gap_down.loc[date]
 
         return signal_gap_up, signal_gap_down
-
