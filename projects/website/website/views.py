@@ -167,9 +167,14 @@ def gap_detector_get_signals(start_date, end_date, specific_date, market):
             if market == "USA":
                 db_instance = Database()
                 db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
-                data = db_instance.retrieve_data_from_database(start_date=start_date, end_date=end_date, ticker=ticker, database_path=db_path)
+                data = db_instance.retrieve_data_from_database(start_date=start_date,
+                                                               end_date=end_date,
+                                                               ticker=ticker,
+                                                               database_path=db_path)
             else:
-                instance_database0 = Database(start=start_date, end=end_date, ticker=ticker)
+                instance_database0 = Database(start=start_date,
+                                              end=end_date,
+                                              ticker=ticker)
                 data = instance_database0.get_price_data()
 
             data.set_index('Date', inplace=True)
@@ -182,7 +187,10 @@ def gap_detector_get_signals(start_date, end_date, specific_date, market):
         if ticker not in all_data:
             continue
 
-        instance = GapDetector(start_date=start_date, end_date=end_date, ticker=ticker, data=all_data[ticker])
+        instance = GapDetector(start_date=start_date,
+                               end_date=end_date,
+                               ticker=ticker,
+                               data=all_data[ticker])
 
         try:
             data, gap_up, gap_down = instance.detect_gaps_with_macd(gap_threshold=1.5)
@@ -207,7 +215,9 @@ def gap_detector_get_signals(start_date, end_date, specific_date, market):
                     })
                     specific_date_signals_list.append(specific_date_df)
 
-                    backtested_returns, trades_df = instance.backtest_gap_strategy(gap_up, gap_down, specific_date)
+                    backtested_returns, trades_df = instance.backtest_gap_strategy(gap_up,
+                                                                                   gap_down,
+                                                                                   specific_date)
                     backtested_df = pd.DataFrame({
                         'Date': data.index[:len(backtested_returns)],
                         'Cumulative_Returns': backtested_returns
@@ -227,6 +237,19 @@ def gap_detector_get_signals(start_date, end_date, specific_date, market):
     return signals_list, specific_date_signals_list, backtested_list, trade_returns_list
 
 def gap_detector_signals(request):
+    """
+    Handle the gap detector signals view.
+
+    This view processes a POST request with form data containing start and end dates,
+    specific date, and market. It then calls the gap detector utility to get signals
+    and extracts rows for the specific date.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered HTML response.
+    """
     extracted_rows = []
     if request.method == 'POST':
         form = DateForm(request.POST)
@@ -236,7 +259,8 @@ def gap_detector_signals(request):
             specific_date = form.cleaned_data['specific_date']
             market = form.cleaned_data['market']
 
-            logger.debug(f"Form Data - Start: {start_date}, End: {end_date}, Specific: {specific_date}, Market: {market}")
+            logger.debug("Form Data - Start: %s, End: %s, Specific: %s, Market: %s",
+                         start_date, end_date, specific_date, market)
 
             # Convert form dates to datetime.date if necessary
             if isinstance(start_date, str):
@@ -247,15 +271,16 @@ def gap_detector_signals(request):
                 specific_date = datetime.strptime(specific_date, '%Y-%m-%d').date()
 
             # Call the gap_detector_get_signals function
-            signals_list, specific_date_signals_list, backtested_list, trade_returns_list = gap_detector_get_signals(
+            (signals_list, specific_date_signals_list,
+             backtested_list, trade_returns_list) = gap_detector_get_signals(
                 start_date, end_date, specific_date, market
             )
 
-            logger.debug(f"Retrieved Signals List: {signals_list}")
+            logger.debug("Retrieved Signals List: %s", signals_list)
 
             # Extract rows for the specific date
             extracted_rows = extract_rows_from_signals(signals_list, specific_date)
-            logger.debug(f"Extracted Rows: {extracted_rows}")
+            logger.debug("Extracted Rows: %s", extracted_rows)
     else:
         form = DateForm()
 
@@ -265,19 +290,21 @@ def gap_detector_signals(request):
     }
     return render(request, 'myapp/gap_detector_signals.html', context)
 
-# def get_signals_for_dates(start_date, end_date, specific_date):
-#     # Placeholder function - replace with actual data retrieval logic
-#     # Example DataFrame
-#     data = {
-#         'Date': [specific_date, start_date, end_date],
-#         'Ticker': ['AAPL', 'GOOGL', 'MSFT'],
-#         'Gap_Up': [True, False, True],
-#         'Gap_Down': [False, True, False],
-#     }
-#     df = pd.DataFrame(data)
-#     return [df]
+def extract_rows_from_signals(signals_list: list[pd.DataFrame],
+                              specific_date: datetime.date) -> list[dict]:
+    """
+    Extracts rows from a list of dataframes where the 'Date' column matches a specific date.
 
-def extract_rows_from_signals(signals_list, specific_date):
+    Parameters:
+    __________
+        signals_list (list[pd.DataFrame]): A list of dataframes containing signal data.
+        specific_date (datetime.date): The specific date to filter the rows by.
+
+    Returns:
+    __________
+        list[dict]: A list of dictionaries, each representing
+        a row from the dataframes where the 'Date' matches the specific date.
+    """
     extracted_rows = []
     for df in signals_list:
         df['Date'] = pd.to_datetime(df['Date']).dt.date  # Ensure dates are datetime.date objects
@@ -403,8 +430,21 @@ def danish_navigation(request):
     return render(request, 'myapp/danish_navigation.html')
 
 def american_navigation(request):
+    """
+    Set the market to 'USA' and render the American navigation page.
+
+    This view sets the session variable 'market' to 'USA' to indicate that the user
+    is navigating the American market. It then renders the 'american_navigation.html' template.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered HTML response for the American navigation page.
+    """
     request.session['market'] = 'USA'
     return render(request, 'myapp/american_navigation.html')
+
 
 def algo1_navigation(request):
     """
@@ -650,10 +690,3 @@ def about(request):
         HttpResponse: The rendered HTML response for the about page.
     """
     return render(request, 'myapp/about.html')
-
-# if __name__ == "__main__":
-#     k = gap_detector_get_signals(start_date="2022-01-01",
-#                                  end_date="2024-01-01",
-#                                  specific_date="2023-01-01",
-#                                  market = "Denmark")
-#     print("k")

@@ -1,22 +1,41 @@
+"""
+Module for detecting gaps in stock market data using various technical indicators.
+
+This module defines a `GapDetector` class that provides methods to fetch stock data,
+detect gaps using MACD, ATR, RSI, and Bollinger Bands, backtest the gap strategy,
+and get signals for a specific date. The class integrates with a local database and
+Yahoo Finance API for data retrieval.
+
+Classes:
+    GapDetector: Implements methods for gap detection and backtesting.
+
+Imports:
+    sys, pandas as pd, numpy as np, Path from pathlib, Database from finance_database, pandas_ta as ta
+"""
+
 import sys
 import pandas as pd
 import numpy as np
-import pandas_ta as ta
 from pathlib import Path
 sys.path.append("..")
 from data.finance_database import Database
-from algo_scrapers.s_and_p_scraper import SAndPScraper
 import pandas_ta as ta
-from algo_scrapers.danish_ticker_scraper import OMXC25scraper
-from algo_scrapers.omxs30_scraper import OMXS30scraper
 
 class GapDetector:
     """
-    Algo for gap detector
+    Class for detecting gaps in stock market data using various technical indicators.
+
+    Attributes:
+        ticker (str): The stock ticker symbol.
+        start_date (str): The start date for data retrieval.
+        end_date (str): The end date for data retrieval.
+        tickers_list (list): A list of ticker symbols.
+        data (pd.DataFrame): DataFrame containing stock market data.
+        market (str): The market identifier.
     """
 
-    def __init__(self, ticker=None, start_date=None, end_date=None, tickers_list=None, data=None,
-                 market = None):
+    def __init__(self, ticker: str = None, start_date: str = None, end_date: str = None,
+                 tickers_list: list = None, data: pd.DataFrame = None, market: str = None):
         self.ticker = ticker
         self.start_date = start_date
         self.end_date = end_date
@@ -25,30 +44,28 @@ class GapDetector:
         self.data = data
         self.market = market
 
-    def fetch_data_from_yahoo(self):
+    def fetch_data_from_yahoo(self) -> pd.DataFrame:
         """
-        Method to fetch data from the yahoo finance website.
-        This website is currently used for other markets than the American, where
-        we don't have a database.
+        Fetch data from Yahoo Finance for the given ticker and date range.
 
         Returns:
-        Data from the yahoo finance api.
-
+            pd.DataFrame: DataFrame containing the stock data retrieved from Yahoo Finance.
         """
         if self.ticker:
             data = yf.download(self.ticker, start=self.start_date, end=self.end_date)
             data.index.name = 'Date'
             return data
 
-    def detect_gaps_with_macd(self, atr_window=14, gap_threshold=1.5):
+    def detect_gaps_with_macd(self, atr_window: int = 14, gap_threshold: float = 1.5) -> tuple:
         """
-        Method to detect trading signals/gaps to trade.
+        Detect trading signals/gaps using MACD, ATR, RSI, and Bollinger Bands.
+
         Args:
-            atr_window:
-            gap_threshold:
+            atr_window (int): The window length for ATR calculation. Default is 14.
+            gap_threshold (float): The threshold multiplier for detecting gaps. Default is 1.5.
 
         Returns:
-
+            tuple: A tuple containing the data DataFrame, gap up signals, and gap down signals.
         """
         data = self.data
         if data is None:
@@ -94,7 +111,20 @@ class GapDetector:
 
         return data, gap_up, gap_down
 
-    def backtest_gap_strategy(self, gap_up, gap_down, specific_date):
+    def backtest_gap_strategy(self, gap_up: pd.Series,
+                              gap_down: pd.Series,
+                              specific_date: str) -> tuple:
+        """
+        Backtest the gap trading strategy up to a specific date.
+
+        Args:
+            gap_up (pd.Series): Series indicating gap up signals.
+            gap_down (pd.Series): Series indicating gap down signals.
+            specific_date (str): The specific date to filter data up to.
+
+        Returns:
+            tuple: A tuple containing cumulative returns and a DataFrame of trades.
+        """
         data = self.data
         if data is None:
             db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
@@ -160,7 +190,20 @@ class GapDetector:
         trades_df = pd.DataFrame(trades)
         return cumulative_returns, trades_df
 
-    def get_signals_for_date(self, date, atr_window=14, gap_threshold=1.5):
+    def get_signals_for_date(self, date: str,
+                             atr_window: int = 14,
+                             gap_threshold: float = 1.5) -> tuple:
+        """
+        Get gap trading signals for a specific date.
+
+        Args:
+            date (str): The date to get signals for.
+            atr_window (int): The window length for ATR calculation. Default is 14.
+            gap_threshold (float): The threshold multiplier for detecting gaps. Default is 1.5.
+
+        Returns:
+            tuple: A tuple containing gap up signal and gap down signal for the given date.
+        """
         data, gap_up, gap_down = self.detect_gaps_with_macd(atr_window, gap_threshold)
 
         if date not in data.index:
@@ -170,93 +213,4 @@ class GapDetector:
         signal_gap_down = gap_down.loc[date]
 
         return signal_gap_up, signal_gap_down
-
-
-# Example usage
-if __name__ == "__main__":
-    tickers_list0 = SAndPScraper()
-    tickers_list = tickers_list0.run_scraper()
-    start_date = "2024-01-01"
-    end_date = "2024-05-30"
-    specific_date = "2024-05-28 00:00:00"
-
-    signals_list = []
-    specific_date_signals_list = []
-    backtested_list = []
-    trade_returns_list = []
-    all_data = {}
-
-    db_instance = Database()
-    db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
-
-    # Fetch data for all tickers once
-    for ticker in tickers_list:
-        try:
-            data = db_instance.retrieve_data_from_database(start_date=start_date,
-                                                           end_date=end_date,
-                                                           ticker=ticker,
-                                                           database_path=db_path)
-            data.set_index('Date', inplace=True)
-            all_data[ticker] = data
-        except Exception as e:
-            print(f"Error fetching data for ticker {ticker}: {e}")
-            continue
-
-    for ticker in tickers_list:
-        if ticker not in all_data:
-            continue
-
-        instance = GapDetector(start_date=start_date, end_date=end_date, ticker=ticker, data=all_data[ticker])
-
-        try:
-            # Apply the combined strategy
-            data, gap_up, gap_down = instance.detect_gaps_with_macd(gap_threshold=1.5)
-
-            # Check if there are any signals before appending
-            if gap_up.any() or gap_down.any():
-                # Create a DataFrame for signals
-                signals_df = pd.DataFrame({
-                    'Date': data.index,
-                    'Gap_Up': gap_up,
-                    'Gap_Down': gap_down
-                })
-                signals_df['Ticker'] = ticker
-
-                # Append the DataFrame to the list
-                signals_list.append(signals_df)
-
-            # Get signals for a specific date
-            try:
-                signal_gap_up, signal_gap_down = instance.get_signals_for_date(specific_date)
-                if signal_gap_up or signal_gap_down:  # Check if either Gap_Up or Gap_Down is True
-                    specific_date_df = pd.DataFrame({
-                        'Date': [specific_date],
-                        'Gap_Up': [signal_gap_up],
-                        'Gap_Down': [signal_gap_down],
-                        'Ticker': [ticker]
-                    })
-                    specific_date_signals_list.append(specific_date_df)
-
-                    # Backtest the strategy for this ticker up to the specific date
-                    backtested_returns, trades_df = instance.backtest_gap_strategy(gap_up, gap_down, specific_date)
-                    backtested_df = pd.DataFrame({
-                        'Date': data.index[:len(backtested_returns)],
-                        'Cumulative_Returns': backtested_returns
-                    })
-                    backtested_df['Ticker'] = ticker
-                    backtested_list.append(backtested_df)
-                    trade_returns_list.append(trades_df)
-
-            except ValueError as e:
-                print(e)
-                continue
-
-        except Exception as e:
-            print(f"Error processing ticker {ticker}: {e}")
-            continue
-
-    print("k")
-
-
-
 
