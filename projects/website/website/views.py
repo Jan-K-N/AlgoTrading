@@ -179,8 +179,8 @@ def gap_detector_get_signals(start_date, end_date, specific_date, market):
 
             data.set_index('Date', inplace=True)
             all_data[ticker] = data
-        except Exception as e:
-            print(f"Error fetching data for ticker {ticker}: {e}")
+        except Exception as error:
+            print(f"Error fetching data for ticker {ticker}: {error}")
             continue
 
     for ticker in tickers_list:
@@ -226,8 +226,8 @@ def gap_detector_get_signals(start_date, end_date, specific_date, market):
                     backtested_list.append(backtested_df)
                     trade_returns_list.append(trades_df)
 
-            except ValueError as e:
-                print(e)
+            except ValueError as error:
+                print(error)
                 continue
 
         except Exception as e:
