@@ -230,8 +230,8 @@ def gap_detector_get_signals(start_date, end_date, specific_date, market):
                 print(error)
                 continue
 
-        except Exception as e:
-            print(f"Error processing ticker {ticker}: {e}")
+        except Exception as error:
+            print(f"Error processing ticker {ticker}: {error}")
             continue
 
     return signals_list, specific_date_signals_list, backtested_list, trade_returns_list
