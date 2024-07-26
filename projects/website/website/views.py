@@ -31,7 +31,8 @@ Dependencies:
 # pylint: disable=too-many-locals.
 # pylint: disable=duplicate-code.
 # pylint: disable=broad-exception-caught.
-
+# pylint: disable=too-many-branches.
+# pylint: disable=too-many-statements.
 from datetime import timedelta, datetime
 import pandas as pd
 import os
@@ -290,8 +291,7 @@ def gap_detector_signals(request):
     }
     return render(request, 'myapp/gap_detector_signals.html', context)
 
-def extract_rows_from_signals(signals_list: list[pd.DataFrame],
-                              specific_date: datetime.date) -> list[dict]:
+def extract_rows_from_signals(signals_list: list[pd.DataFrame], specific_date: datetime.date) -> list[dict]:
     """
     Extracts rows from a list of dataframes where the 'Date' column matches a specific date.
 
@@ -306,10 +306,10 @@ def extract_rows_from_signals(signals_list: list[pd.DataFrame],
         a row from the dataframes where the 'Date' matches the specific date.
     """
     extracted_rows = []
-    for df in signals_list:
-        df['Date'] = pd.to_datetime(df['Date']).dt.date  # Ensure dates are datetime.date objects
-        rows = df[df['Date'] == specific_date]
-        for _, row in rows.iterrows():
+    for signals_dataframe in signals_list:
+        signals_dataframe['Date'] = pd.to_datetime(signals_dataframe['Date']).dt.date
+        matching_rows = signals_dataframe[signals_dataframe['Date'] == specific_date]
+        for _, row in matching_rows.iterrows():
             extracted_rows.append(row.to_dict())
     return extracted_rows
 
