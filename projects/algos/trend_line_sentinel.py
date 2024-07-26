@@ -259,7 +259,7 @@ class Sentinel:
 
 
 if __name__ == "__main__":
-    tickers_list = ['TSLA', 'TWI','JNJ']  # Example list of tickers
+    tickers_list = 'TSLA'  # Example list of tickers
 
     # Initialize an empty list to store dataframes
     dataframes_list = []
