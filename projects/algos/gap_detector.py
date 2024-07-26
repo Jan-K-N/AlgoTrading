@@ -45,18 +45,6 @@ class GapDetector:
         self.data = data
         self.market = market
 
-    def fetch_data_from_yahoo(self) -> pd.DataFrame:
-        """
-        Fetch data from Yahoo Finance for the given ticker and date range.
-
-        Returns:
-            pd.DataFrame: DataFrame containing the stock data retrieved from Yahoo Finance.
-        """
-        if self.ticker:
-            data = yf.download(self.ticker, start=self.start_date, end=self.end_date)
-            data.index.name = 'Date'
-            return data
-
     def detect_gaps_with_macd(self, atr_window: int = 14, gap_threshold: float = 1.5) -> tuple:
         """
         Detect trading signals/gaps using MACD, ATR, RSI, and Bollinger Bands.
