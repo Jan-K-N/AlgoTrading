@@ -27,7 +27,6 @@ Dependencies:
 # myapp/views.py
 # pylint: disable=wrong-import-order.
 # pylint: disable=wrong-import-position.
-# pylint: disable=unused-variable.
 # pylint: disable=too-many-locals.
 # pylint: disable=duplicate-code.
 # pylint: disable=broad-exception-caught.
@@ -291,7 +290,8 @@ def gap_detector_signals(request):
     }
     return render(request, 'myapp/gap_detector_signals.html', context)
 
-def extract_rows_from_signals(signals_list: list[pd.DataFrame], specific_date: datetime.date) -> list[dict]:
+def extract_rows_from_signals(signals_list: list[pd.DataFrame],
+                              specific_date: datetime.date) -> list[dict]:
     """
     Extracts rows from a list of dataframes where the 'Date' column matches a specific date.
 
