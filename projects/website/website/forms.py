@@ -25,4 +25,3 @@ class DateForm(forms.Form):
     market: forms.ChoiceField = forms.ChoiceField(choices=[('USA', 'USA'),
                                                            ('Denmark', 'Denmark'),
                                                            ('Sweden', 'Sweden')])
-

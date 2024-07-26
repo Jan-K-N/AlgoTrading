@@ -14,10 +14,13 @@ Imports:
     Database from finance_database, pandas_ta as ta
 """
 # pylint: disable=wrong-import-position.
+# pylint: disable=too-many-arguments.
+# pylint: disable=too-many-locals.
+# pylint: disable=duplicate-code.
 import sys
+from pathlib import Path
 import pandas as pd
 import numpy as np
-from pathlib import Path
 sys.path.append("..")
 from data.finance_database import Database
 import pandas_ta as ta
