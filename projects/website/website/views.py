@@ -27,11 +27,12 @@ Dependencies:
 # myapp/views.py
 # pylint: disable=wrong-import-order.
 # pylint: disable=wrong-import-position.
-# pylint: disable=unused-variable.
 # pylint: disable=too-many-locals.
 # pylint: disable=duplicate-code.
+# pylint: disable=unused-variable.
 # pylint: disable=broad-exception-caught.
-
+# pylint: disable=too-many-branches.
+# pylint: disable=too-many-statements.
 from datetime import timedelta, datetime
 import pandas as pd
 import os
@@ -42,10 +43,16 @@ from algo_scrapers.omxs30_scraper import OMXS30scraper
 from algo_scrapers.s_and_p_scraper import SAndPScraper
 from algo_scrapers.obx_scraper import OBXscraper
 from algos.algo1 import Algo1
+from algos.gap_detector import GapDetector
 from django.shortcuts import render
 from django.http import JsonResponse
 from data.finance_database import DatabaseScheduler, Database
 from pathlib import Path
+from .forms import DateForm
+import logging
+
+# Set up the logger
+logger = logging.getLogger(__name__)
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
@@ -111,6 +118,202 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
             signals_data.append(signal_entry)
 
     return signals_data
+
+def gap_detector_get_signals(start_date, end_date, specific_date, market):
+    """
+    Method for collecting relevant objects for the Gapdetector algo.
+    This objects should then be cast into the django app.
+
+    Parameters:
+    _________
+        start_date (str or datetime.date): Start date for the signal analysis.
+        end_date (str or datetime.date): End date for the signal analysis.
+        specific_date (str or datetime.date): Date to check for specific signals.
+        market (str): Market to run the algo for.
+
+    Returns:
+    _________
+    signals_list (list): List of dataframes with signal data.
+    specific_date_signals_list (list): List of dataframes with specific date signal data.
+    backtested_list (list): List of dataframes with backtested data.
+    trade_returns_list (list): List of dataframes with trade return data.
+    """
+    signals_list = []
+    specific_date_signals_list = []
+    backtested_list = []
+    trade_returns_list = []
+    all_data = {}
+
+    # Convert dates if they are in string format
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    if isinstance(end_date, str):
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    if isinstance(specific_date, str):
+        specific_date = datetime.strptime(specific_date, '%Y-%m-%d').date()
+
+    # Code section to control scraper:
+    if market == "USA":
+        tickers_list0 = SAndPScraper()
+        tickers_list = tickers_list0.run_scraper()
+    elif market == "Denmark":
+        tickers_list0 = OMXC25scraper()
+        tickers_list = tickers_list0.run_scraper()
+    elif market == "Sweden":
+        tickers_list0 = OMXS30scraper()
+        tickers_list = tickers_list0.run_scraper()
+
+    for ticker in tickers_list:
+        try:
+            if market == "USA":
+                db_instance = Database()
+                db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+                data = db_instance.retrieve_data_from_database(start_date=start_date,
+                                                               end_date=end_date,
+                                                               ticker=ticker,
+                                                               database_path=db_path)
+            else:
+                instance_database0 = Database(start=start_date,
+                                              end=end_date,
+                                              ticker=ticker)
+                data = instance_database0.get_price_data()
+
+            data.set_index('Date', inplace=True)
+            all_data[ticker] = data
+        except Exception as error:
+            print(f"Error fetching data for ticker {ticker}: {error}")
+            continue
+
+    for ticker in tickers_list:
+        if ticker not in all_data:
+            continue
+
+        instance = GapDetector(start_date=start_date,
+                               end_date=end_date,
+                               ticker=ticker,
+                               data=all_data[ticker])
+
+        try:
+            data, gap_up, gap_down = instance.detect_gaps_with_macd(gap_threshold=1.5)
+
+            if gap_up.any() or gap_down.any():
+                signals_df = pd.DataFrame({
+                    'Date': data.index,
+                    'Gap_Up': gap_up,
+                    'Gap_Down': gap_down
+                })
+                signals_df['Ticker'] = ticker
+                signals_list.append(signals_df)
+
+            try:
+                signal_gap_up, signal_gap_down = instance.get_signals_for_date(specific_date)
+                if signal_gap_up or signal_gap_down:
+                    specific_date_df = pd.DataFrame({
+                        'Date': [specific_date],
+                        'Gap_Up': [signal_gap_up],
+                        'Gap_Down': [signal_gap_down],
+                        'Ticker': [ticker]
+                    })
+                    specific_date_signals_list.append(specific_date_df)
+
+                    backtested_returns, trades_df = instance.backtest_gap_strategy(gap_up,
+                                                                                   gap_down,
+                                                                                   specific_date)
+                    backtested_df = pd.DataFrame({
+                        'Date': data.index[:len(backtested_returns)],
+                        'Cumulative_Returns': backtested_returns
+                    })
+                    backtested_df['Ticker'] = ticker
+                    backtested_list.append(backtested_df)
+                    trade_returns_list.append(trades_df)
+
+            except ValueError as error:
+                print(error)
+                continue
+
+        except Exception as error:
+            print(f"Error processing ticker {ticker}: {error}")
+            continue
+
+    return signals_list, specific_date_signals_list, backtested_list, trade_returns_list
+
+def gap_detector_signals(request):
+    """
+    Handle the gap detector signals view.
+
+    This view processes a POST request with form data containing start and end dates,
+    specific date, and market. It then calls the gap detector utility to get signals
+    and extracts rows for the specific date.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered HTML response.
+    """
+    extracted_rows = []
+    if request.method == 'POST':
+        form = DateForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            specific_date = form.cleaned_data['specific_date']
+            market = form.cleaned_data['market']
+
+            logger.debug("Form Data - Start: %s, End: %s, Specific: %s, Market: %s",
+                         start_date, end_date, specific_date, market)
+
+            # Convert form dates to datetime.date if necessary
+            if isinstance(start_date, str):
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            if isinstance(end_date, str):
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            if isinstance(specific_date, str):
+                specific_date = datetime.strptime(specific_date, '%Y-%m-%d').date()
+
+            # Call the gap_detector_get_signals function
+            (signals_list, specific_date_signals_list,
+             backtested_list, trade_returns_list) = gap_detector_get_signals(
+                start_date, end_date, specific_date, market
+            )
+
+            logger.debug("Retrieved Signals List: %s", signals_list)
+
+            # Extract rows for the specific date
+            extracted_rows = extract_rows_from_signals(signals_list, specific_date)
+            logger.debug("Extracted Rows: %s", extracted_rows)
+    else:
+        form = DateForm()
+
+    context = {
+        'form': form,
+        'extracted_rows': extracted_rows
+    }
+    return render(request, 'myapp/gap_detector_signals.html', context)
+
+def extract_rows_from_signals(signals_list: list[pd.DataFrame],
+                              specific_date: datetime.date) -> list[dict]:
+    """
+    Extracts rows from a list of dataframes where the 'Date' column matches a specific date.
+
+    Parameters:
+    __________
+        signals_list (list[pd.DataFrame]): A list of dataframes containing signal data.
+        specific_date (datetime.date): The specific date to filter the rows by.
+
+    Returns:
+    __________
+        list[dict]: A list of dictionaries, each representing
+        a row from the dataframes where the 'Date' matches the specific date.
+    """
+    extracted_rows = []
+    for signals_dataframe in signals_list:
+        signals_dataframe['Date'] = pd.to_datetime(signals_dataframe['Date']).dt.date
+        matching_rows = signals_dataframe[signals_dataframe['Date'] == specific_date]
+        for _, row in matching_rows.iterrows():
+            extracted_rows.append(row.to_dict())
+    return extracted_rows
+
 
 def home(request):
     """
@@ -229,18 +432,20 @@ def danish_navigation(request):
 
 def american_navigation(request):
     """
-    Renders the american_navigation page.
+    Set the market to 'USA' and render the American navigation page.
 
-    Parameters:
-    _________
-        request: The HTTP request object.
+    This view sets the session variable 'market' to 'USA' to indicate that the user
+    is navigating the American market. It then renders the 'american_navigation.html' template.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
 
     Returns:
-    _________
-        HttpResponse: The rendered HTML response for the american_navigation page.
+        HttpResponse: The rendered HTML response for the American navigation page.
     """
-
+    request.session['market'] = 'USA'
     return render(request, 'myapp/american_navigation.html')
+
 
 def algo1_navigation(request):
     """

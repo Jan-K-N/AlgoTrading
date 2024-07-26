@@ -9,3 +9,4 @@ projects/models/... 2
 projects/.DS_Store
 projects/algos/Dockerfile~
 projects/data/config.py
+projects/website/debug.log
