@@ -29,6 +29,7 @@ Dependencies:
 # pylint: disable=wrong-import-position.
 # pylint: disable=too-many-locals.
 # pylint: disable=duplicate-code.
+# pylint: disable=unused-variable.
 # pylint: disable=broad-exception-caught.
 # pylint: disable=too-many-branches.
 # pylint: disable=too-many-statements.
