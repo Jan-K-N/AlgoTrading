@@ -49,13 +49,14 @@ from django.http import JsonResponse
 from data.finance_database import DatabaseScheduler, Database
 from pathlib import Path
 from .forms import DateForm
+from typing import List, Tuple
 import logging
 
 # Set up the logger
 logger = logging.getLogger(__name__)
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
-                     consecutive_days: int = 1, consecutive_days_sell: int = 1):
+                     consecutive_days: int = 1, consecutive_days_sell: int = 1)-> Tuple[List[dict], List[pd.DataFrame]]:
     """
     Retrieves trading signals data for a given scraper, start date, and end date.
 
@@ -67,8 +68,10 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
 
     Returns:
     _________
-        list: A list of dictionaries, each containing trading signals data for a specific ticker.
-        Each dictionary has keys 'Ticker', 'Buy', 'Sell', and 'Date'.
+Tuple[List[dict], List[pd.DataFrame]]:
+            - A list of dictionaries, each containing trading signals data for a specific ticker.
+              Each dictionary has keys 'Ticker', 'Buy', 'Sell', and 'Date'.
+            - A list of dataframes, each containing the trading signals for a specific ticker.
     """
     output_list = []
     tickers_list = scraper.run_scraper()
