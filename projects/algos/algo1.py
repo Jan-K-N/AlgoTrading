@@ -67,7 +67,7 @@ class Algo1:
 
     def __init__(self, ticker=None, start_date=None,
                  end_date=None, tickers_list=None, consecutive_days=None,
-                 consecutive_days_sell=None):
+                 consecutive_days_sell=None,market=None):
         """
         Initialize the Algo1 instance.
 
@@ -96,6 +96,7 @@ class Algo1:
         self.consecutive_days = consecutive_days
         self.consecutive_days_sell = consecutive_days_sell
         self.db_instance = Database()
+        self.market = market
 
     def rsi(self) -> pd.Series:
         """
@@ -136,15 +137,34 @@ class Algo1:
             signals (pd.DataFrame):
                 DataFrame containing the buy and sell signals.
         """
-        db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+        all_data = {}
+        if self.market == "USA":
+            db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
 
-        data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                    end_date=self.end_date,
-                                                    ticker=self.ticker,
-                                                    database_path=db_path)
-        data.set_index('Date', inplace=True)
-        data = data[~data.index.duplicated(keep='first')]
-        data = data['Adj Close']
+            data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                        end_date=self.end_date,
+                                                        ticker=self.ticker,
+                                                        database_path=db_path)
+            # data.set_index('Date', inplace=True)
+            # data = data[~data.index.duplicated(keep='first')]
+            # data = data['Adj Close']
+            data.set_index('Date', inplace=True)
+            data = data[~data.index.duplicated(keep='first')]
+            data = data['Adj Close']
+        else:
+            # data = self.db_instance.get_price_data(start=self.start_date,
+            #                                        end=self.end_date,
+            #                                        ticker=self.ticker)
+            instance_database0 = Database(start=self.start_date,
+                                          end=self.end_date,
+                                          ticker=self.ticker)
+            data = instance_database0.get_price_data()
+
+            data = data['Adj Close']
+
+        # data.set_index('Date', inplace=True)
+        # data = data[~data.index.duplicated(keep='first')]
+        # data = data['Adj Close']
 
         lower_band = self.bollinger_bands()['Lower']
         upper_band = self.bollinger_bands()['Upper']
@@ -210,7 +230,8 @@ class Algo1:
             try:
                 instance_1 = Algo1(ticker=ticker1,
                                    start_date=self.start_date,
-                                   end_date=self.end_date)
+                                   end_date=self.end_date,
+                                   market=self.market)
                 signals_1 = instance_1.generate_signals()
             except KeyError as error:
                 print(f"KeyError for the {ticker1}: {str(error)}")
