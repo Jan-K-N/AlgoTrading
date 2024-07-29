@@ -56,7 +56,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
-                     consecutive_days: int = 1, consecutive_days_sell: int = 1)-> Tuple[List[dict], List[pd.DataFrame]]:
+                     consecutive_days: int = 1, consecutive_days_sell: int = 1):
     """
     Retrieves trading signals data for a given scraper, start date, and end date.
 
@@ -74,6 +74,7 @@ Tuple[List[dict], List[pd.DataFrame]]:
             - A list of dataframes, each containing the trading signals for a specific ticker.
     """
     output_list = []
+    signals_data = []
     tickers_list = scraper.run_scraper()
 
     for ticker in tickers_list:
@@ -98,27 +99,42 @@ Tuple[List[dict], List[pd.DataFrame]]:
 
         extracted_rows = signals[combined_condition]
 
-        new_df = pd.DataFrame()
-        new_df["Ticker"] = [ticker] * len(extracted_rows)
-        new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker + '_Buy']]
-        new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker + '_Sell']]
-        new_df.index = pd.to_datetime(extracted_rows['Date'])
+        if not extracted_rows.empty:
+#        new_df = pd.DataFrame()
+#        new_df["Ticker"] = [ticker] * len(extracted_rows)
+#        new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker + '_Buy']]
+#        new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker + '_Sell']]
+#        new_df.index = pd.to_datetime(extracted_rows['Date'])
+            new_df = pd.DataFrame({
+                "Ticker": [ticker] * len(extracted_rows),
+                "Buy": [1 if b else "" for b in extracted_rows[f"{ticker}_Buy"]],
+                "Sell": [-1 if s else "" for s in extracted_rows[f"{ticker}_Sell"]],
+                "Date": pd.to_datetime(extracted_rows['Date'])
+            })
 
 
-        if not new_df.empty:
-            output_list.append(new_df)
-
-        signals_data = []
-
-        for i, output_df in enumerate(output_list):
             signal_entry = {
-                'Ticker': output_df.iloc[-1].Ticker,
-                'Buy': output_df.iloc[-1].Buy,
-                'Sell': output_df.iloc[-1].Sell,
-                'Date': output_df.index[-1].strftime('%Y-%m-%d'),
+                'Ticker': new_df.iloc[-1]['Ticker'],
+                'Buy': new_df.iloc[-1]['Buy'],
+                'Sell': new_df.iloc[-1]['Sell'],
+                'Date': new_df.iloc[-1]['Date'].strftime('%Y-%m-%d')
             }
-
             signals_data.append(signal_entry)
+
+#        if not new_df.empty:
+#            output_list.append(new_df)
+
+#        signals_data = []
+
+#        for i, output_df in enumerate(output_list):
+#            signal_entry = {
+#                'Ticker': output_df.iloc[-1].Ticker,
+#                'Buy': output_df.iloc[-1].Buy,
+#                'Sell': output_df.iloc[-1].Sell,
+#                'Date': output_df.index[-1].strftime('%Y-%m-%d'),
+#            }
+
+#            signals_data.append(signal_entry)
 
     return signals_data
 
