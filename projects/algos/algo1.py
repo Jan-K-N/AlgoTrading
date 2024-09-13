@@ -88,6 +88,8 @@ class Algo1:
             consecutive_days_sell (int or None):
                 The number of consecutive days the sell conditions should be met
                 to generate signals. If None, the default is None.
+            market (str or None):
+                The market we want to retrive ticker codes from.
         """
         self.ticker = ticker
         self.start_date = start_date
