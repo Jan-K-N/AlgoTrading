@@ -8,6 +8,7 @@ buy and sell signals, and executing the algorithm for multiple tickers.
 """
 # pylint: disable=wrong-import-position.
 # pylint: disable=too-many-locals.
+# pylint: disable=too-many-attributes.
 import sys
 from pathlib import Path
 import pandas as pd

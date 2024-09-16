@@ -33,6 +33,7 @@ Dependencies:
 # pylint: disable=broad-exception-caught.
 # pylint: disable=too-many-branches.
 # pylint: disable=too-many-statements.
+# pylint: disable=too-many-arguments.
 from datetime import timedelta, datetime
 import pandas as pd
 import os
@@ -55,7 +56,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
-                     consecutive_days: int = 1, consecutive_days_sell: int = 1, market: str = "default"):
+                     consecutive_days: int = 1,
+                     consecutive_days_sell: int = 1,
+                     market: str = "default"):
     """
     Retrieves trading signals data for a given scraper, start date, end date, and market.
 
@@ -447,6 +450,9 @@ def american_navigation(request):
     return render(request, 'myapp/american_navigation.html')
 
 def other_navigation(request):
+    """
+    Method used for navigation between markets.
+    """
     market = request.GET.get('market','default_market')
     request.session['market'] = market
     return render(request,'myapp/other_navigation.html',{'market': market})
