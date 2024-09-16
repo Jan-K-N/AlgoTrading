@@ -139,7 +139,6 @@ class Algo1:
             signals (pd.DataFrame):
                 DataFrame containing the buy and sell signals.
         """
-        all_data = {}
         if self.market == "USA":
             db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
 
@@ -147,26 +146,16 @@ class Algo1:
                                                         end_date=self.end_date,
                                                         ticker=self.ticker,
                                                         database_path=db_path)
-            # data.set_index('Date', inplace=True)
-            # data = data[~data.index.duplicated(keep='first')]
-            # data = data['Adj Close']
             data.set_index('Date', inplace=True)
             data = data[~data.index.duplicated(keep='first')]
             data = data['Adj Close']
         else:
-            # data = self.db_instance.get_price_data(start=self.start_date,
-            #                                        end=self.end_date,
-            #                                        ticker=self.ticker)
             instance_database0 = Database(start=self.start_date,
                                           end=self.end_date,
                                           ticker=self.ticker)
             data = instance_database0.get_price_data()
 
             data = data['Adj Close']
-
-        # data.set_index('Date', inplace=True)
-        # data = data[~data.index.duplicated(keep='first')]
-        # data = data['Adj Close']
 
         lower_band = self.bollinger_bands()['Lower']
         upper_band = self.bollinger_bands()['Upper']

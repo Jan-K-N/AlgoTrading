@@ -49,74 +49,11 @@ from django.http import JsonResponse
 from data.finance_database import DatabaseScheduler, Database
 from pathlib import Path
 from .forms import DateForm
-from typing import List, Tuple
 import logging
 
 # Set up the logger
 logger = logging.getLogger(__name__)
 
-# def get_signals_data(scraper: object, start_date: str, end_date: str,
-#                      consecutive_days: int = 1, consecutive_days_sell: int = 1):
-#     """
-#     Retrieves trading signals data for a given scraper, start date, and end date.
-#
-#     Parameters:
-#     _________
-#         scraper (object): An object with a 'run_scraper' method to retrieve a list of tickers.
-#         start_date (str): Start date for the signal analysis in the format 'YYYY-MM-DD'.
-#         end_date (str): End date for the signal analysis in the format 'YYYY-MM-DD'.
-#
-#     Returns:
-#     _________
-# Tuple[List[dict], List[pd.DataFrame]]:
-#             - A list of dictionaries, each containing trading signals data for a specific ticker.
-#               Each dictionary has keys 'Ticker', 'Buy', 'Sell', and 'Date'.
-#             - A list of dataframes, each containing the trading signals for a specific ticker.
-#     """
-#     output_list = []
-#     signals_data = []
-#     tickers_list = scraper.run_scraper()
-#
-#     for ticker in tickers_list:
-#         try:
-#             instance = Algo1(ticker=ticker,
-#                              start_date=start_date,
-#                              end_date=end_date,
-#                              consecutive_days=consecutive_days,
-#                              consecutive_days_sell=consecutive_days_sell)
-#             signals = instance.generate_signals()
-#         except KeyError as error:
-#             print(f"KeyError for {ticker}: {str(error)}")
-#             continue
-#         except ValueError as error:
-#             print(f"ValueError for {ticker}: {str(error)}")
-#             continue
-#
-#         condition1 = signals[ticker + '_Buy'] == 1
-#         condition2 = signals[ticker + '_Sell'] == -1
-#
-#         combined_condition = condition1 | condition2
-#
-#         extracted_rows = signals[combined_condition]
-#
-#         if not extracted_rows.empty:
-#             new_df = pd.DataFrame({
-#                 "Ticker": [ticker] * len(extracted_rows),
-#                 "Buy": [1 if b else "" for b in extracted_rows[f"{ticker}_Buy"]],
-#                 "Sell": [-1 if s else "" for s in extracted_rows[f"{ticker}_Sell"]],
-#                 "Date": pd.to_datetime(extracted_rows['Date'])
-#             })
-#
-#
-#             signal_entry = {
-#                 'Ticker': new_df.iloc[-1]['Ticker'],
-#                 'Buy': new_df.iloc[-1]['Buy'],
-#                 'Sell': new_df.iloc[-1]['Sell'],
-#                 'Date': new_df.iloc[-1]['Date'].strftime('%Y-%m-%d')
-#             }
-#             signals_data.append(signal_entry)
-#
-#     return signals_data
 def get_signals_data(scraper: object, start_date: str, end_date: str,
                      consecutive_days: int = 1, consecutive_days_sell: int = 1, market: str = "default"):
     """

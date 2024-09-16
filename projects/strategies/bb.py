@@ -119,8 +119,12 @@ class BollingerBandsStrategy:
                                          ticker=self.ticker)
             data = instance_database.get_price_data()
             data['MA'] = data['Adj Close'].rolling(self.window).mean()
-            data['Upper'] = data['MA'] + self.dev_factor * data['Adj Close'].rolling(self.window).std()
-            data['Lower'] = data['MA'] - self.dev_factor * data['Adj Close'].rolling(self.window).std()
+            data['Upper'] = (data['MA'] +
+                             self.dev_factor *
+                             data['Adj Close'].rolling(self.window).std())
+            data['Lower'] = (data['MA']
+                             - self.dev_factor
+                             * data['Adj Close'].rolling(self.window).std())
         self.data = data.dropna()
 
         return self.data
