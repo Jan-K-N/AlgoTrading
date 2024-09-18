@@ -8,6 +8,7 @@ buy and sell signals, and executing the algorithm for multiple tickers.
 """
 # pylint: disable=wrong-import-position.
 # pylint: disable=too-many-locals.
+# pylint: disable=too-many-instance-attributes.
 import sys
 from pathlib import Path
 import pandas as pd
@@ -67,7 +68,7 @@ class Algo1:
 
     def __init__(self, ticker=None, start_date=None,
                  end_date=None, tickers_list=None, consecutive_days=None,
-                 consecutive_days_sell=None):
+                 consecutive_days_sell=None,market=None):
         """
         Initialize the Algo1 instance.
 
@@ -88,6 +89,8 @@ class Algo1:
             consecutive_days_sell (int or None):
                 The number of consecutive days the sell conditions should be met
                 to generate signals. If None, the default is None.
+            market (str or None):
+                The market we want to retrive ticker codes from.
         """
         self.ticker = ticker
         self.start_date = start_date
@@ -96,6 +99,7 @@ class Algo1:
         self.consecutive_days = consecutive_days
         self.consecutive_days_sell = consecutive_days_sell
         self.db_instance = Database()
+        self.market = market
 
     def rsi(self) -> pd.Series:
         """
@@ -136,30 +140,33 @@ class Algo1:
             signals (pd.DataFrame):
                 DataFrame containing the buy and sell signals.
         """
-        db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+        if self.market == "USA":
+            db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
 
-        data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                            end_date=self.end_date,
-                                                            ticker=self.ticker,
-                                                            database_path=db_path)
-        data.set_index('Date', inplace=True)
-        data = data[~data.index.duplicated(keep='first')]
-        data = data['Adj Close']
+            data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                        end_date=self.end_date,
+                                                        ticker=self.ticker,
+                                                        database_path=db_path)
+            data.set_index('Date', inplace=True)
+            data = data[~data.index.duplicated(keep='first')]
+            data = data['Adj Close']
+        else:
+            instance_database0 = Database(start=self.start_date,
+                                          end=self.end_date,
+                                          ticker=self.ticker)
+            data = instance_database0.get_price_data()
+
+            data = data['Adj Close']
 
         lower_band = self.bollinger_bands()['Lower']
         upper_band = self.bollinger_bands()['Upper']
         rsi = self.rsi()
 
-        # Align data
-        data, lower_band = data.align(lower_band, join='inner')
-        data, upper_band = data.align(upper_band, join='inner')
-        data, rsi = data.align(rsi, join='inner')
-
-        # Convert aligned series to arrays
         current_price = data.values
-        rsi_aligned = rsi.values
-        lower_band_aligned = lower_band.values
-        upper_band_aligned = upper_band.values
+
+        rsi_aligned = rsi.reindex(data.index).values
+        lower_band_aligned = lower_band.reindex(data.index).values
+        upper_band_aligned = upper_band.reindex(data.index).values
 
         consecutive_buy = 0
         consecutive_sell = 0
@@ -167,27 +174,28 @@ class Algo1:
         sell_signal = [0] * len(data)
 
         for i in range(len(data)):
-            # Check if index is within bounds
-            if i < len(rsi_aligned) and i < len(current_price) and i < len(lower_band_aligned):
-                if not np.isnan(rsi_aligned[i]) and not np.isnan(current_price[i]) and not np.isnan(
-                        lower_band_aligned[i]):
-                    if (rsi_aligned[i] < 30) and (current_price[i] < lower_band_aligned[i]):
-                        consecutive_buy += 1
-                        consecutive_sell = 0
-                    elif (rsi_aligned[i] > 70) and (current_price[i] > upper_band_aligned[i]):
-                        consecutive_sell += 1
-                        consecutive_buy = 0
-                    else:
-                        consecutive_buy = 0
-                        consecutive_sell = 0
-
-                    buy_signal[i] = 1 if (consecutive_buy >= self.consecutive_days) else 0
-                    sell_signal[i] = -1 if (consecutive_sell >= self.consecutive_days_sell) else 0
+            if not np.isnan(rsi_aligned[i]) and not np.isnan(
+                    current_price[i]) and not np.isnan(lower_band_aligned[i]):
+                if (rsi_aligned[i] < 30) and (current_price[i] < lower_band_aligned[i]):
+                    consecutive_buy += 1
+                    consecutive_sell = 0
+                elif (rsi_aligned[i] > 70) and (current_price[i] > upper_band_aligned[i]):
+                    consecutive_sell += 1
+                    consecutive_buy = 0
                 else:
                     consecutive_buy = 0
                     consecutive_sell = 0
 
-        # Create DataFrame with signals
+                buy_signal[i] = 1 if (
+                            self.consecutive_days is not None
+                            and consecutive_buy >= self.consecutive_days) else 0
+                sell_signal[i] = -1 if (
+                            self.consecutive_days_sell is not None and
+                            consecutive_sell >= self.consecutive_days_sell) else 0
+            else:
+                consecutive_buy = 0
+                consecutive_sell = 0
+
         signals = pd.DataFrame(data.index, columns=['Date'])
         signals[self.ticker + '_Buy'] = buy_signal
         signals[self.ticker + '_Sell'] = sell_signal
@@ -214,7 +222,8 @@ class Algo1:
             try:
                 instance_1 = Algo1(ticker=ticker1,
                                    start_date=self.start_date,
-                                   end_date=self.end_date)
+                                   end_date=self.end_date,
+                                   market=self.market)
                 signals_1 = instance_1.generate_signals()
             except KeyError as error:
                 print(f"KeyError for the {ticker1}: {str(error)}")

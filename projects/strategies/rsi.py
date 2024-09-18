@@ -12,16 +12,16 @@ from data.finance_database import Database
 import pandas as pd
 import pandas_ta as pta
 
-
 class RSIStrategy():
     """
     Main class for the RSI-Strategy.
     """
-    def __init__(self,ticker: str,start_date,end_date):
+    def __init__(self,ticker: str,start_date,end_date,market=None):
         self.ticker = ticker
         self.start_date = start_date
         self.end_date = end_date
         self.db_instance = Database()
+        self.market = market
 
     def get_data(self) -> pd.DataFrame:
         """
@@ -34,15 +34,23 @@ class RSIStrategy():
         data: pd.DataFrame
             A DataFrame containing the RSI values for each day.
         """
-        db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
-        data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                    end_date=self.end_date,
-                                                    ticker=self.ticker,
-                                                    database_path=db_path)
-        data.set_index('Date',inplace=True)
-        data = data[~data.index.duplicated(keep='first')]
+        if self.market == "USA":
+            db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+            data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                        end_date=self.end_date,
+                                                        ticker=self.ticker,
+                                                        database_path=db_path)
+            data.set_index('Date',inplace=True)
+            data = data[~data.index.duplicated(keep='first')]
+        else:
+            instance_database = Database(start=self.start_date,
+                                         end=self.end_date,
+                                         ticker=self.ticker)
+            data = instance_database.get_price_data()
+
         rsi = pta.rsi(data['Adj Close'],length=14)
         data['RSI'] = rsi
+
         return data.dropna()
 
     def backtest(self):

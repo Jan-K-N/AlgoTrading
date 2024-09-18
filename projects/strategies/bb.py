@@ -51,7 +51,7 @@ class BollingerBandsStrategy:
 
     # pylint: disable=too-many-arguments.
     def __init__(self, ticker: str, start_date: str, end_date: str, window: int = 20,
-                 dev_factor: int = 2, transaction_cost: float = 0.1):
+                 dev_factor: int = 2, transaction_cost: float = 0.1,market=None):
         """
         Initializes the BollingerBandsStrategy object with the specified parameters.
 
@@ -69,7 +69,8 @@ class BollingerBandsStrategy:
             The number of standard deviations for the band calculation (default is 2).
         transaction_cost : float, optional
             The cost of each transaction as a percentage of the transaction value (default is 0.1).
-
+        market (str or None):
+            the market we want to retrive ticker codes from.
         """
         self.ticker = ticker
         self.start_date = start_date
@@ -79,6 +80,7 @@ class BollingerBandsStrategy:
         self.transaction_cost = transaction_cost
         self.db_instance = Database()
         self.data = None
+        self.market = market
 
     def get_data(self) -> pd.DataFrame:
         """
@@ -103,17 +105,28 @@ class BollingerBandsStrategy:
         # Call the method to retrieve the data
         data = instance.get_data()
         """
-        db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
-        data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                    end_date=self.end_date,
-                                                    ticker=self.ticker,
-                                                    database_path=db_path)
-        data.set_index('Date',inplace=True)
-        data = data[~data.index.duplicated(keep='first')]
-        data['MA'] = data['Adj Close'].rolling(self.window).mean()
-        data['Upper'] = data['MA'] + self.dev_factor * data['Adj Close'].rolling(self.window).std()
-        data['Lower'] = data['MA'] - self.dev_factor * data['Adj Close'].rolling(self.window).std()
+        if self.market == "USA":
+            db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+            data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+                                                        end_date=self.end_date,
+                                                        ticker=self.ticker,
+                                                        database_path=db_path)
+            data.set_index('Date',inplace=True)
+            data = data[~data.index.duplicated(keep='first')]
+        else:
+            instance_database = Database(start=self.start_date,
+                                         end=self.end_date,
+                                         ticker=self.ticker)
+            data = instance_database.get_price_data()
+            data['MA'] = data['Adj Close'].rolling(self.window).mean()
+            data['Upper'] = (data['MA'] +
+                             self.dev_factor *
+                             data['Adj Close'].rolling(self.window).std())
+            data['Lower'] = (data['MA']
+                             - self.dev_factor
+                             * data['Adj Close'].rolling(self.window).std())
         self.data = data.dropna()
+
         return self.data
 
     def backtest(self) -> pd.DataFrame:
@@ -141,7 +154,6 @@ class BollingerBandsStrategy:
         # Retrieve data if not already available
         if self.data is None:
             self.get_data()  # Retrieve data if not already available
-
 
         self.data['Position'] = np.nan
         self.data.loc[self.data['Adj Close'] < self.data['Lower'], 'Position'] = 1

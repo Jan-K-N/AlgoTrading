@@ -33,6 +33,7 @@ Dependencies:
 # pylint: disable=broad-exception-caught.
 # pylint: disable=too-many-branches.
 # pylint: disable=too-many-statements.
+# pylint: disable=too-many-arguments.
 from datetime import timedelta, datetime
 import pandas as pd
 import os
@@ -55,22 +56,30 @@ import logging
 logger = logging.getLogger(__name__)
 
 def get_signals_data(scraper: object, start_date: str, end_date: str,
-                     consecutive_days: int = 1, consecutive_days_sell: int = 1):
+                     consecutive_days: int = 1,
+                     consecutive_days_sell: int = 1,
+                     market: str = "default"):
     """
-    Retrieves trading signals data for a given scraper, start date, and end date.
+    Retrieves trading signals data for a given scraper, start date, end date, and market.
 
     Parameters:
-    _________
+    __________
         scraper (object): An object with a 'run_scraper' method to retrieve a list of tickers.
         start_date (str): Start date for the signal analysis in the format 'YYYY-MM-DD'.
         end_date (str): End date for the signal analysis in the format 'YYYY-MM-DD'.
+        consecutive_days (int): Number of consecutive days for buy signal. Defaults to 1.
+        consecutive_days_sell (int): Number of consecutive days for sell signal. Defaults to 1.
+        market (str): The market to consider for the signal analysis. Defaults to 'default'.
 
     Returns:
-    _________
-        list: A list of dictionaries, each containing trading signals data for a specific ticker.
-        Each dictionary has keys 'Ticker', 'Buy', 'Sell', and 'Date'.
+    __________
+        Tuple[List[dict], List[pd.DataFrame]]:
+            - A list of dictionaries, each containing trading signals data for a specific ticker.
+              Each dictionary has keys 'Ticker', 'Buy', 'Sell', and 'Date'.
+            - A list of dataframes, each containing the trading signals for a specific ticker.
     """
     output_list = []
+    signals_data = []
     tickers_list = scraper.run_scraper()
 
     for ticker in tickers_list:
@@ -79,7 +88,8 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
                              start_date=start_date,
                              end_date=end_date,
                              consecutive_days=consecutive_days,
-                             consecutive_days_sell=consecutive_days_sell)
+                             consecutive_days_sell=consecutive_days_sell,
+                             market=market)
             signals = instance.generate_signals()
         except KeyError as error:
             print(f"KeyError for {ticker}: {str(error)}")
@@ -88,34 +98,27 @@ def get_signals_data(scraper: object, start_date: str, end_date: str,
             print(f"ValueError for {ticker}: {str(error)}")
             continue
 
-        condition1 = signals[ticker + '_Buy'] == 1
-        condition2 = signals[ticker + '_Sell'] == -1
-
+        condition1 = signals[f"{ticker}_Buy"] == 1
+        condition2 = signals[f"{ticker}_Sell"] == -1
         combined_condition = condition1 | condition2
-
         extracted_rows = signals[combined_condition]
 
-        new_df = pd.DataFrame()
-        new_df["Ticker"] = [ticker] * len(extracted_rows)
-        new_df["Buy"] = [1 if b else "" for b in extracted_rows[ticker + '_Buy']]
-        new_df["Sell"] = [-1 if s else "" for s in extracted_rows[ticker + '_Sell']]
-        new_df.index = pd.to_datetime(extracted_rows['Date'])
+        if not extracted_rows.empty:
+            new_df = pd.DataFrame({
+                "Ticker": [ticker] * len(extracted_rows),
+                "Buy": [1 if b else "" for b in extracted_rows[f"{ticker}_Buy"]],
+                "Sell": [-1 if s else "" for s in extracted_rows[f"{ticker}_Sell"]],
+                "Date": pd.to_datetime(extracted_rows['Date'])
+            })
 
-
-        if not new_df.empty:
-            output_list.append(new_df)
-
-        signals_data = []
-
-        for i, output_df in enumerate(output_list):
             signal_entry = {
-                'Ticker': output_df.iloc[-1].Ticker,
-                'Buy': output_df.iloc[-1].Buy,
-                'Sell': output_df.iloc[-1].Sell,
-                'Date': output_df.index[-1].strftime('%Y-%m-%d'),
+                'Ticker': new_df.iloc[-1]['Ticker'],
+                'Buy': new_df.iloc[-1]['Buy'],
+                'Sell': new_df.iloc[-1]['Sell'],
+                'Date': new_df.iloc[-1]['Date'].strftime('%Y-%m-%d')
             }
-
             signals_data.append(signal_entry)
+            output_list.append(new_df)
 
     return signals_data
 
@@ -446,6 +449,13 @@ def american_navigation(request):
     request.session['market'] = 'USA'
     return render(request, 'myapp/american_navigation.html')
 
+def other_navigation(request):
+    """
+    Method used for navigation between markets.
+    """
+    market = request.GET.get('market','default_market')
+    request.session['market'] = market
+    return render(request,'myapp/other_navigation.html',{'market': market})
 
 def algo1_navigation(request):
     """
@@ -609,7 +619,7 @@ def american_signals(request):
 
     # Pass consecutive_days and consecutive_days_sell to get_signals_data function
     sandp_signals_data = get_signals_data(sandp_scraper, start_date, end_date,
-                                           consecutive_days, consecutive_days_sell)
+                                           consecutive_days, consecutive_days_sell,market='USA')
     context = {
         'sandp_signals_data': sandp_signals_data,
         'start_date': start_date,
