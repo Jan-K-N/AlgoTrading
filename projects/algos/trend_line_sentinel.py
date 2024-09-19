@@ -266,8 +266,8 @@ if __name__ == "__main__":
 
     # Loop over tickers
     for ticker in tickers_list:
-        instance = Sentinel(start_date="2022-01-01",
-                            end_date="2023-01-01",
+        instance = Sentinel(start_date="2023-01-01",
+                            end_date="2024-01-01",
                             ticker=ticker)
         k1 = instance.sentinel_data()
         k = instance.generate_signals()
