@@ -70,7 +70,7 @@ class Algo1:
 
     def __init__(self, ticker=None, start_date=None,
                  end_date=None, tickers_list=None, consecutive_days=None,
-                 consecutive_days_sell=None,market=None):
+                 consecutive_days_sell=None,market=None,db_instance=None):
         """
         Initialize the Algo1 instance.
 
@@ -100,8 +100,28 @@ class Algo1:
         self.tickers_list = tickers_list
         self.consecutive_days = consecutive_days
         self.consecutive_days_sell = consecutive_days_sell
-        self.db_instance = Database()
+        self.db_instance = db_instance or Database()
         self.market = market
+
+    def retrieve_price_data(self):
+        """
+        Retrieves price data from the database
+        or external sources based on the market.
+        """
+        if self.market == "USA":
+            db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+            data = self.db_instance.retrieve_data_from_database(
+                start_date = self.start_date,
+                end_date = self.end_date,
+                ticker = self.ticker,
+                database_path=db_path
+            )
+        else:
+            data = self.db_instance.get_price_data()
+
+        data.set_index('Date',inplace=True)
+        data = data[~data.index.duplicated(keep='first')]
+        return data['Adj Close']
 
     def rsi(self) -> pd.Series:
         """
