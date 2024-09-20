@@ -153,120 +153,221 @@ class Algo1:
         bollingerbands_data = bollingerbands_instance.get_data()
         return bollingerbands_data
 
+    # def generate_signals(self):
+    #     """
+    #     Generates buy and sell signals based on RSI and Bollinger Bands strategies.
+    #
+    #     Returns:
+    #     -------
+    #         signals (pd.DataFrame):
+    #             DataFrame containing the buy and sell signals.
+    #     """
+    #     if self.market == "USA":
+    #         db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
+    #
+    #         data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
+    #                                                     end_date=self.end_date,
+    #                                                     ticker=self.ticker,
+    #                                                     database_path=db_path)
+    #         data.set_index('Date', inplace=True)
+    #         data = data[~data.index.duplicated(keep='first')]
+    #         data = data['Adj Close']
+    #     else:
+    #         instance_database0 = Database(start=self.start_date,
+    #                                       end=self.end_date,
+    #                                       ticker=self.ticker)
+    #         data = instance_database0.get_price_data()
+    #
+    #         data = data['Adj Close']
+    #
+    #     lower_band = self.bollinger_bands()['Lower']
+    #     upper_band = self.bollinger_bands()['Upper']
+    #     rsi = self.rsi()
+    #
+    #     current_price = data.values
+    #
+    #     rsi_aligned = rsi.reindex(data.index).values
+    #     lower_band_aligned = lower_band.reindex(data.index).values
+    #     upper_band_aligned = upper_band.reindex(data.index).values
+    #
+    #     consecutive_buy = 0
+    #     consecutive_sell = 0
+    #     buy_signal = [0] * len(data)
+    #     sell_signal = [0] * len(data)
+    #
+    #     for i in range(len(data)):
+    #         if not np.isnan(rsi_aligned[i]) and not np.isnan(
+    #                 current_price[i]) and not np.isnan(lower_band_aligned[i]):
+    #             if (rsi_aligned[i] < 30) and (current_price[i] < lower_band_aligned[i]):
+    #                 consecutive_buy += 1
+    #                 consecutive_sell = 0
+    #             elif (rsi_aligned[i] > 70) and (current_price[i] > upper_band_aligned[i]):
+    #                 consecutive_sell += 1
+    #                 consecutive_buy = 0
+    #             else:
+    #                 consecutive_buy = 0
+    #                 consecutive_sell = 0
+    #
+    #             buy_signal[i] = 1 if (
+    #                         self.consecutive_days is not None
+    #                         and consecutive_buy >= self.consecutive_days) else 0
+    #             sell_signal[i] = -1 if (
+    #                         self.consecutive_days_sell is not None and
+    #                         consecutive_sell >= self.consecutive_days_sell) else 0
+    #         else:
+    #             consecutive_buy = 0
+    #             consecutive_sell = 0
+    #
+    #     signals = pd.DataFrame(data.index, columns=['Date'])
+    #     signals[self.ticker + '_Buy'] = buy_signal
+    #     signals[self.ticker + '_Sell'] = sell_signal
+    #
+    #     return signals
+
+
     def generate_signals(self):
         """
-        Generates buy and sell signals based on RSI and Bollinger Bands strategies.
-
+        This method generates buy and sell signals based on the
+        logic in the algorithm.
         Returns:
-        -------
-            signals (pd.DataFrame):
-                DataFrame containing the buy and sell signals.
+
         """
-        if self.market == "USA":
-            db_path = Path.home() / "Desktop" / "Database" / "SandP.db"
-
-            data = self.db_instance.retrieve_data_from_database(start_date=self.start_date,
-                                                        end_date=self.end_date,
-                                                        ticker=self.ticker,
-                                                        database_path=db_path)
-            data.set_index('Date', inplace=True)
-            data = data[~data.index.duplicated(keep='first')]
-            data = data['Adj Close']
-        else:
-            instance_database0 = Database(start=self.start_date,
-                                          end=self.end_date,
-                                          ticker=self.ticker)
-            data = instance_database0.get_price_data()
-
-            data = data['Adj Close']
-
+        data = self.retrieve_price_data()
+        if data.empty:
+            raise ValueError(f"No price data available for {self.ticker} within the given date range.")
         lower_band = self.bollinger_bands()['Lower']
         upper_band = self.bollinger_bands()['Upper']
         rsi = self.rsi()
 
-        current_price = data.values
+        rsi_aligned = rsi.reindex(data.index)
+        lower_band_aligned = lower_band.reindex(data.index)
+        upper_band_aligned = upper_band.reindex(data.index)
 
-        rsi_aligned = rsi.reindex(data.index).values
-        lower_band_aligned = lower_band.reindex(data.index).values
-        upper_band_aligned = upper_band.reindex(data.index).values
+        if rsi_aligned.empty or lower_band_aligned.empty or upper_band_aligned.empty:
+            raise ValueError(f"Empty data for RSI or Bollinger Bands for {self.ticker}")
 
-        consecutive_buy = 0
-        consecutive_sell = 0
-        buy_signal = [0] * len(data)
-        sell_signal = [0] * len(data)
+        buy_signals, sell_signals = self._generate_buy_sell_signals(
+            prices=data,
+            rsi=rsi_aligned,
+            lower_band=lower_band_aligned,
+            upper_band=upper_band_aligned
+        )
 
-        for i in range(len(data)):
-            if not np.isnan(rsi_aligned[i]) and not np.isnan(
-                    current_price[i]) and not np.isnan(lower_band_aligned[i]):
-                if (rsi_aligned[i] < 30) and (current_price[i] < lower_band_aligned[i]):
+        signals = self._create_signal_dataframe((buy_signals, sell_signals), data)
+
+        # signals0 = self._generate_buy_sell_signals(data, rsi, lower_band, upper_band)
+        # signals = self._create_signal_dataframe(signals0, data)
+        return signals
+
+    def _generate_buy_sell_signals(self,prices,rsi,lower_band,upper_band):
+        """
+        Internal helper method to generate buy/sell signals based on conditions.
+
+        Args:
+            prices: Adj close prices for a ticker symbol.
+            rsi: The rsi indicator.
+            lower_band: Lower bollinger band.
+            upper_band: Upper bollinger band.
+
+        Returns:
+
+        """
+        consecutive_buy,consecutive_sell = 0,0
+        buy_signals,sell_signals = [0] * len(prices), [0] * len(prices)
+
+        for i in range(len(prices)):
+            if not np.isnan([rsi[i],prices[i],lower_band[i]]).any():
+                if (rsi[i] < 30 and prices[i] < lower_band[i]):
                     consecutive_buy += 1
                     consecutive_sell = 0
-                elif (rsi_aligned[i] > 70) and (current_price[i] > upper_band_aligned[i]):
+                elif (rsi[i] > 70 and prices[i] > upper_band[i]):
                     consecutive_sell += 1
                     consecutive_buy = 0
                 else:
-                    consecutive_buy = 0
-                    consecutive_sell = 0
+                    consecutive_buy, consecutive_sell = 0, 0
 
-                buy_signal[i] = 1 if (
-                            self.consecutive_days is not None
-                            and consecutive_buy >= self.consecutive_days) else 0
-                sell_signal[i] = -1 if (
-                            self.consecutive_days_sell is not None and
-                            consecutive_sell >= self.consecutive_days_sell) else 0
-            else:
-                consecutive_buy = 0
-                consecutive_sell = 0
+                buy_signals[i] = 1 if consecutive_buy >= (self.consecutive_days or 0) else 0
+                sell_signals[i] = -1 if consecutive_sell >= (self.consecutive_days_sell or 0) else 0
 
-        signals = pd.DataFrame(data.index, columns=['Date'])
-        signals[self.ticker + '_Buy'] = buy_signal
-        signals[self.ticker + '_Sell'] = sell_signal
+            return buy_signals, sell_signals
 
-        return signals
-
-    def algo1_loop(self) -> list:
+    def _create_signal_dataframe(self,signals,prices):
         """
-        Executes the algorithm for multiple tickers and generates
-        buying/selling signals for each ticker.
+        Creates a DataFrame to store the signals.
+
+        Args:
+            signals: Signals made by the algo.
+            prices: Prices used in the algo.
 
         Returns:
-        -------
-            signals_list (list of pd.DataFrame):
-                A list of pandas DataFrames, each containing the
-                buying/selling signals for a ticker. Each DataFrame has 3 columns:
-                'Date', 'Buy', and 'Sell', where 'Buy' and 'Sell' are
-                binary indicators of whether a buy or a sell signal was
-                generated on that date for the corresponding ticker.
+            A dataframe to store the signals.
+
+        """
+        dates = prices.index
+        signal_df = pd.DataFrame(dates, columns=['Date'])
+        signal_df[f'{self.ticker}_Buy'], signal_df[f'{self.ticker}_Sell'] = signals
+        return signal_df
+
+    # def algo1_loop(self) -> list:
+    #     """
+    #     Executes the algorithm for multiple tickers and generates
+    #     buying/selling signals for each ticker.
+    #
+    #     Returns:
+    #     -------
+    #         signals_list (list of pd.DataFrame):
+    #             A list of pandas DataFrames, each containing the
+    #             buying/selling signals for a ticker. Each DataFrame has 3 columns:
+    #             'Date', 'Buy', and 'Sell', where 'Buy' and 'Sell' are
+    #             binary indicators of whether a buy or a sell signal was
+    #             generated on that date for the corresponding ticker.
+    #     """
+    #     signals_list = []
+    #
+    #     for ticker1 in self.tickers_list:
+    #         try:
+    #             instance_1 = Algo1(ticker=ticker1,
+    #                                start_date=self.start_date,
+    #                                end_date=self.end_date,
+    #                                market=self.market)
+    #             signals_1 = instance_1.generate_signals()
+    #         except KeyError as error:
+    #             print(f"KeyError for the {ticker1}: {str(error)}")
+    #             continue
+    #         except ValueError as error:
+    #             print(f"ValueError for the {ticker1}: {str(error)}")
+    #             continue
+    #
+    #         condition1_buy = signals_1[ticker1 + '_Buy'] == 1
+    #         condition2_sell = signals_1[ticker1 + '_Sell'] == 1
+    #
+    #         combined_condition = condition1_buy | condition2_sell
+    #
+    #         extracted_rows = signals_1[combined_condition]
+    #
+    #         df_signals = pd.DataFrame()
+    #         df_signals["Ticker"] = [ticker1] * len(extracted_rows)
+    #         df_signals["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
+    #         df_signals["Sell"] = [-1 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
+    #         df_signals.index = extracted_rows['Date']
+    #
+    #         if not df_signals.empty:
+    #             signals_list.append(df_signals)
+    #     return signals_list
+    def algo1_loop(self):
+        """
+        Executes the algorithm for all tickers in the tickers_list.
         """
         signals_list = []
-
-        for ticker1 in self.tickers_list:
+        for ticker in self.tickers_list:
             try:
-                instance_1 = Algo1(ticker=ticker1,
-                                   start_date=self.start_date,
-                                   end_date=self.end_date,
-                                   market=self.market)
-                signals_1 = instance_1.generate_signals()
-            except KeyError as error:
-                print(f"KeyError for the {ticker1}: {str(error)}")
+                instance = Algo1(ticker=ticker, start_date=self.start_date, end_date=self.end_date,
+                                 market=self.market, db_instance=self.db_instance)
+                signals = instance.generate_signals()
+                filtered_signals = signals[(signals[f'{ticker}_Buy'] == 1) | (signals[f'{ticker}_Sell'] == -1)]
+                if not filtered_signals.empty:
+                    signals_list.append(filtered_signals)
+            except (KeyError, ValueError) as e:
+                print(f"Error processing {ticker}: {e}")
                 continue
-            except ValueError as error:
-                print(f"ValueError for the {ticker1}: {str(error)}")
-                continue
-
-            condition1_buy = signals_1[ticker1 + '_Buy'] == 1
-            condition2_sell = signals_1[ticker1 + '_Sell'] == 1
-
-            combined_condition = condition1_buy | condition2_sell
-
-            extracted_rows = signals_1[combined_condition]
-
-            df_signals = pd.DataFrame()
-            df_signals["Ticker"] = [ticker1] * len(extracted_rows)
-            df_signals["Buy"] = [1 if b else "" for b in extracted_rows[ticker1 + '_Buy']]
-            df_signals["Sell"] = [-1 if s else "" for s in extracted_rows[ticker1 + '_Sell']]
-            df_signals.index = extracted_rows['Date']
-
-            if not df_signals.empty:
-                signals_list.append(df_signals)
         return signals_list
