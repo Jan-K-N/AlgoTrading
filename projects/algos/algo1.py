@@ -6,7 +6,7 @@ on Relative Strength Index (RSI) and Bollinger Bands strategies.
 It provides methods for calculating RSI, Bollinger Bands, generating
 buy and sell signals, and executing the algorithm for multiple tickers.
 These methods takes advantage of another class, where theese
-strateis are defined.
+strategies are defined.
 """
 # pylint: disable=wrong-import-position.
 # pylint: disable=too-many-locals.
