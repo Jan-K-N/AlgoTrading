@@ -91,7 +91,7 @@ def run_strategy():
     """
     Runs the strategy for a list of tickers and collects the buy signals.
     """
-    tickers_list0 = SAndPScraper()  # Example of using a scraper
+    tickers_list0 = OMXC25scraper()  # Example of using a scraper
     tickers = tickers_list0.run_scraper()
 
     all_signals = pd.DataFrame()
