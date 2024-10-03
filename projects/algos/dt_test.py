@@ -15,7 +15,7 @@ import streamlit as st
 from datetime import datetime
 
 
-def get_stock_data(ticker: str, interval: str = '15m', period: str = '1d') -> pd.DataFrame:
+def get_stock_data(ticker: str, interval: str = '5m', period: str = '1d') -> pd.DataFrame:
     """
     Fetches stock data for a given ticker using yfinance.
     """
@@ -91,7 +91,7 @@ def run_strategy():
     """
     Runs the strategy for a list of tickers and collects the buy signals.
     """
-    tickers_list0 = SAndPScraper()  # Example of using a scraper
+    tickers_list0 = OMXS30scraper() # Example of using a scraper
     tickers = tickers_list0.run_scraper()
 
     all_signals = pd.DataFrame()
